@@ -1,0 +1,6 @@
+build/*
+examples/*
+src/hackerrank/*
+src/temp/*
+*.user
+*.kdev4
