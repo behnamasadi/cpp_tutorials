@@ -146,7 +146,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 
 ## [CMake Tutorials](CMake_Tutorials)  
 
-[![Build Status](https://travis-ci.org/behnamasadi/Tutorials.svg?branch=master)](https://travis-ci.org/behnamasadi/Tutorials)
+[![Build Status](https://travis-ci.com/behnamasadi/Tutorials.svg?branch=master)](https://travis-ci.com/behnamasadi/Tutorials)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
 
