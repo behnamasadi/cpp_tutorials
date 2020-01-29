@@ -1,0 +1,3 @@
+[submodule "CMake_Tutorials/project/extern/googletest"]
+	path = CMake_Tutorials/project/extern/googletest
+	url = https://github.com/google/googletest.git

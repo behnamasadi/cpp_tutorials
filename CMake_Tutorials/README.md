@@ -31,10 +31,17 @@
 
 
 ## Setting the compiler
+### clang
 ```
-CC=clang CXX=clang++ cmake ../  
-CC=gcc CXX=g++ cmake ../  
+export CC=/usr/bin/clang
+export CXX=/usr/bin/clang++
 ```
+### gcc
+```
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
+```
+
 ## Cmake command Line Parameters
 
 -S `<path to source directory>`   
@@ -194,7 +201,7 @@ message(STATUS "VERSION: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 Let say you have used google test in your project, to enable testing, first we add google test as submodule:
 
 ```
-git submodule add --branch=release-1.8.0 ../../google/googletest.git extern/googletest
+git submodule add  https://github.com/google/googletest.git extern/googletest
 ```
 Then in the main CMakeList
 ```
@@ -299,5 +306,6 @@ set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 ```
 References:[1](https://gist.github.com/mbinna/), [2](https://cliutils.gitlab.io/modern-cmake/), 
+
 
 
