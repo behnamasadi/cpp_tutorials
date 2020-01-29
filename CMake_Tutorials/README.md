@@ -128,11 +128,11 @@ MESSAGE( STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} )
 MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} )
 MESSAGE( STATUS "CMAKE_INSTALL_PREFIX: " ${CMAKE_INSTALL_PREFIX} )
 MESSAGE( STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR} )
-MESSAGE( STATUS "CMAKE_SOURCE_DIR:         " ${CMAKE_SOURCE_DIR} )
+MESSAGE( STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR} )
 MESSAGE( STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR} )
 MESSAGE( STATUS "PROJECT_BINARY_DIR: " ${PROJECT_BINARY_DIR} )
 MESSAGE( STATUS "CMAKE_CURRENT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR} )
-MESSAGE( STATUS "CMAKE_BINARY_DIR:         " ${CMAKE_BINARY_DIR} )
+MESSAGE( STATUS "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
 MESSAGE( STATUS "EXECUTABLE_OUTPUT_PATH: " "${EXECUTABLE_OUTPUT_PATH}" )
 MESSAGE( STATUS "LIBRARY_OUTPUT_PATH:     " "${LIBRARY_OUTPUT_PATH}" )
 MESSAGE( STATUS "CMAKE_MODULE_PATH: " "${CMAKE_MODULE_PATH}" )
@@ -174,7 +174,6 @@ The conntet of "Version.h" will be
 
 ### CMake reading from your files
 
-
 ```
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/project/Version.hpp" VERSION)
 
@@ -190,6 +189,31 @@ set(VERSION_PATCH ${CMAKE_MATCH_1})
 message(STATUS "VERSION: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 ```
+
+## Including Projects
+Let say you have used google test in your project, to enable testing, first we add google test as submodule:
+
+```
+git submodule add --branch=release-1.8.0 ../../google/googletest.git extern/googletest
+```
+Then in the main CMakeList
+```
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+# Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
+```
+
 
 
 ## How to find CMake from arbitrary installed locations
