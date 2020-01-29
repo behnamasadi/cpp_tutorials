@@ -2,30 +2,74 @@
 
 
 ##Typical project structure
-|-- project_name /
-| |-- CMakeLists .txt
-| |-- build/ # All generated build files
-| |-- bin/
-| | |-- tools_demo
-| |-- lib/
-| | |-- libtools.a
-| |-- src/
-| | |-- CMakeLists .txt
-| | |-- project_name
-| | |-- CMakeLists .txt
-| | |-- tools.h
-| | |-- tools.cpp
-| | |-- tools_demo .cpp
-| |-- tests/ # Tests for your code
-| | |-- test_tools .cpp
-| | |-- CMakeLists .txt
-| |-- readme.md # How to use your code
+- project
+  - .gitignore
+  - README.md
+  - LICENCE.md
+  - CMakeLists.txt
+  - cmake
+    - FindSomeLib.cmake
+    - something_else.cmake
+  - include
+    - project
+      - lib.hpp
+  - src
+    - CMakeLists.txt
+    - lib.cpp
+  - apps
+    - CMakeLists.txt
+    - app.cpp
+  - tests
+    - CMakeLists.txt
+    - testlib.cpp
+  - docs
+    - CMakeLists.txt
+  - extern
+    - googletest
+  - scripts
+    - helper.py
 
 
-## Snippet
-project( first_project ) # Mandatory.
-cmake_minimum_required(VERSION 3.1) # Mandatory.
-set( CMAKE_CXX_STANDARD 11) # Use c++11.
+## Setting the compiler
+
+CC=clang CXX=clang++ cmake ../
+CC=gcc CXX=g++ cmake ../
+
+## Cmake command Line Parameters
+
+-S <path to source directory>  
+-B <path to build directory>  
+-D <cache variable>=<value>  
+-G <generator-name>          
+Examples:
+cmake -G"Visual Studio 12" ../  
+cmake -GXcode ../   
+cmake -G "Unix Makefiles"  ../  
+
+--graphviz=[dependency graph outfile]  
+--trace-source=CMakeLists.txt  
+
+Example:
+cmake   --graphviz=viz.dot  --trace-source=CMakeLists.txt
+dot -Tsvg viz.dot -o viz.svg
+
+-L[A][H]  
+
+
+## Body of CMakeLists.txt
+
+Always use lowercase function names. Always user lower case. Upper case is for variables.
+
+cmake_minimum_required(VERSION 3.1)  
+
+project(my-cmake-project VERSION 1.2.0.3 DESCRIPTION "An example project with CMake" LANGUAGES CXX)  
+
+
+#The languages are C, CXX, Fortran, ASM, CUDA (CMake 3.8+), CSharp (3.8+), and SWIFT
+
+
+
+
 #tell cmake to output binaries here:
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set( LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
@@ -193,3 +237,6 @@ endif()
 set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 ```
+References:[1](https://gist.github.com/mbinna/), [2](https://cliutils.gitlab.io/modern-cmake/), 
+
+
