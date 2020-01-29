@@ -1,7 +1,7 @@
 # CMake Tutorials
 
 
-##Typical project structure
+##  Typical project structure
 - project
   - .gitignore
   - README.md
@@ -31,32 +31,37 @@
 
 
 ## Setting the compiler
-
-CC=clang CXX=clang++ cmake ../
-CC=gcc CXX=g++ cmake ../
-
+```
+CC=clang CXX=clang++ cmake ../  
+CC=gcc CXX=g++ cmake ../  
+```
 ## Cmake command Line Parameters
 
--S <path to source directory>  
--B <path to build directory>  
--D <cache variable>=<value>  
--G <generator-name>          
-Examples:
+-S `<path to source directory>`  
+-B `<path to build directory>`  
+-D `<cache variable>=<value>` 
+-G `<generator-name>`          
+### Generating solution for Visual Studio, Xcode :
+```
 cmake -G"Visual Studio 12" ../  
 cmake -GXcode ../   
 cmake -G "Unix Makefiles"  ../  
+```
+### Visualising dependency graph:
 
 --graphviz=[dependency graph outfile]  
 --trace-source=CMakeLists.txt  
 
-Example:
+```
 cmake   --graphviz=viz.dot  --trace-source=CMakeLists.txt
 dot -Tsvg viz.dot -o viz.svg
+```
+### Lisiting all variables with description:
 
 -L[A][H]  
 
 
-## Body of CMakeLists.txt
+## Built in Functions in Cmake
 
 Always use lowercase function names. Always user lower case. Upper case is for variables.
 
