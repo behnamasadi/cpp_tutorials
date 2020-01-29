@@ -37,10 +37,10 @@ CC=gcc CXX=g++ cmake ../
 ```
 ## Cmake command Line Parameters
 
--S `<path to source directory>`  
+-S `<path to source directory>`   
 -B `<path to build directory>`  
--D `<cache variable>=<value>` 
--G `<generator-name>`          
+-D `<cache variable>=<value>`  
+-G `<generator-name>`   
 ### Generating solution for Visual Studio, Xcode :
 ```
 cmake -G"Visual Studio 12" ../  
@@ -64,29 +64,37 @@ dot -Tsvg viz.dot -o viz.svg
 ## Built in Functions in Cmake
 
 Always use lowercase function names. Always user lower case. Upper case is for variables.
+The languages are C, CXX, Fortran, ASM, CUDA (CMake 3.8+), CSharp (3.8+), and SWIFT.
 
+```
 cmake_minimum_required(VERSION 3.1)  
+project(my-cmake-project VERSION 1.2.3.4 DESCRIPTION "An example project with CMake" LANGUAGES CXX)  
+```
 
-project(my-cmake-project VERSION 1.2.0.3 DESCRIPTION "An example project with CMake" LANGUAGES CXX)  
+```
+add_subdirectory(src)
+```
 
+```
+include(someother.cmake)
+```
 
-#The languages are C, CXX, Fortran, ASM, CUDA (CMake 3.8+), CSharp (3.8+), and SWIFT
-
-
-
-
-#tell cmake to output binaries here:
-set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-set( LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-# tell cmake where to look for *.h files
+tell cmake where to look for *.h files
+```
 include_directories(${PROJECT_SOURCE_DIR}/src)
-# create library "libtools"
+```
+create library "libtools"
+```
 add_library(tools src/tools.cpp)
-# add executable main
+```
+add executable main
+```
 add_executable(main src/ tools_main .cpp)
-# tell the linker to bind these objects together
+```
+tell the linker to bind these objects together
+```
 target_link_libraries(main tools)
-
+```
 
 ## Variables
 ### Reading/ Setting Variables
@@ -99,63 +107,88 @@ Reading variables:
 ```
 ${XXX}
 ```
+Environment variables:
 
-
-### How to print all cmake variable
-1)First way:
-```	
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
 ```
-
-2)Second way:
+$ENV{HOME}  
+$ENV{PATH}  
 ```
-cmake -LAH ../
-```
-
 
 ### Important Builtin variable Variables
 
 ```
-MESSAGE( STATUS "PROJECT_NAME: " ${PROJECT_NAME} )
-
+MESSAGE( STATUS "PROJECT_NAME: " ${PROJECT_NAME} )  
+MESSAGE( STATUS "PROJECT_VERSION: " ${PROJECT_VERSION} )  
+MESSAGE( STATUS "BUILD_SHARED_LIBS: " ${BUILD_SHARED_LIBS} )  
+MESSAGE( STATUS "BUILD_TESTING: " ${BUILD_TESTING} )  
+MESSAGE( STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER} )  
+MESSAGE( STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} )  
 MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} )
-
 MESSAGE( STATUS "CMAKE_INSTALL_PREFIX: " ${CMAKE_INSTALL_PREFIX} )
-
 MESSAGE( STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR} )
-
 MESSAGE( STATUS "CMAKE_SOURCE_DIR:         " ${CMAKE_SOURCE_DIR} )
-
 MESSAGE( STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR} )
-
 MESSAGE( STATUS "PROJECT_BINARY_DIR: " ${PROJECT_BINARY_DIR} )
-
 MESSAGE( STATUS "CMAKE_CURRENT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR} )
-
 MESSAGE( STATUS "CMAKE_BINARY_DIR:         " ${CMAKE_BINARY_DIR} )
-
 MESSAGE( STATUS "EXECUTABLE_OUTPUT_PATH: " ${EXECUTABLE_OUTPUT_PATH} )
-
 MESSAGE( STATUS "LIBRARY_OUTPUT_PATH:     " ${LIBRARY_OUTPUT_PATH} )
-
 MESSAGE( STATUS "CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH} )
-
 MESSAGE( STATUS "CMAKE_INCLUDE_PATH: " ${CMAKE_INCLUDE_PATH} )
-
 MESSAGE( STATUS "CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
-
 MESSAGE( STATUS "CMAKE_LIBRARY_PATH: " ${CMAKE_LIBRARY_PATH} )
-
 MESSAGE( STATUS "CMAKE_SYSTEM_LIBRARY_PATH: " ${CMAKE_SYSTEM_LIBRARY_PATH} )
 ```
 
-### How to set CMake variables via CMake parameters
+
+## Communicating with your code
+### Reading from CMake into your files
+configure_file command copies the content of the first parameter (Version.h.in) to second parameter (Version) and substitute all CMake variables it finds. If you want to avoid replacing existing ${} syntax in your input file, use the @ONLY keyword. 
+There's also a COPY_ONLY keyword if you are just using this as a replacement for file(COPY. 
 ```
-cmake -D<VAR_NAME>=<VALUE>
+configure_file ( "${PROJECT_SOURCE_DIR}/include/project/Version.h.in"  "${PROJECT_BINARY_DIR}/include/project/Version.h")
 ```
+Content of Version.h.in
+```
+#pragma once
+
+#define MY_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define MY_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define MY_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define MY_VERSION_TWEAK @PROJECT_VERSION_TWEAK@
+#define MY_VERSION "@PROJECT_VERSION@"
+```
+The conntet of "Version.h" will be 
+
+```
+#pragma once
+
+#define MY_VERSION_MAJOR 1
+#define MY_VERSION_MINOR 2
+#define MY_VERSION_PATCH 3
+#define MY_VERSION_TWEAK 4
+#define MY_VERSION "1.2.3.4"
+```
+
+### CMake reading from your files
+
+
+```
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/project/Version.hpp" VERSION)
+
+string(REGEX MATCH "VERSION_MAJOR ([0-9]*)" _ ${VERSION})
+set(VERSION_MAJOR ${CMAKE_MATCH_1})
+
+string(REGEX MATCH "VERSION_MINOR ([0-9]*)" _ ${VERSION})
+set(VERSION_MINOR ${CMAKE_MATCH_1})
+
+string(REGEX MATCH "VERSION_PATCH ([0-9]*)" _ ${VERSION})
+set(VERSION_PATCH ${CMAKE_MATCH_1})
+
+message(STATUS "VERSION: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+```
+
 
 ## How to find CMake from arbitrary installed locations
 
@@ -197,30 +230,27 @@ ENDIF()
 FOREACH() ... ENDFOREACH()
 ```
 
-## C++11 support
-
-```
-INCLUDE(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-IF(COMPILER_SUPPORTS_CXX11)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
-ELSEIF(COMPILER_SUPPORTS_CXX0X)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pthread")
-ELSE()
-  MESSAGE(ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-ENDIF()
-```
 
 
-## C++14 support
+
+## C++17 support
 ```
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 ```
 
+## Position independent code
 
+Globally:
+```
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+```
+Explicitly turn it ON (or OFF) for a target:
+
+```
+set_target_properties(lib1 PROPERTIES POSITION_INDEPENDENT_CODE ON)
+```
 
 ## Setting warning into errors
 ```
