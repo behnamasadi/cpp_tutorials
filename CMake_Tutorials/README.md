@@ -1,6 +1,5 @@
 # CMake Tutorials
 
-
 ##  Typical project structure
 - project
   - .gitignore
@@ -48,11 +47,45 @@ export CXX=/usr/bin/g++
 -B `<path to build directory>`  
 -D `<cache variable>=<value>`  
 -G `<generator-name>`   
+
+These are common CMake options to most packages:
+
+`-DCMAKE_BUILD_TYPE` Pick from Release, RelWithDebInfo, Debug, or sometimes more.
+`-DCMAKE_INSTALL_PREFIX` The location to install to. System install on UNIX would often be /usr/local (the default), user directories are often ~/.local, or you can pick a folder.
+`-DBUILD_SHARED_LIBS` You can set this ON or OFF to control the default for shared libraries (the author can pick one vs. the other explicitly instead of using the default, though)
+`-DBUILD_TESTING` This is a common name for enabling tests, not all packages use it, though, sometimes with good reason.
+
+
 ### Generating solution for Visual Studio, Xcode :
+To use an IDE, either pass -G"name of IDE" if CMake can produce that IDE's files (like Xcode, Visual Studio), 
+or open the CMakeLists.txt file from your IDE if that IDE has built in support for CMake (CLion, QtCreator, many others).
+
 ```
-cmake -G"Visual Studio 16" ../  
 cmake -GXcode ../   
 cmake -G "Unix Makefiles"  ../  
+```
+### Visual Studio
+Visual Studio 2019:
+```
+cmake -G"Visual Studio 16" ..
+```
+
+Visual Studio 2017
+```
+cmake -G"Visual Studio 15" ..
+```
+
+Visual Studio 2015 
+```
+cmake -G"Visual Studio 14" ..
+```                   
+Visual Studio 2013
+``
+cmake -G"Visual Studio 12" ..
+``
+and to build:
+```
+cmake --build . --target INSTALL --config Release
 ```
 ### Visualising dependency graph:
 
