@@ -293,8 +293,20 @@ And call it like this:
 ```
 package_add_test(test1 test1.cpp)
 ```
+if you're testing libraries and need to link in different libraries for different tests, you might use this:
+```
+macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES TEST_WORKING_DIRECTORY)
+    add_executable(${TESTNAME} ${FILES})
+    target_link_libraries(${TESTNAME} gtest gmock gtest_main ${LIBRARIES})
+    gtest_discover_tests(${TESTNAME}
+        WORKING_DIRECTORY ${TEST_WORKING_DIRECTORY}
+        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${TEST_WORKING_DIRECTORY}"
+    )
+    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+endmacro()
 
-
+package_add_test_with_libraries(test1 test1.cpp lib_to_test "${PROJECT_DIR}/european-test-data/")
+```
 
 
 
@@ -386,7 +398,7 @@ endif()
 set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 ```
-References:[1](https://gist.github.com/mbinna/), [2](https://cliutils.gitlab.io/modern-cmake/), 
+References:[1](https://gist.github.com/mbinna/), [2](https://cliutils.gitlab.io/modern-cmake/)
 
 
 
