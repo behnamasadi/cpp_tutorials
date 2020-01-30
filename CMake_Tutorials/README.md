@@ -364,7 +364,24 @@ if(NOT googletest_POPULATED)
 endif()
 ```
 
-
+## Exporting Your Project
+	
+### Adding Subproject
+For small and header only libraries, you can just use add_subdirectory() and include the entire  porject.
+You can use **CMAKE_CURRENT_SOURCE_DIR** instead of **PROJECT_SOURCE_DIR** and 
+```
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+...
+endif()
+```
+### Find<mypackage>.cmake
+This should be used when a project has no CMake support. Usually you create **Find<mypackage>.cmake** for a library and put under **cmake** directory in your porject. Then you should set the set the **CMAKE_MODULE_PATH** pointing to that.
+```
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+```
+you can add the project by find_package(packagename [version] [EXACT] [QUIET][REQUIRED] [[COMPONENTS])
+	
+### mypackageConfig.cmake
 
 
 ## How to find CMake from arbitrary installed locations
