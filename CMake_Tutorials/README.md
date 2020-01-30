@@ -111,6 +111,16 @@ Tell the linker to bind these objects together.
 target_link_libraries(main tools)
 ```
 
+### mark_as_advanced()
+Mark the named cached variables as advanced. An advanced variable will not be displayed in any of the cmake GUIs unless the show advanced option is on, for instance to keep **CACHE**  clean:
+```
+mark_as_advanced(
+    BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
+    gmock_build_tests gtest_build_samples gtest_build_tests
+    gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
+)
+```
+
 ## Variables
 ### Reading/ Setting Variables
 
@@ -213,39 +223,17 @@ message(STATUS "VERSION: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 ```
 
-## Including Projects
-Let say you have used google test in your project, to enable testing, first we add google test as submodule:
 
-```
-git submodule add  https://github.com/google/googletest.git extern/googletest
-```
-Then in the main CMakeList
-```
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-# Update submodules as needed
-    option(GIT_SUBMODULE "Check submodules during build" ON)
-    if(GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    endif()
-endif()
-```
 
 ## Testing
-You can use "ctest" to test your **unittests**.In your main CMakelist.txt:
+You can use **ctest** to test your **unittests**. In your main CMakelist.txt:
 
 ```
 option(BUILD_TESTING "this will automatically enable testing" ON)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     include(CTest)
     add_subdirectory(tests)
-#endif()
+endif()
 
 ```
 in your **tests** directory:
@@ -265,6 +253,55 @@ int main(int argc, char ** argv)
 Then in the build directory after building call **ctest**.
 
 ## GoogleTest
+If you want to use google test for performing your unit test, first let's add it as submodule into your extern/googletest directory in your project:
+
+```
+git submodule add  https://github.com/google/googletest.git extern/googletest
+```
+Then, in your main CMakeLists.txt:
+```
+option(PACKAGE_TESTS "Build the tests" ON)
+if(PACKAGE_TESTS)
+    enable_testing()
+    include(GoogleTest)
+    add_subdirectory(tests)
+endif()
+```
+Now, in your tests directory:
+```
+add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
+```
+The extra path here is needed to correct the build path because we are calling it from a subdirectory. Then, create the following macros:
+```
+macro(package_add_test TESTNAME)
+    # create an exectuable in which the tests will be stored
+    add_executable(${TESTNAME} ${ARGN})
+    # link the Google test infrastructure, mocking library, and a default main fuction to
+    # the test executable.  Remove g_test_main if writing your own main function.
+    target_link_libraries(${TESTNAME} gtest gmock gtest_main)
+    # gtest_discover_tests replaces gtest_add_tests,
+    # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
+    gtest_discover_tests(${TESTNAME}
+        # set a working directory so your project root so that you can find test data via paths relative to the project root
+        WORKING_DIRECTORY ${PROJECT_DIR}
+        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
+    )
+    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+endmacro()
+```
+And call it like this:
+```
+package_add_test(test1 test1.cpp)
+```
+
+
+
+
+
+
+
+
+
 
 
 ## How to find CMake from arbitrary installed locations
