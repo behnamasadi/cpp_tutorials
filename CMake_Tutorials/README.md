@@ -554,8 +554,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 ```
 
 ### Setting build type
+```
 set(CMAKE_BUILD_TYPE DEBUG|RELEASE)
-
+```
 
 References:[1](https://gist.github.com/mbinna/), 
 [2](https://cliutils.gitlab.io/modern-cmake/),
