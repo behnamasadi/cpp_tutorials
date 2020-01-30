@@ -390,27 +390,89 @@ endif()
 ## How to find CMake from arbitrary installed locations
 
 Here I gathered several examples:
-## PCL point cloud
+### PCL point cloud
 ```
 set(PCL_DIR "$ENV{HOME}/usr/share/pcl-1.8/")
 ```
 
-## OpenCV
+### OpenCV
 ```
 set(OpenCV_DIR "$ENV{HOME}/usr/share/OpenCV/")
 ```
 
-## glog
+### glog
 ```
 cmake  -Dglog_DIR=~/usr/lib/cmake/glog/
 ```
 
+## Using pkgconfig (.pc files)
+I ususally install my program in my home directorym therefore everything goes into
+```
+\<home\>/usr/lib/
+\<home\>/usr/include
+\<home\>/usr/bin
+```
+So first let's check the pkg-config in terminal:
 
+```
+PKG_CONFIG_PATH=~/usr/lib/pkgconfig:${PKG_CONFIG_PATH}
+export PKG_CONFIG_PATH
+printenv PKG_CONFIG_PATH
 
-                        
+pkg-config --cflags flann
+pkg-config --libs flann
+pkg-config --modversion flann
+```
 
+### Flann
+```
+find_package(PkgConfig)
+pkg_check_modules(PC_FLANN flann)
+```
 
+### TinyXML2
+```
+SET(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
+MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
+find_package(PkgConfig)
+pkg_check_modules(TINYXML2 tinyxml2)
+if(${TINYXML2_FOUND})
+    MESSAGE("TINYXML2_FOUND:" ${TINYXML2_FOUND})
+    MESSAGE("TINYXML2_VERSION:" ${TINYXML2_VERSION})
+    MESSAGE("TINYXML2_LIBRARIES:" ${TINYXML2_LIBRARIES})
+    MESSAGE("TINYXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
+    MESSAGE("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
+    INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
+    LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
+    ADD_EXECUTABLE(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
+    TARGET_LINK_LIBRARIES(tinyxml2_demo ${TINYXML2_LIBRARIES})
+endif()
+```
+### yaml-cpp
+SET(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
+FIND_PACKAGE(yaml-cpp)
+IF(${yaml-cpp_FOUND})
+    MESSAGE("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
+    MESSAGE("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
+    ADD_EXECUTABLE(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
+    TARGET_LINK_LIBRARIES(yaml-cpp_example yaml-cpp)
+ENDIF()
 
+### Google Benchmark
+```
+pkg_check_modules(BENCHMARK benchmark)
+if(${BENCHMARK_FOUND})
+    MESSAGE("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
+    MESSAGE("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
+    MESSAGE("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
+    MESSAGE("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
+    MESSAGE("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
+    INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
+    LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
+    ADD_EXECUTABLE(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
+    TARGET_LINK_LIBRARIES(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
+endif()
+```
 
 ## C++17 support
 ```
