@@ -367,14 +367,14 @@ endif()
 ## Exporting Your Project
 Command `find_package` has two modes: `Module` mode and `Config` mode. Module mode will look for `Find<mypackage>.cmake` and config mode 
 will look for `MypackageConfig.cmake`.
-### Find<mypackage>.cmake
+### Find\<mypackage\>.cmake
 This should be used when a project has no CMake support. Usually you create **Find<mypackage>.cmake** for a library and put under **cmake** directory in your porject. Then you should set the set the **CMAKE_MODULE_PATH** pointing to that.
 ```
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ```
 you can add the project by find_package(packagename [version] [EXACT] [QUIET][REQUIRED] [[COMPONENTS])
 	
-### MypackageConfig.cmake
+### \<Mypackage\>Config.cmake
 
 
 ### Adding Subproject
@@ -451,4 +451,14 @@ endif()
 set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 ```
-References:[1](https://gist.github.com/mbinna/), [2](https://cliutils.gitlab.io/modern-cmake/),[3](https://stackoverflow.com/questions/20746936/what-use-is-find-package-if-you-need-to-specify-cmake-module-path-anyway)
+References:[1](https://gist.github.com/mbinna/), 
+[2](https://cliutils.gitlab.io/modern-cmake/),
+[3](https://stackoverflow.com/questions/20746936/what-use-is-find-package-if-you-need-to-specify-cmake-module-path-anyway)
+[4](https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Find-Libraries),
+[5](https://github.com/forexample/package-example),
+[6](https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file),
+[7](https://gitlab.kitware.com/cmake/community/-/wikis/doc/ctest/Scripting-Of-CTest),
+[8](https://cmake.org/cmake/help/latest/command/find_package.html),
+[9](https://foonathan.net/2016/03/cmake-install/),
+[10](https://foonathan.net/2016/07/cmake-dependency-handling/)
+
