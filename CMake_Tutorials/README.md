@@ -50,7 +50,7 @@ export CXX=/usr/bin/g++
 -G `<generator-name>`   
 ### Generating solution for Visual Studio, Xcode :
 ```
-cmake -G"Visual Studio 12" ../  
+cmake -G"Visual Studio 16" ../  
 cmake -GXcode ../   
 cmake -G "Unix Makefiles"  ../  
 ```
