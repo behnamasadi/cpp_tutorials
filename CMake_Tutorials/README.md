@@ -238,6 +238,33 @@ endif()
 ```
 
 ## Testing
+You can use "ctest" to test your **unittests**.In your main CMakelist.txt:
+
+```
+option(BUILD_TESTING "this will automatically enable testing" ON)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    include(CTest)
+    add_subdirectory(tests)
+#endif()
+
+```
+in your **tests** directory:
+```
+add_executable(test1 test1.cpp)
+target_link_libraries(test1)
+add_test(mytester test1)
+```
+The content of test1.cpp
+```
+int main(int argc, char ** argv)
+{
+    return 0;
+}
+```
+
+Then in the build directory after building call **ctest**.
+
+## GoogleTest
 
 
 ## How to find CMake from arbitrary installed locations
