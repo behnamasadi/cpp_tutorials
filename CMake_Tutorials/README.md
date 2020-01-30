@@ -97,9 +97,9 @@ cmake   --graphviz=viz.dot  --trace-source=CMakeLists.txt
 dot -Tsvg viz.dot -o viz.svg
 ```
 ### Lisiting all variables with description:
-
+```
 -L[A][H]  
-
+```
 ## Scripting in CMake
 
 ```
@@ -119,7 +119,7 @@ foreach() ... endforeach()
 ```
 
 
-## Built in Functions in Cmake
+## Built-in Commands and Functions in CMake
 
 Always use lowercase function names. Always user lower case. Upper case is for variables.
 The languages are C, CXX, Fortran, ASM, CUDA (CMake 3.8+), CSharp (3.8+), and SWIFT.
@@ -506,15 +506,15 @@ if(${BENCHMARK_FOUND})
     TARGET_LINK_LIBRARIES(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
 endif()
 ```
-
-## C++17 support
+## Setting Important Variables
+### C++17 support
 ```
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 ```
 
-## Position independent code
+### Position independent code
 
 Globally:
 ```
@@ -526,7 +526,7 @@ Explicitly turn it ON (or OFF) for a target:
 set_target_properties(lib1 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 ```
 
-## Setting warning into errors
+### Turning warning into errors
 ```
 if(MSVC)
   # Force to always compile with W4
@@ -541,11 +541,22 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 ```
 
-## Finding Memory leaking, Stack and Heap overflow
+### Finding Memory leaking, Stack and Heap overflow
 ```
 set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 ```
+
+### Turning off the warning from unused variables
+```
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
+```
+
+### Setting build type
+set(CMAKE_BUILD_TYPE DEBUG|RELEASE)
+
+
 References:[1](https://gist.github.com/mbinna/), 
 [2](https://cliutils.gitlab.io/modern-cmake/),
 [3](https://stackoverflow.com/questions/20746936/what-use-is-find-package-if-you-need-to-specify-cmake-module-path-anyway)
