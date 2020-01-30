@@ -309,9 +309,38 @@ package_add_test_with_libraries(test1 test1.cpp lib_to_test "${PROJECT_DIR}/euro
 ```
 
 
+### Download method
+```
+cmake_minimum_required(VERSION 3.10)
+project(MyProject CXX)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+enable_testing() # Must be in main file
 
+include(AddGoogleTest) # Could be in /tests/CMakeLists.txt
+add_executable(SimpleTest SimpleTest.cu)
+add_gtest(SimpleTest)
 
+target_link_libraries(SimpleTest gtest gmock gtest_main)
+add_test(SimpleTest SimpleTest)
+```
+### FetchContent
+
+```
+include(FetchContent)
+
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        release-1.8.0
+)
+
+FetchContent_GetProperties(googletest)
+if(NOT googletest_POPULATED)
+  FetchContent_Populate(googletest)
+  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+endif()
+```
 
 
 
