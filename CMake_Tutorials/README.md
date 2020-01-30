@@ -67,6 +67,24 @@ dot -Tsvg viz.dot -o viz.svg
 
 -L[A][H]  
 
+## Scripting in CMake
+
+```
+if() ... else()/elseif() ... endif()
+
+option(TESTING "Enable testing" OFF)
+if(testing_enabled)
+	add_subdirectory(tests)
+endif()
+
+
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/temp")
+	add_subdirectory(src/temp)
+endif()
+
+foreach() ... endforeach()
+```
+
 
 ## Built in Functions in Cmake
 
@@ -99,6 +117,10 @@ create library "libtools"
 ```
 add_library(tools STATIC|SHARED|MODULE src/tools.cpp)
 ```
+[How to add static/ shared library](Creating_Librares)
+
+[How to link your static/ shared library](Linking_to_Libraries)
+
 ### add_executable()
 Adds an executable target called <name> to be built from the source files listed. 
 
@@ -363,27 +385,9 @@ set(OpenCV_DIR "$ENV{HOME}/usr/share/OpenCV/")
 cmake  -Dglog_DIR=~/usr/lib/cmake/glog/
 ```
 
-## [How to add static/ shared library](Creating_Librares)
 
-## [How to link your static/ shared library](Linking_to_Libraries)
 
                         
-## Conditional Constructs
-```
-IF() ... ELSE()/ELSEIF() ... ENDIF()
-
-OPTION(TESTING "Enable testing" OFF)
-IF(testing_enabled)
-	ADD_SUBDIRECTORY(tests)
-ENDIF()
-
-
-IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/temp")
-	ADD_SUBDIRECTORY(src/temp)
-ENDIF()
-
-FOREACH() ... ENDFOREACH()
-```
 
 
 
