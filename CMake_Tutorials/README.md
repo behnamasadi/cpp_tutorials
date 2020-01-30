@@ -78,27 +78,35 @@ cmake_minimum_required(VERSION 3.1)
 project(my-cmake-project VERSION 1.2.3.4 DESCRIPTION "An example project with CMake" LANGUAGES CXX)  
 ```
 
+### add_subdirectory()
+Add a subdirectory to the build. The binary_dir specifies the directory in which to place the output files. The CMakeLists.txt in the added subdirectory will be called and executed.
 ```
 add_subdirectory(src)
+add_subdirectory(src binary_dir)
 ```
-
+### include()
+Load and run CMake code from the file given.
 ```
 include(someother.cmake)
 ```
-
+### include_directories()
 tell cmake where to look for *.h files
 ```
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 ```
+### add_library()
 create library "libtools"
 ```
-add_library(tools src/tools.cpp)
+add_library(tools STATIC|SHARED|MODULE src/tools.cpp)
 ```
-add executable main
+### add_executable()
+Adds an executable target called <name> to be built from the source files listed. 
+
 ```
-add_executable(main src/ tools_main .cpp)
+add_executable(main [WIN32]  src/tools_main.cpp src/tools_lib.cpp)
 ```
-tell the linker to bind these objects together
+### target_link_libraries()
+Tell the linker to bind these objects together.
 ```
 target_link_libraries(main tools)
 ```
@@ -121,6 +129,12 @@ $ENV{HOME}
 Paths may contain a space at any time and should always be quoted when they are a variable (never write ${VAR_PATH}, always should be "${VAR_PATH}").
 ```
 $ENV{PATH}  
+```
+
+### Options
+Options provide an option for the user to select as ON or OFF.
+```
+option(PACKAGE_TESTS "Build the tests" ON)
 ```
 
 ### Important Builtin variable Variables
@@ -147,6 +161,8 @@ MESSAGE( STATUS "CMAKE_INCLUDE_PATH: " "${CMAKE_INCLUDE_PATH}" )
 MESSAGE( STATUS "CMAKE_PREFIX_PATH: " "${CMAKE_PREFIX_PATH}" )
 MESSAGE( STATUS "CMAKE_LIBRARY_PATH: " "${CMAKE_LIBRARY_PATH}" )
 MESSAGE( STATUS "CMAKE_SYSTEM_LIBRARY_PATH: " "${CMAKE_SYSTEM_LIBRARY_PATH}" )
+MESSAGE( STATUS "CMAKE_CTEST_COMMAND: " ${CMAKE_CTEST_COMMAND} )  
+MESSAGE( STATUS "CMAKE_GENERATOR: " ${CMAKE_GENERATOR} )  
 ```
 
 
@@ -221,6 +237,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 endif()
 ```
 
+## Testing
 
 
 ## How to find CMake from arbitrary installed locations
