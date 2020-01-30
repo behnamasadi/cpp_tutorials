@@ -408,9 +408,9 @@ cmake  -Dglog_DIR=~/usr/lib/cmake/glog/
 ## Using pkgconfig (.pc files)
 I ususally install my program in my home directorym therefore everything goes into
 ```
-\<home\>/usr/lib/
-\<home\>/usr/include
-\<home\>/usr/bin
+<home>/usr/lib/
+<home>/usr/include
+<home>/usr/bin
 ```
 So first let's check the pkg-config in terminal:
 
