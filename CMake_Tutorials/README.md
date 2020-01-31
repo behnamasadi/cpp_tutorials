@@ -152,13 +152,10 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 ### target_include_directories()
 
-include_directories(given_path) affects all the targets in its CMakeList, as well as those in all subdirectories added after the point of its call. They would have access to "given_path" for inclduing headers.
+`include_directories(given_path)` affects all the targets in its CMakeLists, as well as those in all sub directories added after the point of its call. They would have access to "given_path" for including  headers.
 
 `target_include_directories(target <INTERFACE|PUBLIC|PRIVATE> target_include_directory_path)` would add an include directory for a specific target. 
-The target must have been created by a command such as `add_executable()` or `add_library()` 
-
-The reason that we might use both of them is the following:
-
+The target must have been created by a command such as `add_executable()` or `add_library()`. The reason that we might use both of them is the following:
 You should declare your public API of your library for the third-party applications, so you place them under `<project_root/include/project_name>`. You might have some headers that are being used only by your application and you don't need (or want) to give them to the public, so you place them under your source directory and use target_include_directories() to make them accessible by your target. Notice that, private headers should not be installed.
 
 
