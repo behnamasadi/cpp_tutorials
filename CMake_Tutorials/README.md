@@ -49,14 +49,106 @@ export CXX=/usr/bin/g++
 -B `<path to build directory>`  
 -D `<cache variable>=<value>`  
 -G `<generator-name>`   
-### Common CMake Variables and Options
+## CMake Variables, Cache Variables and Options
 
+### Variables
+Setting variables:
+```
+SET(xxx value)
+```
+Reading variables:
+```
+${XXX}
+```
+Environment variables:
+```
+$ENV{HOME}  
+```
+Paths may contain a space at any time and should always be quoted when they are a variable (never write ${VAR_PATH}, always should be "${VAR_PATH}").
+```
+$ENV{PATH}  
+```
+
+You can set a variable in the scope immediately above your current one with PARENT_SCOPE at the end. Let say you have the followings:
+```
+root
+├── src
+│   └── CMakeLists.txt
+└── CMakeLists.txt
+```
+in your root CMake 
+```
+set( BAR "Bar from root." )
+```
+In your src CMake
+```
+set( BAR "Bar from src." ) #<-- set in this scope
+set( BAR ${BAR} PARENT_SCOPE ) #<-- set in the parent scope too
+```
+Then in your root CMake, put this and observe the changes in the value of  `BAR`:
+```
+MESSAGE( STATUS "root: " ${BAR} )
+add_subdirectory("${PROJECT_SOURCE_DIR}/src")
+MESSAGE( STATUS "root: " ${BAR} )  
+```
+
+
+### Cache Variables
+If you want to set a variable from the command line, CMake offers a variable cache. i.e `CMAKE_BUILD_TYPE`. The syntax for declaring a variable and setting it if it is not already set is:
+```
+set(MY_CACHE_VARIABLE "VALUE" CACHE STRING "Description")
+```
 These are common CMake options to most packages:
 
 `-DCMAKE_BUILD_TYPE` Pick from Release, RelWithDebInfo, Debug, or sometimes more.  
 `-DCMAKE_INSTALL_PREFIX` The location to install to. System install on UNIX would often be /usr/local (the default), user directories are often ~/.local, or you can pick a folder.  
 `-DBUILD_SHARED_LIBS` You can set this ON or OFF to control the default for shared libraries (the author can pick one vs. the other explicitly instead of using the default, though)  
 `-DBUILD_TESTING` This is a common name for enabling tests, not all packages use it, though, sometimes with good reason.  
+
+
+### Options
+Options provide an option for the user to select as ON or OFF.
+```
+option(PACKAGE_TESTS "Build the tests" ON)
+```
+
+### Important Variables
+
+```
+MESSAGE( STATUS "PROJECT_NAME: " ${PROJECT_NAME} )  
+MESSAGE( STATUS "PROJECT_VERSION: " ${PROJECT_VERSION} )  
+MESSAGE( STATUS "BUILD_SHARED_LIBS: " ${BUILD_SHARED_LIBS} )  
+MESSAGE( STATUS "BUILD_TESTING: " ${BUILD_TESTING} )  
+MESSAGE( STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER} )  
+MESSAGE( STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} )  
+MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} )
+MESSAGE( STATUS "CMAKE_INSTALL_PREFIX: " ${CMAKE_INSTALL_PREFIX} )
+MESSAGE( STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR} )
+MESSAGE( STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR} )
+MESSAGE( STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR} )
+MESSAGE( STATUS "PROJECT_BINARY_DIR: " ${PROJECT_BINARY_DIR} )
+MESSAGE( STATUS "CMAKE_CURRENT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR} )
+MESSAGE( STATUS "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
+MESSAGE( STATUS "EXECUTABLE_OUTPUT_PATH: " "${EXECUTABLE_OUTPUT_PATH}" )
+MESSAGE( STATUS "LIBRARY_OUTPUT_PATH:     " "${LIBRARY_OUTPUT_PATH}" )
+MESSAGE( STATUS "CMAKE_MODULE_PATH: " "${CMAKE_MODULE_PATH}" )
+MESSAGE( STATUS "CMAKE_INCLUDE_PATH: " "${CMAKE_INCLUDE_PATH}" )
+MESSAGE( STATUS "CMAKE_PREFIX_PATH: " "${CMAKE_PREFIX_PATH}" )
+MESSAGE( STATUS "CMAKE_LIBRARY_PATH: " "${CMAKE_LIBRARY_PATH}" )
+MESSAGE( STATUS "CMAKE_SYSTEM_LIBRARY_PATH: " "${CMAKE_SYSTEM_LIBRARY_PATH}" )
+MESSAGE( STATUS "CMAKE_CTEST_COMMAND: " ${CMAKE_CTEST_COMMAND} )  
+MESSAGE( STATUS "CMAKE_GENERATOR: " ${CMAKE_GENERATOR} )  
+```
+
+## Properties
+The other way CMake stores information is in properties. This is like a variable, but it is attached to some other item, like a directory or a target. There are two ways to set properties:
+The first form is more general, 
+```
+set_property(TARGET TargetName PROPERTY CXX_STANDARD 11)
+```
+
+The second is a shortcut for setting several properties on one target
+`set_target_properties(TargetName PROPERTIES CXX_STANDARD 11)`
 
 
 ### Generating solution for Visual Studio, Xcode :
@@ -87,9 +179,22 @@ Visual Studio 2013
 cmake -G"Visual Studio 12" ..
 ``
 
-and to build:
+and to build (you can use -v for verbose builds and -j N for parallel builds on N cores) :
+
 ```
-cmake --build . --target INSTALL --config Release
+cmake --build . -v -j 8
+```
+buid test
+```
+cmake --build . --target test
+```
+buid docs
+```
+cmake --build . --target docs
+```
+buid and install (the installation path would be `CMAKE_INSTALL_PREFIX`)
+```
+cmake --build . --target install --config Release
 ```
 ### Visualising dependency graph:
 
@@ -190,59 +295,6 @@ mark_as_advanced(
 )
 ```
 
-## Variables
-### Reading/ Setting Variables
-
-Setting variables:
-```
-SET(xxx value)
-```
-Reading variables:
-```
-${XXX}
-```
-Environment variables:
-```
-$ENV{HOME}  
-```
-Paths may contain a space at any time and should always be quoted when they are a variable (never write ${VAR_PATH}, always should be "${VAR_PATH}").
-```
-$ENV{PATH}  
-```
-
-### Options
-Options provide an option for the user to select as ON or OFF.
-```
-option(PACKAGE_TESTS "Build the tests" ON)
-```
-
-### Important Builtin variable Variables
-
-```
-MESSAGE( STATUS "PROJECT_NAME: " ${PROJECT_NAME} )  
-MESSAGE( STATUS "PROJECT_VERSION: " ${PROJECT_VERSION} )  
-MESSAGE( STATUS "BUILD_SHARED_LIBS: " ${BUILD_SHARED_LIBS} )  
-MESSAGE( STATUS "BUILD_TESTING: " ${BUILD_TESTING} )  
-MESSAGE( STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER} )  
-MESSAGE( STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} )  
-MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} )
-MESSAGE( STATUS "CMAKE_INSTALL_PREFIX: " ${CMAKE_INSTALL_PREFIX} )
-MESSAGE( STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR} )
-MESSAGE( STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR} )
-MESSAGE( STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR} )
-MESSAGE( STATUS "PROJECT_BINARY_DIR: " ${PROJECT_BINARY_DIR} )
-MESSAGE( STATUS "CMAKE_CURRENT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR} )
-MESSAGE( STATUS "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
-MESSAGE( STATUS "EXECUTABLE_OUTPUT_PATH: " "${EXECUTABLE_OUTPUT_PATH}" )
-MESSAGE( STATUS "LIBRARY_OUTPUT_PATH:     " "${LIBRARY_OUTPUT_PATH}" )
-MESSAGE( STATUS "CMAKE_MODULE_PATH: " "${CMAKE_MODULE_PATH}" )
-MESSAGE( STATUS "CMAKE_INCLUDE_PATH: " "${CMAKE_INCLUDE_PATH}" )
-MESSAGE( STATUS "CMAKE_PREFIX_PATH: " "${CMAKE_PREFIX_PATH}" )
-MESSAGE( STATUS "CMAKE_LIBRARY_PATH: " "${CMAKE_LIBRARY_PATH}" )
-MESSAGE( STATUS "CMAKE_SYSTEM_LIBRARY_PATH: " "${CMAKE_SYSTEM_LIBRARY_PATH}" )
-MESSAGE( STATUS "CMAKE_CTEST_COMMAND: " ${CMAKE_CTEST_COMMAND} )  
-MESSAGE( STATUS "CMAKE_GENERATOR: " ${CMAKE_GENERATOR} )  
-```
 
 
 ## Communicating with your code
@@ -570,6 +622,38 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 ### Setting build type
 ```
 set(CMAKE_BUILD_TYPE DEBUG|RELEASE)
+```
+
+## Running a Command in CMake
+
+### At Configure Time
+```
+find_package(Git QUIET)
+
+ you can use ${CMAKE_COMMAND}, find_package(Git), or find_program to get access to a command to run. 
+ Use RESULT_VARIABLE to check the return code and OUTPUT_VARIABLE to get the output.
+
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    RESULT_VARIABLE GIT_SUBMOD_RESULT)
+    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+        message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    endif()
+endif()
+```
+
+### At Build Time
+```
+find_package(PythonInterp REQUIRED)
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/include/Generated.hpp"
+    COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/GenerateHeader.py" --argument
+    DEPENDS some_target)
+
+add_custom_target(generate_header ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/include/Generated.hpp")
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/Generated.hpp DESTINATION include)
 ```
 
 References:[1](https://gist.github.com/mbinna/), 
