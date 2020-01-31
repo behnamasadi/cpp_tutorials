@@ -15,6 +15,8 @@
   - src
     - CMakeLists.txt
     - lib.cpp
+      - include
+        - private_header.hpp
   - apps
     - CMakeLists.txt
     - app.cpp
@@ -147,6 +149,19 @@ tell cmake where to look for *.h files
 ```
 include_directories(${PROJECT_SOURCE_DIR}/include)
 ```
+
+### target_include_directories()
+
+include_directories(given_path) affects all the targets in its CMakeList, as well as those in all subdirectories added after the point of its call. They would have access to "given_path" for inclduing headers.
+
+`target_include_directories(target <INTERFACE|PUBLIC|PRIVATE> target_include_directory_path)` would add an include directory for a specific target. 
+The target must have been created by a command such as `add_executable()` or `add_library()` 
+
+The reason that we might use both of them is the following:
+
+You should declare your public API of your library for the third-party applications, so you place them under `<project_root/include/project_name>`. You might have some headers that are being used only by your application and you don't need (or want) to give them to the public, so you place them under your source directory and use target_include_directories() to make them accessible by your target. Notice that, private headers should not be installed.
+
+
 ### add_library()
 create library "libtools"
 ```
@@ -570,4 +585,5 @@ References:[1](https://gist.github.com/mbinna/),
 [8](https://cmake.org/cmake/help/latest/command/find_package.html),
 [9](https://foonathan.net/2016/03/cmake-install/),
 [10](https://foonathan.net/2016/07/cmake-dependency-handling/)
-
+[11](https://stackoverflow.com/questions/17511496/how-to-create-a-shared-library-with-cmake)
+[12](https://stackoverflow.com/questions/31969547/what-is-the-difference-between-include-directories-and-target-include-directorie)
