@@ -1,36 +1,36 @@
 # CMake Tutorials
 
 ##  Typical project structure
-- project
-  - .gitignore
-  - README.md
-  - LICENCE.md
-  - CMakeLists.txt
-  - cmake
-    - FindSomeLib.cmake
-    - something_else.cmake
-  - include
-    - project
-      - lib.hpp
-  - src
-    - CMakeLists.txt
-    - lib.cpp
-      - include
-        - private_header.hpp
-  - apps
-    - CMakeLists.txt
-    - app.cpp
-  - tests
-    - CMakeLists.txt
-    - testlib.cpp
-  - docs
-    - CMakeLists.txt
-  - extern
-    - googletest
-  - scripts
-    - helper.py
 
-
+```
+project  
+├──.gitignore  
+├──README.md  
+├──LICENCE.md  
+├──CMakeLists.txt  
+├──cmake  
+│    └──FindSomeLib.cmake  
+├──include  
+│    └──poject  
+│    └── lib.hpp  
+├──src  
+│    ├──CMakeLists.txt  
+│    ├──lib.cpp  
+│    └──include  
+│    └──private_header.hpp  
+├──apps  
+│    ├──CMakeLists.txt  
+│    └──app.cpp  
+├──tests  
+│    ├──CMakeLists.txt  
+│    └──testlib.cpp  
+├──docs  
+│    └── CMakeLists.txt  
+├──extern  
+|    └──googletest  
+└──scripts  
+     └──helper.py  
+```
 ## Setting the compiler
 ### clang
 ```
@@ -388,48 +388,27 @@ if(PACKAGE_TESTS)
     add_subdirectory(tests)
 endif()
 ```
-Now, in your tests directory:
+Now, in the CMakeLists of your tests directory:
 ```
 add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
+set(INSTALL_GTEST OFF)
+add_executable(footest foo.cpp)
+target_link_libraries(footest gtest_main)
+gtest_discover_tests(footest)
 ```
-The extra path here is needed to correct the build path because we are calling it from a subdirectory. Then, create the following macros:
+The extra path here is needed to correct the build path because we are calling it from a subdirectory. 
+Then copy this under `foo.cpp`:
 ```
-macro(package_add_test TESTNAME)
-    # create an exectuable in which the tests will be stored
-    add_executable(${TESTNAME} ${ARGN})
-    # link the Google test infrastructure, mocking library, and a default main fuction to
-    # the test executable.  Remove g_test_main if writing your own main function.
-    target_link_libraries(${TESTNAME} gtest gmock gtest_main)
-    # gtest_discover_tests replaces gtest_add_tests,
-    # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
-    gtest_discover_tests(${TESTNAME}
-        # set a working directory so your project root so that you can find test data via paths relative to the project root
-        WORKING_DIRECTORY ${PROJECT_DIR}
-        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
-    )
-    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-endmacro()
+#include "gtest/gtest.h"
+TEST(Foo, Sum)
+{
+  EXPECT_EQ(2, 1 + 1);
+}
 ```
-And call it like this:
+And run it with:
 ```
-package_add_test(test1 test1.cpp)
+ctest
 ```
-if you're testing libraries and need to link in different libraries for different tests, you might use this:
-```
-macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES TEST_WORKING_DIRECTORY)
-    add_executable(${TESTNAME} ${FILES})
-    target_link_libraries(${TESTNAME} gtest gmock gtest_main ${LIBRARIES})
-    gtest_discover_tests(${TESTNAME}
-        WORKING_DIRECTORY ${TEST_WORKING_DIRECTORY}
-        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${TEST_WORKING_DIRECTORY}"
-    )
-    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-endmacro()
-
-package_add_test_with_libraries(test1 test1.cpp lib_to_test "${PROJECT_DIR}/european-test-data/")
-```
-
-
 ### Download method
 ```
 cmake_minimum_required(VERSION 3.10)
