@@ -12,12 +12,12 @@ project
 │    └──FindSomeLib.cmake  
 ├──include  
 │    └──poject  
-│    └── lib.hpp  
+│        └── lib.hpp  
 ├──src  
 │    ├──CMakeLists.txt  
 │    ├──lib.cpp  
 │    └──include  
-│    └──private_header.hpp  
+│        └──private_header.hpp  
 ├──apps  
 │    ├──CMakeLists.txt  
 │    └──app.cpp  
