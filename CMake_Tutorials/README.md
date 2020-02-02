@@ -94,10 +94,15 @@ MESSAGE( STATUS "root: " ${BAR} )
 
 
 ### Cache Variables
-If you want to set a variable from the command line, CMake offers a variable cache. i.e `CMAKE_BUILD_TYPE`. The syntax for declaring a variable and setting it if it is not already set is:
+If you want to set a variable from the command line, CMake offers a variable cache. For example yu can define `MY_LIBRARY_VERSION`. The syntax for declaring a variable and setting it if it is not already set is:
 ```
 set(MY_CACHE_VARIABLE "VALUE" CACHE STRING "Description")
 ```
+Then you can sent the value via command line:
+```
+cmake -DMY_CACHE_VARIABLE=2.3.6.9
+```
+
 These are common CMake options to most packages:
 
 `-DCMAKE_BUILD_TYPE` Pick from Release, RelWithDebInfo, Debug, or sometimes more.  
