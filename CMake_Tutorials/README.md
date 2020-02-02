@@ -265,12 +265,20 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 ### target_include_directories()
 
-`include_directories(given_path)` affects all the targets in its CMakeLists, as well as those in all sub directories added after the point of its call. They would have access to "given_path" for including  headers.
+`include_directories(given_include_dir_path)` affects all the targets in its CMakeLists, as well as those in all sub directories added after the point of its call. They would have access to "given_include_dir_path" for including headers.
 
 `target_include_directories(target <INTERFACE|PUBLIC|PRIVATE> target_include_directory_path)` would add an include directory for a specific target. 
 The target must have been created by a command such as `add_executable()` or `add_library()`. The reason that we might use both of them is the following:
 You should declare your public API of your library for the third-party applications, so you place them under `<project_root/include/project_name>`. You might have some headers that are being used only by your application and you don't need (or want) to give them to the public, so you place them under your source directory and use target_include_directories() to make them accessible by your target. Notice that, private headers should not be installed.
 
+#### PUBLIC, PRIVATE, and INTERFACE
+Other target couldbe compiled against your targets and they might need to access the headers that you have 
+used in your target, by declaring them as `PUBLIC` other targets can have access to those include directories that you added
+to your target and by using `PRIVATE` those include directories are nly available for your target. For example:
+
+`target_include_directories(A PRIVATE ${Boost_INCLUDE_DIRS})` if you only use those Boost headers inside your source files (.cpp) or private header files (.h).
+
+`target_include_directories(A PUBLIC ${Boost_INCLUDE_DIRS})` if you use those Boost headers in your public header files, which are included BOTH in some of A's source files and might also be included in any other client of your A library.
 
 ### add_library()
 create library "libtools"
