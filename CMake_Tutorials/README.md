@@ -102,7 +102,10 @@ Then you can sent the value via command line:
 ```
 cmake -DMY_CACHE_VARIABLE=2.3.6.9
 ```
-
+If you use keyword force, user can not override your value:
+```
+set(MY_LIBRARY_VERSION_MAJOR 1 CACHE STRING "major version" FORCE)
+```
 These are common CMake options to most packages:
 
 `-DCMAKE_BUILD_TYPE` Pick from Release, RelWithDebInfo, Debug, or sometimes more.  
