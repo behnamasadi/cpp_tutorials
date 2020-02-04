@@ -653,14 +653,15 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/Generated.hpp DESTINATION incl
 
 References:[1](https://gist.github.com/mbinna/), 
 [2](https://cliutils.gitlab.io/modern-cmake/),
-[3](https://stackoverflow.com/questions/20746936/what-use-is-find-package-if-you-need-to-specify-cmake-module-path-anyway)
+[3](https://stackoverflow.com/questions/20746936/what-use-is-find-package-if-you-need-to-specify-cmake-module-path-anyway),
 [4](https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Find-Libraries),
 [5](https://github.com/forexample/package-example),
 [6](https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file),
 [7](https://gitlab.kitware.com/cmake/community/-/wikis/doc/ctest/Scripting-Of-CTest),
 [8](https://cmake.org/cmake/help/latest/command/find_package.html),
 [9](https://foonathan.net/2016/03/cmake-install/),
-[10](https://foonathan.net/2016/07/cmake-dependency-handling/)
-[11](https://stackoverflow.com/questions/17511496/how-to-create-a-shared-library-with-cmake)
+[10](https://foonathan.net/2016/07/cmake-dependency-handling/),
+[11](https://stackoverflow.com/questions/17511496/how-to-create-a-shared-library-with-cmake),
 [12](https://stackoverflow.com/questions/31969547/what-is-the-difference-between-include-directories-and-target-include-directorie),
-[13](https://foonathan.net/2016/03/cmake-install/)
+[13](https://foonathan.net/2016/03/cmake-install/),  
+[14](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
