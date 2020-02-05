@@ -460,6 +460,32 @@ endif()
 ```
 
 ## Exporting Your Project
+
+There are three ways to access your project from another project:  
+### Adding Subproject
+Adding your project with add_subdirectory().  For small and header only libraries, you can just use add_subdirectory() and include the entire  porject.
+You can use **CMAKE_CURRENT_SOURCE_DIR** instead of **PROJECT_SOURCE_DIR** and 
+```
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+...
+endif()
+```
+
+### Exporting build directory of your project.  
+To use the build directory of one project in another project, you will need to export targets.
+```
+export(TARGETS taget1 target2  FILE MyLibTargets.cmake)
+```
+
+This puts the targets you have listed into a file in the build directory. Now, to allow CMake to find this package, export the package into the` $HOME/.cmake/packages` folder:
+```
+set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
+export(PACKAGE MyLib)
+```
+Now, if you find_package(MyLib), CMake can find the build folder.
+
+
+### Installing your project and calling find_package().
 Command `find_package` has two modes: `Module` mode and `Config` mode. Module mode will look for `Find<mypackage>.cmake` and config mode 
 will look for `MypackageConfig.cmake`.
 ### Find\<mypackage\>.cmake
@@ -472,14 +498,7 @@ you can add the project by find_package(packagename [version] [EXACT] [QUIET][RE
 ### \<Mypackage\>Config.cmake
 
 
-### Adding Subproject
-For small and header only libraries, you can just use add_subdirectory() and include the entire  porject.
-You can use **CMAKE_CURRENT_SOURCE_DIR** instead of **PROJECT_SOURCE_DIR** and 
-```
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-...
-endif()
-```
+
 
 
 ## How to find CMake from arbitrary installed locations
