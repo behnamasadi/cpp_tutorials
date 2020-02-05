@@ -481,8 +481,8 @@ endif()
 
 ## Exporting Your Project
 
-There are three ways to access your project from another project:  
-### Adding Subproject
+There are 3 ways to access your project from another project:  
+### 1) Adding Subproject
 Adding your project with add_subdirectory().  For small and header only libraries, you can just use add_subdirectory() and include the entire  porject.
 You can use **CMAKE_CURRENT_SOURCE_DIR** instead of **PROJECT_SOURCE_DIR** and 
 ```
@@ -491,7 +491,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 ```
 
-### Exporting build directory of your project.  
+### 2) Exporting build directory of your project.  
 To use the build directory of one project in another project, you will need to export targets.
 ```
 export(TARGETS taget1 target2  FILE MyLibTargets.cmake)
@@ -505,7 +505,7 @@ export(PACKAGE MyLib)
 Now, if you find_package(MyLib), CMake can find the build folder.
 
 
-### Installing your project and calling find_package()
+### 3) Installing your project and calling find_package()
 Let say you have the following project:
 ```
 root
