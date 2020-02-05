@@ -505,21 +505,116 @@ export(PACKAGE MyLib)
 Now, if you find_package(MyLib), CMake can find the build folder.
 
 
-### Installing your project and calling find_package().
-Command `find_package` has two modes: `Module` mode and `Config` mode. Module mode will look for `Find<mypackage>.cmake` and config mode 
-will look for `MypackageConfig.cmake`.
-### Find\<mypackage\>.cmake
-This should be used when a project has no CMake support. Usually you create **Find<mypackage>.cmake** for a library and put under **cmake** directory in your porject. Then you should set the set the **CMAKE_MODULE_PATH** pointing to that.
+### Installing your project and calling find_package()
+Let say you have the following project:
+```
+root
+├── Lib1
+│   └── CMakeLists.txt
+|   └── src.cpp
+└── CMakeLists.txt
+└── Config.cmake.in
+
+```
+The content of Lib1/CMakeLists.txt:
+```
+add_library(lib1 src.cpp)
+add_library(${CMAKE_PROJECT_NAME}::lib1 ALIAS lib1)
+include(GNUInstallDirs)
+install( 
+  TARGETS lib1
+  EXPORT ${CMAKE_PROJECT_NAME}Targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+```
+The content of Config.cmake.in:
+```
+@PACKAGE_INIT@
+include( "${CMAKE_CURRENT_LIST_DIR}/MyPackTargets.cmake" )
+```
+
+The content of CMakeLists.txt:
+```
+cmake_minimum_required(VERSION 3.1)
+
+set(CMAKE_PROJECT_NAME "MyPack")
+project(${CMAKE_PROJECT_NAME})
+
+set(CMAKE_INSTALL_PREFIX "X:/install")
+set(CMAKE_BUILD_TYPE RELEASE)
+
+set(MAJOR_VERSION 2)
+set(MINOR_VERSION 1)
+set(PATCH_VERSION 6)
+set(TWEAK_VERSION 4)
+set(VERSION    "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}.${TWEAK_VERSION}"    )
+
+
+message("VERSION: " ${VERSION})
+
+add_subdirectory(Lib1) 
+#add_subdirectory(Lib2) 
+
+
+install(
+  EXPORT ${CMAKE_PROJECT_NAME}Targets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}
+  NAMESPACE ${CMAKE_PROJECT_NAME}::
+  FILE ${CMAKE_PROJECT_NAME}Targets.cmake 
+  )
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file( 
+  "Config.cmake.in" 
+  "${CMAKE_PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}
+  PATH_VARS
+    CMAKE_INSTALL_LIBDIR
+  )
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
+  VERSION ${VERSION}
+  COMPATIBILITY SameMajorVersion
+  )
+
+### Install Config and ConfigVersion files
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
+  )
+```
+
+Once you exported and installed and your project, you can call `find_package`. find_package() has the following parameter:  
+`find_package(<package> [version] [EXACT] [QUIET] [MODULE] [REQUIRED] [[COMPONENTS] )` finds and loads settings from an external project.
+
+The `QUIET` option disables messages if the package cannot be found.  
+The `REQUIRED` option stops processing with an error message if the package cannot be found.  
+`<package>_FOUND`  will be set to indicate whether the package was found.  
+The `version` argument requests a version with which the package found should be compatible (format is major[.minor[.patch[.tweak]]]). 	
+
+
+Command `find_package` has two modes: `Module` mode and `Config` mode. 
+
+### Find\<package\>.cmake
+Module mode will look for `Find<package>.cmake`in `CMAKE_MODULE_PATH`. This should be used when a project has no CMake support. Usually you create **Find<package>.cmake** for a library and put under **cmake** directory in your porject. Then you should set the set the **CMAKE_MODULE_PATH** pointing to that.
 ```
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ```
-you can add the project by find_package(packagename [version] [EXACT] [QUIET][REQUIRED] [[COMPONENTS])
-	
-### \<Mypackage\>Config.cmake
 
+### \<package\>Config.cmake
+In config mode it will look for `<name>Config.cmake` or `<lower-case-name>-config.cmake` in `<package>_DIR`. First set the `<package>_DIR`, for example:
 
-
-
+```
+cmake_minimum_required(VERSION 3.1)
+set(MyPack_DIR "$ENV{HOME}/usr/lib/cmake/MyPack")
+project(MyPack_user)
+set(MyPack_DIR "X:/install/lib/cmake/MyPack")
+find_package(MyPack CONFIG REQUIRED )
+message("MyPack_FOUND: " ${MyPack_FOUND} )
+message("MyPack_VERSION: " ${MyPack_VERSION} )
+```
 
 ## How to find CMake from arbitrary installed locations
 
@@ -583,13 +678,13 @@ if(${TINYXML2_FOUND})
 endif()
 ```
 ### yaml-cpp
-SET(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
-FIND_PACKAGE(yaml-cpp)
-IF(${yaml-cpp_FOUND})
-    MESSAGE("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
-    MESSAGE("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
-    ADD_EXECUTABLE(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
-    TARGET_LINK_LIBRARIES(yaml-cpp_example yaml-cpp)
+SET(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")  
+FIND_PACKAGE(yaml-cpp)  
+IF(${yaml-cpp_FOUND})  
+    MESSAGE("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})  
+    MESSAGE("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})  
+    ADD_EXECUTABLE(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )  
+    TARGET_LINK_LIBRARIES(yaml-cpp_example yaml-cpp)  
 ENDIF()
 
 ### Google Benchmark
