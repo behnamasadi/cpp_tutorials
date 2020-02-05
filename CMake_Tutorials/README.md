@@ -311,7 +311,27 @@ mark_as_advanced(
 )
 ```
 
+### install()
 
+When you call the `make install`  or `cmake --build . --target install` this command will be executed.
+In the following example, we export the properties of our TARGETS into an EXPORT callled FooTargets, so FooTargets know where we 
+put the lib, dll, share dobject etc (On windows the dll will be in bin directory and .lib in the lib directory, On linux .a and .so will be in lib directory).
+
+```
+install( TARGETS Foo EXPORT FooTargets
+LIBRARY DESTINATION lib
+ARCHIVE DESTINATION lib
+RUNTIME DESTINATION bin
+INCLUDES DESTINATION include)
+```
+But this only stores this information in an object named "FooTargets". The following will write the data that our EXPORT (FooTargets) contains into disk:
+```
+install(EXPORT FooTargets
+FILE FooTargets.cmake
+NAMESPACE FOO::
+DESTINATION lib/cmake/Foo
+)
+```
 
 ## Communicating with your code
 ### Reading from CMake into your files
