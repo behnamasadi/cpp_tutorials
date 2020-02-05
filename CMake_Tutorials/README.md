@@ -315,9 +315,10 @@ mark_as_advanced(
 
 ## Communicating with your code
 ### Reading from CMake into your files
-configure_file command copies the content of the first parameter (Version.h.in) to second parameter (Version) and substitute all CMake variables it finds. If you want to avoid replacing existing ${} syntax in your input file, use the @ONLY keyword. 
-There's also a COPY_ONLY keyword if you are just using this as a replacement for file(COPY. 
+configure_file command copies the content of the first parameter (Version.h.in) to second parameter (Version) and substitute all CMake variables it finds. If you want to avoid replacing existing ${} syntax in your input file, use the @ONLY keyword. Passing @ONLY option to configure_file forces CMake to not touch ${...} expressions but substitute only @VAR@ ones.
+
 ```
+configure_file(<input> <output> [@ONLY])
 configure_file ( "${PROJECT_SOURCE_DIR}/include/project/Version.h.in"  "${PROJECT_BINARY_DIR}/include/project/Version.h")
 ```
 Content of Version.h.in
