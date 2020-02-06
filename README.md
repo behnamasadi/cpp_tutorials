@@ -1,7 +1,7 @@
 # C++ Tutorials
 This repository contains my tutorials code for my c++ projects. It includes varuois examples for:
 
-[{} Aggregate Initialization](src/{}_aggregate_Initialization.cpp)  
+[{} Aggregate Initialization, std::initializer_list, C++ Initialization()](src/{}_aggregate_Initialization.cpp)  
 [Align](src/align.cpp)  
 [Allocator](src/allocator.cpp)  
 [Arrays](src/arrays.cpp)  
