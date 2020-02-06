@@ -3,6 +3,11 @@
 #include <vector>
 #include <map>
 
+class entity {
+public:
+    int x;
+    std::string y;
+};
 
 class student {
 public:
@@ -14,11 +19,29 @@ public:
     }
 };
 
-class entity {
+class point 
+{
+    
 public:
-    int x;
-    std::string y;
+    int x, y;
+    point(const std::initializer_list<int> &l) 
+    {
+        x = *(l.begin());
+        y = *(l.begin()+1);
+        std::cout << "initializer_list called" << std::endl;
+    }
+
+    point(int x, int y) :x(x), y(y)
+    {
+        std::cout << "constructor called" << std::endl;
+    }
+
+    void print() 
+    {
+        std::cout<<"x: "<<x <<" y: "<<y <<std::endl;
+    }
 };
+
 int main() 
 {
 
@@ -41,11 +64,17 @@ It means the use of brace-enclosed initializer lists to initialize all members o
 /*
     We can use that to initialize class member variables and constructors as well member initialization list.
 */
-    //Initializations of an arbitrary object using the constructor
+    //Initializations using the constructor
     student first_student(10,"mumbo");
     student second_student { 11, "jumbo" };
 
-    // Initializations of an arbitrary object using public attributes	
+    // Aggregate initialization (Initializations using public attributes)	
     entity entity1{ 2011,"name" };
     entity entity2 = { 2011,"name"};
+
+
+    //Calling initializer_list
+    point point1{ 2,3 };
+    point point2={ 2,3 };
+    point point3 (2, 3) ;
 }
