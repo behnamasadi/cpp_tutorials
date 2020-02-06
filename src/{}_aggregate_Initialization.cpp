@@ -1,9 +1,21 @@
-//https://www.modernescpp.com/index.php/initialization
-// uniformInitialization.cpp
-
 #include <map>
 #include <vector>
 #include <string>
+
+/*
+Aggregate Initialization:
+It means the use of brace-enclosed initializer lists to initialize all members of an aggregate 
+(i.e. an array or struct).
+
+char Array2[5] ={}      // char Array2[5] = {'\0', '\0', '\0', '\0', '\0'}
+char* Array3[5]={};     //char * Array3[5] = {nullptr, nullptr, nullptr, nullptr, nullptr};	
+
+We can use that to initialize class member variables and constructors as well
+member initialization list
+
+This type of initialization safe guards one from over stepping the boundary and provides for initializing an array with set values.
+
+*/
 
 // Initialization of a C-Array as attribute of a class
 class Array{
@@ -39,7 +51,9 @@ int main(){
 
   Array arr;
 
-  // Defaut Initialization of a arbitrary object   
+  // Defaut Initialization of a arbitrary object
+  char Array2[5] ={}      // char Array2[5] = {'\0', '\0', '\0', '\0', '\0'}
+  char* Array3[5]={};     //char * Array3[5] = {nullptr, nullptr, nullptr, nullptr, nullptr};	
   int i{};                // i becomes 0
   std::string s{};        // s becomes ""
   std::vector<float> v{}; // v becomes an empty vector
