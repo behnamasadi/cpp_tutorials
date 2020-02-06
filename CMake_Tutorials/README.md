@@ -410,6 +410,30 @@ int main(int argc, char ** argv)
 
 Then in the build directory after building call **ctest**.
 
+you can store your test configuration in file like "build.cmake" 
+```
+set(CTEST_SOURCE_DIRECTORY "/source")
+set(CTEST_BINARY_DIRECTORY "/binary")
+set(ENV{CXXFLAGS "--coverage"})
+set(CTEST_CMAKE_GENERATOR "Ninja")
+set(CTEST_USE_LAUNCHERS 1)
+set(CTEST_COVERAGE_COMMAND "gcov")
+set(CTEST_MEMORYCHECK_COMMAND "valgrind")
+
+ctest_start("Continuous")
+ctest_configure()
+ctest_build()
+ctest_test()
+ctest_coverage()
+ctest_memcheck()
+ctest_submit()
+```
+Execute it by:
+```
+ctest -S build.cmake
+```
+And then send the results to a dashboard server.
+
 ## GoogleTest
 If you want to use google test for performing your unit test, first let's add it as submodule into your extern/googletest directory in your project:
 
