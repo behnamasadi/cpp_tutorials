@@ -1,22 +1,70 @@
-//http://www.cprogramming.com/tutorial/initialization-lists-c++.html
-//http://publib.boulder.ibm.com/infocenter/lnxpcomp/v8v101/index.jsp?topic=%2Fcom.ibm.xlcpp8l.doc%2Flanguage%2Fref%2Fcplr388.htm
-//http://www.devx.com/getHelpOn/10MinuteSolution/17298/1954
-
 #include <iostream>
-using namespace std;
+#include <string>
 
-//Using Initialization Lists to Initialize  class base constructor
 
+/*
+you should use member initializer list everywhere because of perfocmance issues.
+*/
+
+
+namespace without_member_initializer_list 
+{
+    class student {
+    public:
+        student()
+        {
+            std::cout << "created empty" << std::endl;
+        }
+        student(int x)
+        {
+            std::cout << "created empty with x:" << x << std::endl;
+        }
+    };
+
+    class lecture
+    {
+    public:
+        student m_student;
+        lecture()
+        {
+            m_student = student(10);
+        }
+    };
+}
+
+namespace with_member_initializer_list
+{
+    class student {
+    public:
+        student()
+        {
+            std::cout << "created empty" << std::endl;
+        }
+        student(int x)
+        {
+            std::cout << "created empty with x:" << x << std::endl;
+        }
+    };
+
+    class lecture
+    {
+    public:
+        student m_student;
+        // both of the followings can be used.
+        //lecture():m_student( student(10)) { } 
+        lecture() :m_student(10) { }
+    };
+}
+
+
+////////////////////////////////////// initializing super class //////////////////////////////////////
 
 class Foo
 {
         public:
         Foo( int x ) 
         {
-                std::cout << "Foo's constructor " 
-                          << "called with " 
-                          << x 
-                          << std::endl; 
+                std::cout << "Foo's constructor "  << "called with "  << x   << std::endl; 
         }
 };
 
@@ -29,8 +77,6 @@ class Bar : public Foo
 	    std::cout << "Bar's constructor" << std::endl; 
         }
 };
-
-
 
 //Using Initialization Lists to Initialize Fields
 class B
@@ -45,19 +91,27 @@ public:
 	void Print()
 	{
 		std::cout<< "b is:"<<b<<" and c is: "<< c <<std::endl;
-
 	}
 };
 
-
-
-
-using namespace std;
 int main()
 {
-	Bar obj_Bar(2,3);
-	B objb(10,12.3);
-	objb.Print();
+    /*
+    The following will print this:
+    created empty
+    created empty with x:10
+    Because we are initializing student 2 times. 
+    */
+    without_member_initializer_list::lecture lec_without_member_initializer_list;
+    /*
+    The following will only print this:
+    created empty with x:10
+    Because we are initializing student only once.
+    */
+
+    with_member_initializer_list::lecture lec_with_member_initializer_list;
+	
+    Bar obj_Bar(2,3);
+    B objb(10,12.3);
+    objb.Print();
 }
-
-
