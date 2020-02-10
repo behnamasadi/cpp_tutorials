@@ -4,7 +4,7 @@ project(my-cmake-project VERSION 1.2.3.4 DESCRIPTION "An example project with CM
 add_subdirectory(src)
 add_subdirectory(apps)
 
-
+set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/USR")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -9,6 +9,9 @@
 #include <memory>
 #include <forward_list>
 #include <random>
+#include <map>
+#include <iomanip>
+
 
 bool IsOdd (int i) { return (i%2)==1; }
 
@@ -369,6 +372,66 @@ double ranndomGenerator(int rangeFrom=0, int rangeTo=1)
 	std::mt19937 generator(rand_dev());
 	std::uniform_real_distribution<double> distr(rangeFrom, rangeTo);
 	return distr(generator);
+}
+
+
+//generate random number between 0 and upperbound
+void uniformRandomNumber(int upperbound)
+{
+    /*It is important to only invoke the srand call ONCE at the beginning of the program. There is no need
+    for repeat calls to seed the random number generator (in fact, it will make your number less evenly
+    distributed). */
+    srand (time(NULL));
+    //Will return an integer between [0,upperbound)
+    std::cout<<(rand() % upperbound) <<std::endl;
+}
+
+void ranndomGenerator(double rangeFrom=0, double rangeTo=1)
+{
+    std::random_device rand_dev;
+    std::mt19937 generator{rand_dev()};
+    std::uniform_real_distribution<double> d(rangeFrom, rangeTo);
+    std::map<int, int> hist{};
+    for(int n=0; n<10000; ++n)
+    {
+        ++hist[std::round(d(generator))];
+    }
+    for(auto p : hist)
+    {
+        std::cout << std::setw(2)<< p.first << ' ' << std::string(p.second/200, '*') << '\n';
+    }
+}
+
+void normalRandomNumber(double mean, double sigma)
+{
+    std::random_device rd{};
+    std::mt19937 gen{rd()};
+    std::normal_distribution<> d{mean, sigma};
+    std::map<int, int> hist{};
+    for(int n=0; n<10000; ++n)
+    {
+        ++hist[std::round(d(gen))];
+    }
+    for(auto p : hist)
+    {
+        std::cout << std::setw(2)<< p.first << ' ' << std::string(p.second/200, '*') << '\n';
+    }
+}
+
+
+int call_ranndomGenerator()
+{
+    double mean=2;
+    double sigma=1;
+    std::cout << "random number with normal ditribution, mean: "<<mean <<" sigma: "<<sigma <<std::endl;
+    normalRandomNumber(mean,sigma);
+
+    double rangeFrom=0;
+    double rangeTo=10;
+    std::cout << "random number with uniform ditribution, between: "<<rangeFrom <<" to: "<<rangeTo <<std::endl;
+
+    ranndomGenerator(rangeFrom,rangeTo);
+
 }
 
 bool cmp_sort_algorithm(int x, int y)
