@@ -101,7 +101,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Lambda](src/lambda.cpp)  
 [rvalue and lvalue](src/rvalue_lvalue.cpp)  
 [Variadic Templates Function](src/variadic_templates.cpp)  
-### [Algorithms](class/non_modifing_algorithm.cpp)
+### [Algorithms](src/non_modifing_algorithm.cpp)
 [std::unique](src/non_modifing_algorithm.cpp)  
 [std::rotate](src/non_modifing_algorithm.cpp)  
 [std::count](src/non_modifing_algorithm.cpp)  
