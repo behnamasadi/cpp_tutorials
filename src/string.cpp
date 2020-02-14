@@ -242,56 +242,86 @@ void stringNumberConversion()
     double d =std::stod(strNumber.c_str() );//10.3
 }
 
-void cStyle()
+void cStyleString()
 {
 /*
- A string is a sequence of chars, strings are typically represented as char arrays that have a null terminator.
+A string is a sequence of chars, strings are typically represented as char arrays that have a null terminator.
 '\0' character (which has ASCII code 0).
 Since C-style strings are arrays, you can use the [] operator to change individual characters in the string:
 */
+//////////////////////////// c style string definition //////////////////////////// 
 
-    char szString[] = "string";
-    szString[1] = 'p';
-    std::cout << szString<<std::endl;
+	char name0[10] = { 'b','e','h','n','a','m','\0' }; //stack variable, compiler output: char name0[10] = {'b', 'e', 'h', 'n', 'a', 'm', '\0', '\0', '\0', '\0'};
+	char name1[] = { 'b','e','h','n','a','m','\0' };//stack variable, compiler output: char name1[7] = {'b', 'e', 'h', 'n', 'a', 'm', '\0'};
+	char name2[] = "behnam";//stack variable, compiler output: char name2[7] = "behnam";
+	char* name3 = "behnam";// heap variable
 
-
-//but the fowllowing code is wrong
-//	szString = "rope";
-
-    char szSource[] = "Copy this!";
-    char szDest[50];
-    strcpy(szDest, szSource);
+	char name4[6] = { 'b','e', 'h', 'n', 'a','m' };
+	//this will print lots of strange character until it hit the null termination  character 0
+	std::cout << "name4: " << name4 << std::endl;
 
 
+//////////////////////////// c style string elements access and modifications //////////////////////////// 
 
-    char const* p2 = "Mary";
-    // not allowed.
-    //*p2 = 'C';
-    p2 = "Margareth";  // allowed
-
-    //char * const p1 = "John";
-    //*p1 = 'C'; // allowed
-    // not allowed
-    //p1 = "Margarth";
+	char string1[] = "string";
+	string1[1] = 'p';
+	std::cout << string1 << std::endl;
 
 
+	//but the following code is wrong
+	//	string1 = "rope";
 
-    char * cstr, *p;
-    std::string str ("Please split this phrase into tokens");
 
-    cstr = new char [str.size()+1];
-    strcpy (cstr, str.c_str());
+	char const* p2 = "Mary";
+	// not allowed.
+	//*p2 = 'C';
+	p2 = "Margarethe";  // allowed
 
-    // cstr now contains a c-string copy of str
+	char* const p1 = "John";
+	*p1 = 'C'; // allowed
+	// not allowed
+	//p1 = "Margarethe";
 
-    p=strtok (cstr," ");
-    while (p!=NULL)
-    {
-        std::cout << p << std::endl;
-        p=strtok(NULL," ");
-    }
 
-    delete[] cstr;
+//////////////////////////// c style string copy //////////////////////////// 
+	char* cstr;
+	std::string str("Please split this phrase into tokens");
+
+	cstr = new char[str.size() + 1];
+	strcpy(cstr, str.c_str());
+	delete[] cstr;
+
+
+	char string2[] = "Copy this!";
+	char string2Dest[50];
+	strcpy(string2Dest, string2);
+
+	//////////////////////////// c style string split based on delimiter //////////////////////////// 
+	/*
+	Splits str[] according to given delimiters and returns next token. It needs to be called in a loop to get all tokens. 
+	It returns NULL when there are no more tokens.
+	char * strtok(char str[], const char *delims);
+	*/
+	char str[] = "Geeks-for-Geeks";
+	// Returns first token 
+	char* token = strtok(str, "-");
+
+	// Keep printing tokens while one of the  delimiters present in str[]. 
+	while (token != NULL) {
+		printf("%s\n", token);
+		token = strtok(NULL, "-");
+	}
+	   	  
+
+	char* sentence = "- This, a sample string.";
+	char* token = " ,.-";
+	char* p;
+	p = strtok(sentence, token);
+	while (p != NULL)
+	{
+		std::cout << p << std::endl;
+		p = strtok(NULL, " ");
+	}	
 }
 
 static uint32_t s_AllocCount = 0;
