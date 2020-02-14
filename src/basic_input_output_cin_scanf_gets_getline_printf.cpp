@@ -5,3 +5,7 @@ https://www.geeksforgeeks.org/problem-with-scanf-when-there-is-fgetsgetsscanf-af
 https://www.geeksforgeeks.org/cincout-vs-scanfprintf/
 https://www.geeksforgeeks.org/how-to-use-getline-in-c-when-there-are-black-lines-in-input/
 https://www.geeksforgeeks.org/difference-between-scanf-and-gets-in-c/
+https://www.geeksforgeeks.org/manipulators-in-c-with-examples/
+http://www.cplusplus.com/reference/iolibrary/
+http://h30266.www3.hpe.com/odl/unix/progtool/deccxx71/6026pro_iostr.html
+https://www.geeksforgeeks.org/manipulators-in-c-with-examples/
