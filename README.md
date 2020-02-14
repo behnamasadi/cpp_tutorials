@@ -6,6 +6,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Allocator](src/allocator.cpp)  
 [Arrays](src/arrays.cpp)  
 [Assert](src/assert.cpp)  
+[Basic Input Output cin,scanf,gets,getline,print](src/basic_input_output_cin_scanf_gets_getline_print.cpp)  
 [Bindinng](src/bind.cpp)  
 [Bitset](src/bitset.cpp)  
 [Bitwise Operations](src/bitwise_operations.cpp)  
