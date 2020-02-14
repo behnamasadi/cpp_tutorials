@@ -78,6 +78,12 @@ void stringDatraTypes()
     CHAR: alias of char - Windows data type
     LPSTR: null-terminated string of CHAR (Long Pointer)
     LPCSTR: constant null-terminated string of CHAR (Long Pointer)
+    
+    char is supposed to hold a character, usually an 8-bit character.
+    wchar_t is supposed to hold a wide character, and then, things get tricky:
+    On Linux, a wchar_t is 4 bytes, while on Windows, it's 2 bytes.
+    neither char nor wchar_t is directly tied to unicode!.
+
 
     ====================== 16-bit UnicodeStrings ======================
     wchar_t: 16-bit character - underlying C/C++ data type
@@ -98,23 +104,36 @@ void stringDatraTypes()
     | string (const)    | LPCSTR       | LPCWSTR     | LPCTSTR         |
 
 
+    LPCTSTR = L‌ong P‌ointer to a C‌onst T‌CHAR STR‌ing. 
+    a long pointer is the same as a pointer. There were two flavors of pointers under 16-bit windows.
+
+    LPSTR = char*
+    LPCSTR = const char*
+    LPWSTR = wchar_t*
+    LPCWSTR = const wchar_t* (This type is declared in WinNT.h as follows: typedef CONST WCHAR *LPCWSTR;)
+    LPTSTR = char* or wchar_t* depending on _UNICODE
+    LPCTSTR = const char* or const wchar_t* depending on _UNICODE
+    
+    
+    This type is declared in WinNT.h as follows:
+
+    #ifdef UNICODE
+       typedef LPCWSTR LPCTSTR; 
+    #else
+       typedef LPCSTR LPCTSTR;
+    #endif
+
+
     std::string is a basic_string templated on a char, and std::wstring on a wchar_t.
 
     Type	                        Definition
-    std::string	            std::basic_string<char>
+    std::string	                std::basic_string<char>
     std::wstring	        std::basic_string<wchar_t>
     std::u8string (C++20)	std::basic_string<char8_t>
     std::u16string (C++11)	std::basic_string<char16_t>
     std::u32string (C++11)	std::basic_string<char32_t>
 
-    ===================== char vs. wchar_t =====================
-    char is supposed to hold a character, usually an 8-bit character.
-    wchar_t is supposed to hold a wide character, and then, things get tricky:
-    On Linux, a wchar_t is 4 bytes, while on Windows, it's 2 bytes.
-
-    neither char nor wchar_t is directly tied to unicode!.
-
-
+ 
     ===================== Checklist for Windows string programming =====================
     1) _T() stands for text. It tells the compiler to compile the string literal as either Unicode or ANSI depending on the
     value of a precompiler define.
@@ -135,10 +154,7 @@ void stringDatraTypes()
      LPTSTR is a pointer to a (non-const) TCHAR string
 
      For C++ strings, use std::wstring instead of std::string
-    */
-
-
-/*
+   
     You don't need to use <const > in <const char *> when you define c style strings.
     The reason is you don't want to increase or decrease the  length  of your string as it has fixed sized memory.
     Just because it is <char *> it doesn't mean it is in heap, and we don't call delete.
