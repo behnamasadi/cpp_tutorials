@@ -418,6 +418,19 @@ void shortStringOptimization()
     }
 }
 
+/// Try to find in the word the sentence - case insensitive
+bool findStringCaseInsensitive(const std::string& sentence, const std::string& word)
+{
+	auto it = std::search(
+		sentence.begin(), sentence.end(),
+		word.begin(), word.end(),
+		[](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+	);
+	return (it != sentence.end());
+}
+
+
+
 int main()
 {
 
