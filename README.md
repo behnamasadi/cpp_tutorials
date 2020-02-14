@@ -25,7 +25,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Functions](src/function.cpp)  
 [Function Objects](src/function_objects.cpp)  
 [Function Pointer](src/function_pointer.cpp)  
-[Heap And Stack](src/heap_vs_stack.cpp)  
+[Heap And Stack, Memory Layout of C Programs](src/heap_vs_stack.cpp)  
 [Inline Functions](src/inline_functions.cpp)  
 [Lists](src/lists.cpp)  
 [Literals](src/literals.cpp)  
