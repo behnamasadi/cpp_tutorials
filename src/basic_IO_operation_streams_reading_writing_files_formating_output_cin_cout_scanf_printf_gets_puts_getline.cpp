@@ -4,24 +4,41 @@
 #include <complex>
 #include <map>
 #include <limits>
-
+#include <iomanip>
 
 /*
 
-class hierarchy
-                                        ios
-                                         |
-                               -------------------          
-                               |                 |            
-                            ostream           istream
-                               |                 |
-                 ---------------------------------------------------
-                 |                       |                         |
-             ofstream                    |                     ifstream
-                                         |
-                                      iostream
-                                         |
-                                      fstream
+
+https://www.geeksforgeeks.org/basic-input-output-c/
+https://www.geeksforgeeks.org/problem-with-scanf-when-there-is-fgetsgetsscanf-after-it/
+https://www.geeksforgeeks.org/cincout-vs-scanfprintf/
+https://www.geeksforgeeks.org/how-to-use-getline-in-c-when-there-are-black-lines-in-input/
+https://www.geeksforgeeks.org/difference-between-scanf-and-gets-in-c/
+https://www.geeksforgeeks.org/manipulators-in-c-with-examples/
+http://www.cplusplus.com/reference/iolibrary/
+http://h30266.www3.hpe.com/odl/unix/progtool/deccxx71/6026pro_iostr.html
+https://www.geeksforgeeks.org/manipulators-in-c-with-examples/
+
+
+ <ios>        <istream>       <iostream>        <fstream>         <sstream>
+
+                     --------------------------->ifstream
+ios_base      istream
+   |         ↗   |   -------------------------------------------->istringstream
+   |        /    |
+   |       /     |
+   ↓      /      ↓    --------------------------->fstream
+   ios        iostream
+          \      ↑    ------------------------------------------->stringstream
+           \     |
+            \    |    --------------------------->ofstream
+             ↘ ostream
+                      ------------------------------------------->ostrngstream
+
+             <streambuf>
+                       --------------------------->filebuf
+              streambuf
+                       ------------------------------------------->stringbuf
 ios
     In more recent compilers, ios has been replaced by ios_base. The class ios contains most of the actual I/O code. It is ios that keeps track of the error state of the stream. The ios class converts data for display. It understands the format of the different types of numbers, how to output character strings, and how to convert an ASCII string to and from an integer or a oating{point number.
 
@@ -63,7 +80,13 @@ The Bufer
     
     
     
-    On input, the situation is reversed. When the ios class asks for the first character from the input stream, the input buffer is empty. Rather than read a single character (even if that were possible), the streambuf reads several blocks of data into the input buffer. Then streambuf returns only the first character to ios and keeps the rest. When the next input request comes in, streambuf returns the next character from the input buffer without bothering to read from the disk. The streambuf class doesn't read from the disk again until the input buffer has been emptied by input requests.
+    On input, the situation is reversed. When the ios class asks for the first character
+ from the input stream, the input buffer is empty. Rather than read a single character
+ (even if that were possible), the streambuf reads several blocks of data into the input
+ buffer. Then streambuf returns only the first character to ios and keeps the rest. When
+ the next input request comes in, streambuf returns the next character from the input
+ buffer without bothering to read from the disk. The streambuf class doesn't read from
+ the disk again until the input buffer has been emptied by input requests.
     
     
     he base class ios does most of the input/output work. But it  needs another class called streambuf which acts as a server to the ios class. streambuf is an intermediatry between ios and the physical media, e.g., the screen, the disk, etc. The class streambuf performs the actual I/O to the outside world. The class streambuf  has several subclasses, each of which specializes in its own particular type of media. For example, filebuf handles file I/O for the ios class.
@@ -209,51 +232,6 @@ void formatingStream()
 
 }
 
-void stringstreamExample()
-{
-    std::stringstream ss;
-    std::string name="behnam";
-    int age=33;
-    ss<<"name: "<<name;
-    ss<<" age: "<<age;
-    std::cout<< ss.str() <<std::endl;
-    
-    std::string word;
-    
-    //ss.getline();
-   
-    ss<<"23 4 5.0";
-    
-    while(ss>>word)
-    {
-        std::cout<<word <<std::endl;
-    }
-    
-/////////////////////////////count words frquency/////////////////////////////////
-    std::stringstream wordsFrquencyStream("a b bb c a dd d");
-    wordsFrquencyStream.str("a b bb c a dd d");
-    
-    std::map<std::string,int> wordsFrquency;
-    while(wordsFrquencyStream>>word)
-    {
-        wordsFrquency[word]++;
-    }
-    std::cout<<"Frequecy of words in "<<wordsFrquencyStream.str() <<std::endl;
-
-    for(auto i:wordsFrquency)
-        std::cout<<i.first<<":" <<i.second <<std::endl;
-
-/////////////////////////////Hex Decimal/////////////////////////////////
-    std::stringstream hexDecimalStream;
-    hexDecimalStream<<std::hex<<10 <<" "<<std::hex<<12;
-    std::cout<<hexDecimalStream.str() <<std::endl;
-    
-    unsigned int x,y;
-    hexDecimalStream>>x>>y;
-    std::cout<< x<<" "<<y <<std::endl;
-
-    
-}
 
 void flushcin()
 {
@@ -332,7 +310,156 @@ It is recommended to use cout << “\n”; instead of cout << endl;. endl is slo
 */
 }
 
+
+void cinExamples()
+{
+/*
+cin.get() is used for accessing character array. It includes white space characters.
+Generally, cin with an extraction operator (>>) terminates when whitespace is found. However, cin.get() reads a string with the whitespace.
+*/
+    std::stringstream ss;
+    std::stringbuf sbf;
+    std::cin.get(sbf);
+
+}
+/*
+stringstream
+typedef basic_stringstream<char> stringstream;
+
+
+ios_base      istream
+   |         ↗   |
+   |        /    |
+   |       /     |
+   ↓      /      ↓
+   ios        iostream
+          \      ↑    ------------------------------------------->stringstream
+           \     |
+            \    |
+             ↘ ostream
+
+
+Objects of this class use a "string buffer" that contains a sequence of characters. This sequence of characters
+can be accessed directly as a string object, using member str().
+You can read from the string as if it were a stream (like cin).
+
+
+Important methods are:
+clear() — to clear the stream
+str() — to get and set string object whose content is present in stream.
+insertion (<<) operator  — add a string to the stringstream object. This operator has been overloaded with
+various data types, so you can do  stringstream<<int or stringstream<<double etc.
+
+extraction (>>) operator — read something from the stringstream object until it encouter a white space.
+
+
+*/
+
+void stringstreamExample()
+{
+    std::stringstream ss;
+    //ss.str()
+    std::string name="behnam";
+    int age=33;
+    ss<<"name: "<<name;
+    ss<<" age: "<<age;
+
+    std::cout<< "Accessing data stored in stringstream via .str() call:"<<std::endl;
+
+    std::cout<< ss.str() <<std::endl;
+
+    std::string word;
+
+    std::cout<< "Accessing data stored in stringstream via extraction (>>) operator:"<<std::endl;
+
+    ss<<"23 4 5.0";
+
+    while(ss>>word)
+    {
+        std::cout<<word <<std::endl;
+    }
+
+    std::cout<<"//////////////////////// Counting Words Frquency ////////////////////////////"<<std::endl;
+
+
+    std::stringstream wordsFrquencyStream("a b bb c a dd d");
+
+
+    std::map<std::string,int> wordsFrquency;
+    while(wordsFrquencyStream>>word)
+    {
+        wordsFrquency[word]++;
+    }
+    std::cout<<"Frequecy of words in "<<wordsFrquencyStream.str() <<std::endl;
+
+    for(auto i:wordsFrquency)
+        std::cout<<i.first<<":" <<i.second <<std::endl;
+
+
+    std::cout<<"///////////////////////////// Hex Decimal /////////////////////////////////"<<std::endl;
+
+
+    std::stringstream hexDecimalStream;
+    hexDecimalStream<<std::hex<<12;
+    std::cout<<"0x" << hexDecimalStream.str() <<std::endl;
+
+    unsigned int x;
+    hexDecimalStream>>x;
+    std::cout<< x<<std::endl;
+
+
+    std::cout<<"the hexadecimal value of 12 is:"<<std::endl;
+    std::cout<<"0x"<<std::setbase(16)<<12<<std::endl;
+
+
+
+}
+
+/*
+Manipulators
+Manipulators are helping functions that can modify the input/output stream.
+It does not mean that we change the value of a variable, it only modifies the I/O stream using
+insertion (<<) and extraction (>>) operators.
+
+Types of Manipulators:
+1) Manipulators without arguments: The most important manipulators defined by the IOStream library are provided below.
+    I) endl: It is defined in ostream. It is used to enter a new line and after entering a new line it flushes
+        (i.e. it forces all the output written on the screen or in the file) the output stream.
+
+    II) ws: It is defined in istream and is used to ignore the whitespaces in the string sequence.
+    III) ends: It is also defined in ostream and it inserts a null character into the output stream. It typically works with
+        std::ostrstream, when the associated output buffer needs to be null-terminated to be processed as a C string.
+    IV) flush: It is also defined in ostream and it flushes the output stream i.e. it forces all the output written
+        on the screen or in the file. Without flush, the output would be the same but may not appear in real-time.
+
+2) Manipulators with Arguments:
+
+    I) Some important manipulators in <iomanip> are:
+        a)setw (val): It is used to sets the field width in output operations.
+        b)setfill (c): It is used to fill the character ‘c’ on output stream.
+        c)setprecision (val): It sets val as the new value for the precision of floating-point values.
+        d)setbase(val): It is used to set the numeric base value for numeric values.
+        e)setiosflags(flag): It is used to sets the format flags specified by parameter mask.
+        f)resetiosflags(m): It is used to resets the format flags specified by parameter mask.
+    II)Some important manipulators in <ios> are:
+        a)showpos: It forces to show a positive sign on positive numbers.
+        b)noshowpos: It forces not to write a positive sign on positive numbers.
+        c)showbase: It indicates numeric base of numeric values.
+        d)uppercase: It forces uppercase letters for numeric values.
+        e)nouppercase: It forces lowercase letters for numeric values.
+        f)fixed: It uses decimal notation for ?oating-point values.
+        g)scientific: It use scientific floating-point notation.
+        h)hex: Read and write hexadecimal values for integers and it works same as the setbase(16).
+        i)dec: Read and write decimal values for integers i.e. setbase(10).
+        j)oct: Read and write octal values for integers i.e. setbase(10).
+        k)left: It adjust output to the left.
+        l)right: It adjust output to the right.
+
+
+
+
+*/
 int main()
 {
-
+    stringstreamExample();
 }

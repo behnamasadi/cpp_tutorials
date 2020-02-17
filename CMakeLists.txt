@@ -199,8 +199,8 @@ TARGET_LINK_LIBRARIES(date_time)
 ADD_EXECUTABLE(fork src/fork.cpp)
 TARGET_LINK_LIBRARIES(fork)
 
-ADD_EXECUTABLE(streams_IO_operation_format_output src/streams_IO_operation_format_output.cpp)
-TARGET_LINK_LIBRARIES(streams_IO_operation_format_output)
+ADD_EXECUTABLE(basic_IO_operation_streams src/basic_IO_operation_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
+TARGET_LINK_LIBRARIES(basic_IO_operation_streams)
 
 ADD_EXECUTABLE(explicit  src/explicit.cpp)
 TARGET_LINK_LIBRARIES(explicit)
