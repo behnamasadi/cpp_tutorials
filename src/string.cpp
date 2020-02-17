@@ -11,6 +11,7 @@
 #include <iterator>
 #include <vector>
 #include <string_view>
+#include <algorithm>
 
 void stringDatraTypes()
 {
@@ -302,9 +303,9 @@ Since C-style strings are arrays, you can use the [] operator to change individu
 	It returns NULL when there are no more tokens.
 	char * strtok(char str[], const char *delims);
 	*/
-	char str[] = "Geeks-for-Geeks";
+    char my_str[] = "Geeks-for-Geeks";
 	// Returns first token 
-	char* token = strtok(str, "-");
+    char* token = strtok(my_str, "-");
 
 	// Keep printing tokens while one of the  delimiters present in str[]. 
 	while (token != NULL) {
@@ -314,9 +315,9 @@ Since C-style strings are arrays, you can use the [] operator to change individu
 	   	  
 
 	char* sentence = "- This, a sample string.";
-	char* token = " ,.-";
+    char* delimiter = " ,.-";
 	char* p;
-	p = strtok(sentence, token);
+    p = strtok(sentence, delimiter);
 	while (p != NULL)
 	{
 		std::cout << p << std::endl;
