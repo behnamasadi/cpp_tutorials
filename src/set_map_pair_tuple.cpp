@@ -25,7 +25,29 @@ then you would need an std::map<std::string,int>. If you don't need to associate
 Tie:
 
 The work of tie() is to unpack the tuple values into seperate variables. There are two variants of tie(), with and without “ignore” , the “ignore” ignores a particular tuple element and stops it from getting unpacked.
+
+tuple
+A tuple is an object that can hold a number of elements. The elements can be of different data types.
 */
+
+void tupleExample()
+{
+    std::tuple<int, double, int, std::string > mytuple = std::make_tuple(10, 12.4, 3, "this is a tuple");
+    //get() is used to access the tuple values and modify them, it accepts the index and tuple name as arguments 
+    
+    std::cout<<std::get<0>(mytuple) <<std::endl;
+    std::cout << std::get<1>(mytuple) << std::endl;
+    std::cout << std::get<2>(mytuple) << std::endl;
+    std::cout << std::tuple_size<decltype(mytuple)>::value << std::endl;
+
+    // tie() : unpack the tuple values into seperate variables. There are two variants of tie()
+
+    int i; 
+    double d; 
+    int n; 
+    std::string s;
+    std::tie(i, d, n, s) = mytuple;
+}
 
 std::tuple<int, double, std::string> tupleExample()
 {
