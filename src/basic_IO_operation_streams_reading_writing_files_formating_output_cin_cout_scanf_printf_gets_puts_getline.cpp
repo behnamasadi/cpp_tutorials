@@ -459,7 +459,178 @@ Types of Manipulators:
 
 
 */
-int main()
+
+
+/*
+std::getline
+
+istream& getline (istream&  is, string& str, char delim);
+istream& getline (istream&  is, string& str);
+Extracts characters from is and stores them into str until the delimitation character delim is found (or the newline character, '\n'
+*/
+
+void getlineExample()
 {
-    stringstreamExample();
+	std::stringstream ss("this is a stringstream");
+	std::string my_string;
+	char delim = ' ';
+
+
+	while (std::getline(ss, my_string, delim))
+		std::cout << my_string << std::endl;
+
+	std::string name;
+	std::cout << "Please, enter your full name: ";
+	std::getline(std::cin, name);
+	std::cout << "Hello, " << name << "!\n";
 }
+
+/*
+By default, std::cout is buffered, and the actual output is only printed once the buffer is full or some other flushing situation occurs
+(e.g. a newline in the stream). Sometimes you want to make sure that the printing happens immediately, and you need to flush manually.
+For example, suppose you want to report a progress report by printing a single dot:
+In the following example if you comment std::flush(std::cout) you won't see that for a long time, until the buffer became full
+*/
+
+void flushExample() 
+{
+	for (;;)
+	{
+
+		// performing some expensive operation
+		std::size_t j;
+		for (std::size_t i = 0; i < 10000000; i++)
+		{
+			j = 2 * i;
+		}
+
+		std::cout << '.';
+		//std::flush(std::cout);
+	}
+}
+
+/*
+std::ws
+Discards leading whitespace from an input stream
+formatted input, i.e., the usual input operators using `in >> value, skip leading whitespace and stop whenever the format is filled
+unformatted input, e.g., std::getline(in, value) does not skip leading whitespace
+
+int age;
+std::string fullname;
+
+if (std::cin >> age && std::getline(std::cin, fullname)) { // BEWARE: this is NOT a Good Idea!
+	 std::cout << "age=" << age << "  fullname='" << fullname << "'\n";
+ }
+ 
+for the folliwng example:
+47
+Dietmar Kühl
+
+It would print something like this
+age=47 fullname=''
+
+The use of std::cin >> std::ws skips the whitespace, in particular the newline, and carries on reading where the actual content is entered.
+The following statement read the data correctly
+if (std::cin >> age && std::getline(std::cin >> std::ws, fullname)) {
+	...
+}
+*/
+
+void wsExample() 
+{
+	int age(0);
+	std::string fullname;
+	std::stringstream ss1("     47 \n \n mumbo jumbo");
+	
+	if (ss1 >> age && std::getline(ss1 , fullname))
+	{
+		std::cout << age << std::endl;
+		std::cout << fullname << std::endl;
+	}
+
+	std::stringstream ss2("     47 \n \n mumbo jumbo");
+	if (ss2 >> age && std::getline(ss2 >> std::ws, fullname))
+	{
+		std::cout << age << std::endl;
+		std::cout << fullname << std::endl;
+	}
+}
+
+
+void setwExample() 
+{
+	std::cout << std::setw(10) << 77 << std::setw(8) << 15 << std::endl;
+}
+
+void setfillExample() 
+{
+	//Sets c as the stream's fill character.
+	std::cout << std::setfill('x') << std::setw(10) << 77 << std::setw(10) << 12 << std::endl;
+}
+
+/*
+The std::setw manipulator sets the width of a column, while std::left and std::right set the alignment of the written value
+within that column. For example, on line 6, we write the name “John Smith” to a column of width 12 and align it to the left of the column.
+*/
+void leftrightExample() 
+{
+	std::cout << std::left << std::setw(15) << "John Smith" << std::right << std::setw(7) << 23 << '\n';
+	std::cout << std::left << std::setw(15) << "Sam Brown" << std::right << std::setw(7) << 8 << '\n';
+}
+
+void setprecisionExample() 
+{
+
+	double number = 3.1914534559;
+
+	std::cout <<"default precision: " <<std::cout.precision()<< "\n";
+
+	std::cout << number << "\n";
+	std::cout << std::setprecision(1)<< number <<"\n" ;
+	std::cout << std::fixed;
+	std::cout << std::setprecision(7) << number << "\n";
+
+	
+
+}
+
+void hexDecOctSetBaseShowBase()
+{
+	//
+	std::cout << std::setbase(16) << 110<<std::endl;
+	std::cout << std::hex << 110 << std::endl;
+	std::cout << std::hex << std::showbase << 110 << '\n';
+	
+	std::cout << std::dec << 0xc1 << std::endl;
+	std::cout << std::setbase(10) << 0xc1 << std::endl;
+
+	
+
+
+}
+
+int main(int argc, char* argv[])
+{
+	
+	std::string key;
+	
+	
+	while (std::getline(std::cin >> std::ws, key) && std::atoi(key.c_str())!=0)
+	{
+		std::cout << key << std::endl;
+		
+	}
+
+	
+	//if (std::cin >> age && std::getline(std::cin >> std::ws, fullname)) 
+	//{
+	//	 
+	//}
+
+	do
+	{
+		std::cout << '\n' << "Press a key to continue...";
+	} while (std::cin.get() != '\n');
+
+}
+
