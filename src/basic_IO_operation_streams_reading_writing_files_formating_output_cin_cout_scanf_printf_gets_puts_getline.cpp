@@ -634,3 +634,323 @@ int main(int argc, char* argv[])
 
 }
 
+
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+
+/*
+Formatted vs Unformatted I/O Function
+
+Formatted: These functions allow to supply input or display output in user desired format, i.e. printf() and scanf()
+Unformatted: they do not allow to supply input or display output in user desired format, i.e. getch(), getche(), getchar(), gets(), puts(), 
+putchar()
+*/
+
+
+/*
+stream: serial IO interface to external devices (files, network, ...).  
+streambuf
+A stream buffer is an object in charge of performing the reading and writing operations of the stream object.
+It is responsible for communicating with external devices.
+*/
+
+void streambuf() 
+{	
+	//pbuf is responsible for communicating with external devices
+	std::streambuf* pbuf= std::cout.rdbuf();
+}
+
+void flushExample() 
+{
+/*
+	By default, std::cout is buffered, and the actual output is only printed once the buffer is full or some other flushing situation occurs
+	(e.g. a newline in the stream). Sometimes you want to make sure that the printing happens immediately, and you need to flush manually.
+	For example, suppose you want to report a progress report by printing a single dot:
+	In the following example if you comment std::flush(std::cout) you won't see that for a long time, until the buffer became full
+*/
+	for (;;)
+	{
+
+		// performing some expensive operation
+		std::size_t j;
+		for (std::size_t i = 0; i < 10000000; i++)
+		{
+			j = 2 * i;
+		}
+
+		std::cout << '.';
+		//std::flush(std::cout);
+	}
+}
+
+void wsExample() 
+{
+/*
+	std::ws
+	Discards leading whitespace from an input stream
+	formatted input, i.e., the usual input operators using `in >> value, skip leading whitespace and stop whenever the format is filled
+	unformatted input, e.g., std::getline(in, value) does not skip leading whitespace
+
+	int age;
+	std::string fullname;
+
+	if (std::cin >> age && std::getline(std::cin, fullname)) { // BEWARE: this is NOT a Good Idea!
+		 std::cout << "age=" << age << "  fullname='" << fullname << "'\n";
+	 }
+
+	for the folliwng example:
+	47
+	Dietmar Kühl
+
+	It would print something like this
+	age=47 fullname=''
+
+	The use of std::cin >> std::ws skips the whitespace, in particular the newline, and carries on reading where the actual content is entered.
+	The following statement read the data correctly
+	if (std::cin >> age && std::getline(std::cin >> std::ws, fullname)) {
+		...
+	}
+*/
+
+	int age(0);
+	std::string fullname;
+	std::stringstream ss1("     47 \n \n mumbo jumbo");
+	
+	if (ss1 >> age && std::getline(ss1 , fullname))
+	{
+		std::cout << age << std::endl;
+		std::cout << fullname << std::endl;
+	}
+
+	std::stringstream ss2("     47 \n \n mumbo jumbo");
+	if (ss2 >> age && std::getline(ss2 >> std::ws, fullname))
+	{
+		std::cout << age << std::endl;
+		std::cout << fullname << std::endl;
+	}
+}
+
+void setwExample() 
+{
+	std::cout << std::setw(10) << 77 << std::setw(8) << 15 << std::endl;
+}
+
+void setfillExample() 
+{
+	//Sets c as the stream's fill character.
+	std::cout << std::setfill('x') << std::setw(10) << 77 << std::setw(10) << 12 << std::endl;
+}
+
+void leftrightExample() 
+{
+/*
+	The std::setw manipulator sets the width of a column, while std::left and std::right set the alignment of the written value
+	within that column. For example, on line 6, we write the name “John Smith” to a column of width 12 and align it to the left of the column.
+*/
+	std::cout << std::left << std::setw(15) << "John Smith" << std::right << std::setw(7) << 23 << '\n';
+	std::cout << std::left << std::setw(15) << "Sam Brown" << std::right << std::setw(7) << 8 << '\n';
+}
+
+void setprecisionExample() 
+{
+
+	double number = 3.1914534559;
+
+	std::cout <<"default precision: " <<std::cout.precision()<< "\n";
+
+	std::cout << number << "\n";
+	std::cout << std::setprecision(1)<< number <<"\n" ;
+	std::cout << std::fixed;
+	std::cout << std::setprecision(7) << number << "\n";
+
+	
+
+}
+
+void hexDecOctSetBaseShowBase()
+{
+	//
+	std::cout << std::setbase(16) << 110<<std::endl;
+	std::cout << std::hex << 110 << std::endl;
+	std::cout << std::hex << std::showbase << 110 << '\n';
+	
+	std::cout << std::dec << 0xc1 << std::endl;
+	std::cout << std::setbase(10) << 0xc1 << std::endl;
+
+	
+
+
+}
+
+void cinGetlineExample()
+{
+/*
+	std::getline
+
+	istream& getline (istream&  is, string& str, char delim);
+	istream& getline (istream&  is, string& str);
+	Extracts characters from is and stores them into str until the delimitation character delim is found (or the newline character, '\n'
+*/
+	std::stringstream ss("this is a stringstream");
+	std::string my_string;
+	char delim = ' ';
+
+
+	while (std::getline(ss, my_string, delim))
+		std::cout << my_string << std::endl;
+
+	std::string name;
+	std::cout << "Please, enter your full name: ";
+	std::getline(std::cin, name);
+	std::cout << "Hello, " << name << "!\n";
+}
+
+void cinExtractOperatorExample()
+{
+	/*
+	extract operator >>
+	It will read the user input (discard the white spaces or '\n' before the user input) until it encounter 
+	first end of line or white space. It will also leave the '\n' in the cin object.
+	If user input has a space in it, you should use getline.
+	for instance here favorite food might have two words with a space in between, so the second part of the favorite food will be
+	passed to the next std::cin. 
+
+	In the following example in the line:
+	std::cin >> n1;
+
+	since it leaves the '\n' in the cin object, the line:
+	std::getline(std::cin >> std::ws, key);
+
+	would only get '\n' and finishes immediately. 
+	*/
+
+	int n1;
+	std::string favouriteFood,key;
+
+	std::getline(std::cin>>std::ws , favouriteFood);
+	std::cout << favouriteFood << '\n';
+
+	std::cin >> n1;
+	std::cout << n1 << '\n'; 
+			
+	std::getline(std::cin >> std::ws, key);
+	std::cout << key <<'\n';
+
+}
+
+void cinIgnoreExample() 
+{
+
+
+	/*
+	It doesn't "throw away" something you don't need instead, it ignores the amount of characters you specify when you call it,
+	up to the char you specify as a breakpoint.
+
+	Essentially, for std::cin statements you use ignore before you do a getline call, because when a user inputs something with std::cin,
+	they hit enter and a '\n' char gets into the cin buffer. Then if you use getline, it gets the newline char instead of the string you want.
+	So you do a std::cin.ignore(MAX,'\n') and that should clear the buffer up to the string that you want. (The MAX is put there to skip
+	over a specific amount of chars before the specified break point, in this case, the \n newline character.)
+	*/
+
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	//in c style programming you can call 
+	//while ((getchar()) != '\n');
+
+	/*
+	If you don't specify any argument it will ignore the first character it faces
+	std::cin.ignore(5); //it will discared 5 character
+	std::cin.ignore(5, demiliter); //it will discared 5 character or delimiter character i.e. '\n'
+	*/
+
+}
+
+void cinPeekExample()
+{
+	/*
+	It just move the pointer in the stream buffer and doesn't remove anything from that
+	*/
+	std::cin.peek();
+}
+
+void cinPutbackExample()
+{
+	/*
+	It putback something in the stream buffer.
+	*/
+}
+
+void cinGetExample()
+{
+	/*
+	Extracts characters from the stream, as unformatted input:
+	*/
+
+	char str[256];
+	std::cout << "Enter the name of an existing text file: ";
+	std::cin.get(str, 256);    // get c-string
+
+	std::string filePath = "";
+	std::ifstream is(filePath.c_str(), std::ifstream::in);     // open file
+
+	char c;
+	while (is.get(c))          // loop getting single characters
+		std::cout << c;
+
+	c = std::cin.get();
+}
+
+void coutPutExample() 
+{
+	std::cout.put(65);
+}
+
+void coutWriteExample()
+{
+	std::string message("message for write");
+	std::cout.write(message.c_str(), message.size());
+}
+
+void scanfVScin() 
+{
+	//https://www.geeksforgeeks.org/cincout-vs-scanfprintf/
+	std::ios::sync_with_stdio(false);
+}
+
+int main(int argc, char* argv[])
+{
+	/*
+	std::cout.precision();
+	std::cout.width(6);
+	std::cout.fill('*');
+	std::cout.setf(arg1, arg2);
+	std::cout.unsetf();
+	
+	                            arg1                   arg2
+	left justified output       std::ios::left         std::ios::adjustfield
+	right justified output      std::ios::right        std::ios::adjustfield
+	Scientific notation         std::ios::scientific   std::ios::floatfield
+	Fixed point notation        std::ios::fixed        std::ios::floatfield
+	Decimal base                std::ios::dec          std::ios::basefield            
+	Octal base                  std::ios::oct          std::ios::basefield  
+	Hexdecimal base             std::ios::hex          std::ios::basefield
+	*/
+	
+
+
+
+	/*
+	std::cout << '\n' << "Press a key to continue...";
+	do
+	{
+		// code here will be repeated for every character that user type.
+	} while (std::cin.get() != '\n');
+	*/
+
+
+	
+
+}
