@@ -40,11 +40,15 @@ A stream is an abstraction that represents a device (keyboard, files, network, .
 A stream can basically be represented as a source or destination of characters of indefinite length.
 
 Streambuf:
+I/O is an expensive operation, so to reduce the number of I/O operations the system store the information in a temporary 
+memory location, and delay the I/O operation to a moment when it has a good amount of data. This way you've a much smaller 
+number of I/O operations, what means, a faster application.
+
 A stream buffer is an object in charge of performing the reading and writing operations of the stream object.
 It is responsible for communicating with external devices. When you read or write from cin or cout, you are actually 
 reading/ writing from cin/cout streambuff which is controlled by operating system. Operating system puts the data there and
 your application can read or write from there.
-
+ref: https://stackoverflow.com/questions/29176636/can-someone-please-explain-how-stdio-buffering-works
 
 Predefined Stream Objects
 1) cin
@@ -564,14 +568,6 @@ void cinGetExample()
 
 	c = std::cin.get();
 }
-
-void scanfVScin()
-{
-    //https://www.geeksforgeeks.org/cincout-vs-scanfprintf/
-    std::ios::sync_with_stdio(false);
-}
-
-//cout is global object of type ostream class (typedef std::basic_ostream<char> ostream )
 
 void coutPutExample() 
 {
