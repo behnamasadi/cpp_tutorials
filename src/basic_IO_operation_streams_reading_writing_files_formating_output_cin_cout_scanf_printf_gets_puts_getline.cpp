@@ -1,43 +1,69 @@
 #include <iostream>
 #include <fstream> 
 #include <bitset>
+#include <iomanip>
+
 #include <complex>
 #include <map>
 #include <limits>
-#include <iomanip>
 
 /*
 
-https://www.geeksforgeeks.org/manipulators-in-c-with-examples/
-http://h30266.www3.hpe.com/odl/unix/progtool/deccxx71/6026pro_iostr.html
-
-https://www.geeksforgeeks.org/cincout-vs-scanfprintf/
-https://www.geeksforgeeks.org/how-to-use-getline-in-c-when-there-are-black-lines-in-input/
-https://www.geeksforgeeks.org/difference-between-scanf-and-gets-in-c/
 http://www.cplusplus.com/reference/iolibrary/
-https://www.youtube.com/watch?v=yMseUJm1604
 
 
 
  <ios>        <istream>       <iostream>        <fstream>         <sstream>
 
-                     --------------------------->ifstream
+                 |------------------------------->ifstream
 ios_base      istream
-   |         ↗   |   -------------------------------------------->istringstream
+   |         ↗   |----------------------------------------------->istringstream
    |        /    |
    |       /     |
-   ↓      /      ↓    --------------------------->fstream
+   ↓      /      ↓------------------------------->fstream
    ios        iostream
-          \      ↑    ------------------------------------------->stringstream
+          \      ↑----------------------------------------------->stringstream
            \     |
-            \    |    --------------------------->ofstream
+            \    |------------------------------->ofstream
              ↘ ostream
-                      ------------------------------------------->ostrngstream
+                 |------------------------------------------------>ostrngstream
 
              <streambuf>
-                       --------------------------->filebuf
+                  |------------------------------->filebuf
               streambuf
-                       ------------------------------------------->stringbuf
+                  |------------------------------------------------->stringbuf
+
+
+
+Stream:
+A stream is an abstraction that represents a device (keyboard, files, network, ...) on which input and ouput operations are performed. 
+A stream can basically be represented as a source or destination of characters of indefinite length.
+
+Streambuf:
+A stream buffer is an object in charge of performing the reading and writing operations of the stream object.
+It is responsible for communicating with external devices. When you read or write from cin or cout, you are actually 
+reading/ writing from cin/cout streambuff which is controlled by operating system. Operating system puts the data there and
+your application can read or write from there.
+
+
+Predefined Stream Objects
+1) cin
+typedef std::istream	std::basic_istream<char>;
+extern std::istream cin;
+
+2) cerr  
+
+typedef std::ostream	std::basic_ostream<char>;
+extern std::ostream cerr;
+
+3) clog
+extern ostream clog;
+
+4) cout
+extern ostream cout;
+
+
+
 
 
 Formatted vs Unformatted I/O Function
@@ -289,18 +315,17 @@ extraction (>>) operator — read something from the stringstream object until i
 
 ////////////////////////////////////// streambuf //////////////////////////////////////
 
-/*
 
-stream: serial IO interface to external devices (files, network, ...).  
-streambuf
-A stream buffer is an object in charge of performing the reading and writing operations of the stream object.
-It is responsible for communicating with external devices.
-*/
 
 void streambuf() 
 {	
 	//pbuf is responsible for communicating with external devices
 	std::streambuf* pbuf= std::cout.rdbuf();
+	
+	
+	std::istream my_cin(std::cin.rdbuf());
+	int x;
+	my_cin >> x;
 }
 
 void flushExample() 
