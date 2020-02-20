@@ -49,10 +49,6 @@ void tupleExample()
     std::tie(i, d, n, s) = mytuple;
 }
 
-std::tuple<int, double, std::string> tupleExample()
-{
-    return std::make_tuple(1,2.3, "Hello");
-}
 
 void pairExample()
 {
