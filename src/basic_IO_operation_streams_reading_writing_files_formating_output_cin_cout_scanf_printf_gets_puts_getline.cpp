@@ -321,16 +321,66 @@ extraction (>>) operator — read something from the stringstream object until i
 
 
 
-void streambuf() 
-{	
-	//pbuf is responsible for communicating with external devices
-	std::streambuf* pbuf= std::cout.rdbuf();
-	
-	
-	std::istream my_cin(std::cin.rdbuf());
+void streambuf()
+{
+/*
+	Streams Objects in C++ are mainly of three types :
+
+	istream : Stream object of this type can only perform input operations from the stream
+	ostream : These objects can only be used for output operations.
+	iostream : Can be used for both input and output operations
+
+	All stream objects also have an associated data member of class streambuf. Simply put streambuf 
+	object is the buffer for the stream. When we read data from a stream, we don’t read it directly 
+	from the source, but instead, we read it from the buffer which is linked to the source. Similarly, 
+	output operations are first performed on the buffer, and then the buffer is flushed (written to the physical device) 
+	when needed.
+
+	C++ allows us to set the stream buffer for any stream. So the task of redirecting the stream simply reduces to 
+	changing the stream buffer associated with the stream. Thus the to redirect a Stream A to Stream B we need to do
+
+	1)Get the stream buffer of A and store it somewhere
+	2)Set the stream buffer of A to the stream buffer of B
+	3)If needed reset the stream buffer of A to its previous stream buffer
+
+	We can use the function ios::rdbuf() to perform two opeations.
+	1) stream_object.rdbuf(): Returns pointer to the stream buffer of stream_object
+	2) stream_object.rdbuf(streambuf * p): Sets the stream buffer to the object pointed by p
+
+
+
+*/
+// Backup streambuffers of  cout 
+	std::streambuf* stream_buffer_cout = std::cout.rdbuf();
+	std::streambuf* stream_buffer_cin = std::cin.rdbuf();
+
+
+	std::streambuf* inbuf = std::cin.rdbuf();
+	std::istream my_cin(inbuf);
 	int x;
 	my_cin >> x;
+
+	std::streambuf* outbuf = std::cout.rdbuf();
+	std::ostream my_cout(outbuf);
+	my_cout << x<<"\n";
+
+
+
+	std::fstream file("myfile.txt", std::ios::out);
+
+	// Get the streambuffer of the file 
+	std::streambuf* stream_buffer_file = file.rdbuf();
+
+	// Redirect cout to file 
+	std::cout.rdbuf(stream_buffer_file);
+
+	std::cout << "This line will be written to the file" << std::endl;
+
+	// Redirect cout back to screen 
+	std::cout.rdbuf(stream_buffer_cout);
+	std::cout << "This line is written to screen" << std::endl;
 }
+
 
 void flushExample() 
 {
