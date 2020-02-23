@@ -39,6 +39,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Primitive Data Types Numerical Limits Accuracy](src/primitive_data_types_numerical_limits_accuracy.cpp)  
 [Register Keyword](src/register.cpp)  
 [Return Abort Exit](src/return_abort_exit.cpp)  
+[RAII Resource Acquisition Is Initialization](src/RAII.cpp)  
 [Return value optimization (RVO,NRVO), Copy Elision](src/RVO_NRVO_copy_elision.cpp)  
 [Scope Resolution Operator](src/scope_resolution_operator.cpp)  
 [Setting Argc, Argv](src/set_argv_argc_debugg.cpp)  
