@@ -134,15 +134,23 @@ void stringDatraTypes()
     std::u16string (C++11)	std::basic_string<char16_t>
     std::u32string (C++11)	std::basic_string<char32_t>
 
- 
+    //https://stackoverflow.com/questions/28917431/what-do-t-and-l-mean-in-c-and-how-can-i-pass-them 	
     ===================== Checklist for Windows string programming =====================
-    1) _T() stands for text. It tells the compiler to compile the string literal as either Unicode or ANSI depending on the
-    value of a precompiler define.
+    1)_T(), and its Win32 equivilent TEXT(), are preprocessor macros that prepend the input value with L if
+    _UNICODE or UNICODE are defined, respectively.
     The _T() macro was added when you needed to support Windows NT and later (which support Unicode) and Windows 9x/ME
     (which do not). These days any code using these macros is obsolete, since all modern Windows versions are Unicode-based.
 
     _T("Hello") //if defined UNICODE, change "Hello" into UNICODE; otherwise, keep it in ANSI.
-
+    
+    The plain versions without the underscore affect the character set the Windows header files treat as default. 
+    So if you define UNICODE, then GetWindowText will map to GetWindowTextW instead of GetWindowTextA, for example. 
+    Similarly, the TEXT macro will map to L"..." instead of "...".
+    The versions with the underscore affect the character set the C runtime header files treat as default. 
+    So if you define _UNICODE, then _tcslen will map to wcslen instead of strlen, for example. Similarly, 
+    the _TEXT macro will map to L"..." instead of "...".
+    
+    UNICODE is used by Windows headers, whereas _UNICODE is used by C-runtime/MFC headers.
 
      2) Use _TCHAR and _T() with C functions. Use TCHAR and TEXT() with the Win32 API.
      CString is based on the TCHAR data type.", so use TEXT()
