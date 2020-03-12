@@ -317,6 +317,13 @@ void tieExample()
     
 }
 
+template <typename T>
+typename T::iterator min_map_element(T& m)
+{
+    return std::min_element(m.begin(), m.end(), [](typename T::value_type& l, typename T::value_type& r) -> bool { return l.second < r.second; });
+}
+
+
 int main ()
 {
    
