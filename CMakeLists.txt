@@ -282,14 +282,14 @@ TARGET_LINK_LIBRARIES(csv_reading_example)
 ADD_EXECUTABLE(json_example src/third_party_tools/jason/nlohmann/json_example.cpp)
 TARGET_LINK_LIBRARIES(json_example)
 
-
 ADD_EXECUTABLE(header_guard src/class/header_guard/main.cpp)
 TARGET_LINK_LIBRARIES(header_guard)
-
 
 ADD_EXECUTABLE(optimizing_cpp src/optimizing_cpp/index.cpp)
 TARGET_LINK_LIBRARIES(optimizing_cpp)
 
+ADD_EXECUTABLE(track_memoy_allocations src/track_memoy_allocations.cpp)
+TARGET_LINK_LIBRARIES(track_memoy_allocations)
 
 SET(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})

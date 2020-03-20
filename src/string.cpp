@@ -12,7 +12,7 @@
 #include <vector>
 #include <string_view>
 #include <algorithm>
-
+#include <locale.h>
 void stringDatraTypes()
 {
 /*
@@ -438,27 +438,38 @@ bool findStringCaseInsensitive(const std::string& sentence, const std::string& w
 	return (it != sentence.end());
 }
 
+
+
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
 //this is warning free
 std::wstring StringToWideString(std::string str)
 {
-	if (str.empty())
-	{
-		return std::wstring();
-	} 
-	size_t len = str.length() + 1;
-	std::wstring ret = std::wstring(len, 0);
+    if (str.empty())
+    {
+        return std::wstring();
+    }
+    size_t len = str.length() + 1;
+    std::wstring ret = std::wstring(len, 0);
 #if defined WIN32
-	size_t size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, &str[0], (int)str.size(), &ret[0], (int)len);
-	ret.resize(size);
+    size_t size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, &str[0], (int)str.size(), &ret[0], (int)len);
+    ret.resize(size);
 #else
-	size_t size = 0;
-	_locale_t lc = _create_locale(LC_ALL, "en_US.UTF-8");
-	errno_t retval = _mbstowcs_s_l(&size, &ret[0], len, &str[0], _TRUNCATE, lc);
-	_free_locale(lc);
-	ret.resize(size - 1);
+    size_t size = 0;
+    _locale_t lc = _create_locale(LC_ALL, "en_US.UTF-8");
+    errno_t retval = _mbstowcs_s_l(&size, &ret[0], len, &str[0], _TRUNCATE, lc);
+    _free_locale(lc);
+    ret.resize(size - 1);
 #endif
-	return ret;
+    return ret;
 }
+
+#endif
+
+
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 
 std::string WidestringToString(std::wstring wstr)
 {
@@ -481,6 +492,8 @@ std::string WidestringToString(std::wstring wstr)
 #endif
 	return ret;
 }
+#endif
+
 
 #include <locale>
 #include <codecvt>
@@ -489,9 +502,9 @@ std::string WidestringToString(std::wstring wstr)
 void WidestringStringConversion()
 {
 
-std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-std::string narrow = converter.to_bytes(wide_utf16_source_string);
-std::wstring wide = converter.from_bytes(narrow_utf8_source_string);
+//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+//std::string narrow = converter.to_bytes(wide_utf16_source_string);
+//std::wstring wide = converter.from_bytes(narrow_utf8_source_string);
 }
 
 int main()
