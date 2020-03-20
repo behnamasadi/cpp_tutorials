@@ -51,6 +51,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Template](src/template.cpp)  
 [Template Specialization, Tag Dispatch, SFINAE](src/template_specialization_tag_dispatch_SFINAE.cpp)  
 [Ternary (One Line If)](src/ternary.cpp)  
+[Track Memoy Allocations](src/track_memoy_allocations.cpp)  
 [Date, Time](src/date_time.cpp)  
 [Type Traits](src/type_traits.cpp)
 [Typedef, Type alias (using keyword))](src/typedef.cpp)  
