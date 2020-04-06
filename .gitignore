@@ -1,6 +1,4 @@
 build/*
-examples/*
-src/hackerrank/*
-src/temp/*
+sandbox/*
 *.user
 *.kdev4
