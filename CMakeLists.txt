@@ -333,27 +333,13 @@ endif()
 
 
 
-
-
-
-
-#SET(benchmark_DIR "$ENV{HOME}/usr/lib/cmake/benchmark")
-#find_package(benchmark REQUIRED)
-
-
-
-
 OPTION(TESTING "Enable testing" OFF)
 IF(testing_enabled)
 	ADD_SUBDIRECTORY(tests)
 ENDIF()
 
-IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/temp")
-	ADD_SUBDIRECTORY(src/temp)
-ENDIF()
-
-IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/hackerrank")
-	ADD_SUBDIRECTORY(src/hackerrank)
+IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
+	ADD_SUBDIRECTORY(src/sandbox)
 ENDIF()
 
 
