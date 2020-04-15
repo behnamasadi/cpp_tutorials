@@ -1,18 +1,16 @@
 #include <iostream>
-#include <map>
 #include <algorithm>
+#include <string>
+#include <map>     
 #include<unordered_map>
-#include <iostream>
 #include <set>
 #include <unordered_set>
-#include <string>
-#include <iostream>
-#include <set>
-#include <iostream>
-#include <map>
-#include <string>
-#include <utility>
+#include <sstream>
+
 /*
+//////////////////////////// std::map, std::set ///////////////////////
+std::map is red black tree and NOT hash table.
+
 Both std::set and std::map are associative containers. The difference is that std::sets contain
  only the key, while in std::map there is an associated value. Choosing one over the other
 depends mainly on what the task at hand is. If you want to build a dictionary of all the words
@@ -22,16 +20,34 @@ then you would need an std::map<std::string,int>. If you don't need to associate
  it does not make sense to have the int that is unnecessary.
  
  
-Tie:
+Time complexity of map operations is O(Log n) while for unordered_set, it is O(1) on average.
+
+//////////////////////////// unordered_map, multimap, unordered_set, multiset  ///////////////////////
+
+C++ 11 added std::unordered_map (as well as std::unordered_set and multi versions of both), 
+which is based on hashing.
+Map is implemented as balanced tree structure that is why it is possible to maintain an order between the elements (by specific tree traversal). Time complexity of map operations is O(Log n) while for unordered_set, it is O(1) on
+average.
+
+
+To be able to use std::unordered_map (or one of the other unordered associative containers) with a user-defined 
+key-type, you need to define two things:
+
+1) A hash function; this must be a class that overrides operator() and calculates the hash value given an object of the key-type. One particularly straight-forward way of doing this is to specialize the std::hash template for your key-type.
+
+2) A comparison function for equality; this is required because the hash cannot rely on the fact that the hash function will always provide a unique hash value for every distinct key (i.e., it needs to be able to deal with collisions), so it needs a way to compare two given keys for an exact match. You can implement this either as a class that overrides operator(), or as a specialization of std::equal, or – easiest of all – by overloading operator==() for your key type (as you did already).
+
+ 
+//////////////////////////////  Tie ////////////////////////////// 
 
 The work of tie() is to unpack the tuple values into seperate variables. There are two variants of tie(), with and without “ignore” , the “ignore” ignores a particular tuple element and stops it from getting unpacked.
 
-tuple
+////////////////////////////// tuple ////////////////////////////// 
 A tuple is an object that can hold a number of elements. The elements can be of different data types.
 */
 
 void tupleExample()
-{
+{                
     std::tuple<int, double, int, std::string > mytuple = std::make_tuple(10, 12.4, 3, "this is a tuple");
     //get() is used to access the tuple values and modify them, it accepts the index and tuple name as arguments 
     
@@ -101,28 +117,51 @@ void mapExample ()
     }
 
     
-//finding an item based on the key for an item in map
 
-    std::string searchingKey="melon";
-    std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
 }
 
-void unordered_mapExampel()
+void checkExsitanceOfKeyInMap()
 {
-/*
-    In an unordered_map elements are stored in a key value pair combination. But elements are stored in arbitrary order unlike associative containers where elements were stored in sorted order of keys.
-    The basic advantage of using unordered_map instead of associative map is the searching efficiency. In an unordered_map complexity to search for an element is O(1) if hash code are chosen efficiently.
-*/
+    //using std::map::count() 
+    //finding an item based on the key for an item in map
 
-  //item are stored sorted
+    std::map<std::string, int> wordMap = { {"a",0}, {"b",1}, {"c",2} };
+
+    if (wordMap.count("a") > 0)
+    {
+        std::cout << "'a' Found" << std::endl;
+    }
+    
+    
+    
+    // using std::map::find
+    std::map<std::string, int> items;
+    std::string searchingKey="melon";
+    std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
+    
+    
+    // when key doesn't exist:
+    if(items["mumbo jumo"]==NULL)
+    {
+        std::cout<<"not found" <<std::endl;
+    }
+    
+
+}
+
+///////////////////////// unordered_map ///////////////////////////
+
+void unordered_mapExample()
+{
+
+
+    std::cout<<"item are sorted in std::map \nThe order that we inserted the items is: wine, beer, book" <<std::endl;
     std::map<std::string, int> items;
     std::pair< std::string,int > single_item;
     
     single_item.first="wine";
     single_item.second=14;
     items.insert(single_item);
-    
-    
     
     single_item.first="beer";
     single_item.second=10;
@@ -132,14 +171,108 @@ void unordered_mapExampel()
     single_item.second=45;
     items.insert(single_item);
     
+    std::cout<<"The order that we iterate items in map is:" <<std::endl;
 
     for(std::map<std::string,int>::iterator it=items.begin();it!=items.end();++it)
     {
         std::cout<<it->first<< ":"<<it->second <<std::endl;
     }
+}
 
+void wordFrequencyInString()
+{
+    std::unordered_map<std::string, int> wordFreq;
+    std::string str="a a b d c a d x";
+  
+    // breaking input into word using string stream 
+    std::stringstream ss(str);  // Used for breaking words 
+    std::string word; // To store individual words 
+    while (ss >> word) 
+        wordFreq[word]++; 
+  
+    // now iterating over word, freq pair and printing 
+    // them in <, > format 
+    std::unordered_map<std::string, int>:: iterator p; 
+    for (p = wordFreq.begin(); p != wordFreq.end(); p++) 
+        std::cout << "(" << p->first << ", " << p->second << ")\n";
+}
+
+
+class student
+{
+public:
+    int id;
+    std::string first_name;
+    std::string last_name;
+    
+    bool operator==(const student &other) const
+    {
+        return (first_name == other.first_name   && last_name == other.last_name  && id == other.id);
+    }
+};
+
+// example for user-defined hash functions:
+
+namespace std {
+
+  template <>
+  struct hash<student>
+  {
+    std::size_t operator()(const student& k) const
+    {
+    using std::size_t;
+    using std::hash;
+    using std::string;
+
+    // Compute individual hash values for first,
+    // second and third and combine them using XOR
+    // and bit shifting:
+
+    return ((hash<string>()(k.first_name)
+            ^ (hash<string>()(k.last_name) << 1)) >> 1)
+            ^ (hash<int>()(k.id) << 1);;
+    }
+  };
 
 }
+
+//If you don't want to specialize template inside the std namespace (although it's perfectly legal in this case), you can define the hash function as a separate class and add it to the template argument list for the map:
+
+struct KeyHasher
+{
+  std::size_t operator()(const student& k) const
+  {
+    using std::size_t;
+    using std::hash;
+    using std::string;
+
+    return ((hash<string>()(k.first_name)
+             ^ (hash<string>()(k.last_name) << 1)) >> 1)
+             ^ (hash<int>()(k.id) << 1);
+  }
+};
+
+bool fncomp (int lhs, int rhs) {return lhs<rhs;}
+
+struct classcomp {
+	bool operator() (const int& lhs, const int& rhs) const
+	{return lhs<rhs;}
+};
+
+
+void unordered_mapCustomClasstype()
+{
+    std::unordered_map<student,std::string> student_umap
+    = {  { {1,"John", "Doe"}, "example"},  { {2,"Mary", "Sue"}, "another"} };
+    
+    
+    std::unordered_map<student,std::string,KeyHasher> m6 = {
+    { {1,"John", "Doe"}, "example"},
+    { {2,"Mary", "Sue"}, "another"}};
+}
+    
+
+
 
 void multimapExample()
 {
@@ -181,7 +314,7 @@ void multimapExample()
     std::string searchingKey="book";
  
 /*
-    Finds an element with key key. If there are several elements with key in the container, 
+    Finds an element with a key. If there are several elements with key in the container, 
     the one inserted earlier is selected.
  */
     
@@ -235,20 +368,6 @@ int setExample()
     return 0;
 }
 
-class student
-{
-public:
-    int id;
-    std::string fisrt_name;
-    std::string last_name;
-};
-
-bool fncomp (int lhs, int rhs) {return lhs<rhs;}
-
-struct classcomp {
-	bool operator() (const int& lhs, const int& rhs) const
-	{return lhs<rhs;}
-};
 
 
 void setFromUserDefinedTypeExample()
@@ -326,20 +445,7 @@ typename T::iterator min_map_element(T& m)
 
 int main ()
 {
-   
-//     multimapExample();
-//     mapExample ();
-//     setExample();
-//     setExample();
-//     unordered_setExample();
-//    setFromUserDefinedTypeExample();
-    
-//     int i;
-//     double d; 
-//     std::string s;
-//     std::tie(i,d,s)=tupleExample();
-    
-    tieExample();
+    unordered_mapExample();
     return 0;
 }
 

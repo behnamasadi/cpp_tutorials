@@ -1,4 +1,3 @@
-
 #include <string>
 #include <vector>
 #include <iostream>
@@ -98,7 +97,6 @@ void  reinterpretVector()
 
 void  vectorExample()
 {
-
     //testvector has a 3 element, all of them are 100
     std::vector<int> testvector (3,100);
 
@@ -115,9 +113,14 @@ void  vectorExample()
         std::cout << *it << std::endl;
 
 
-
+//  Difference between std::vector::front() and begin()
+//Difference between Iterators and Pointers
+//https://www.geeksforgeeks.org/difference-between-iterators-and-pointers-in-c-c-with-examples/?ref=leftbar-rightbar
     std::cout<<"front() Returns a reference to the first element in the vector container."<<std::endl;
     std::cout<<vec.front()<< std::endl;
+    std::cout<<"begin returns an iterator to this same element."<<std::endl;
+    std::cout<<*vec.begin()<< std::endl;
+
     std::cout<<"Returns a reference to the last element in the vector container."<<std::endl;
     std::cout<<vec.back()<< std::endl;
 
@@ -198,6 +201,7 @@ double randomGenerator(double rangeFrom=150,double  rangeTo=200)
     std::mt19937 generator(rand_dev());
     std::uniform_real_distribution<double> distr(rangeFrom, rangeTo);
     std::cout<< distr(generator)<<std::endl;
+    //return distr(generator);
 }
 
 
@@ -326,12 +330,12 @@ int main()
     //cStyleArrayToVecExample();
     //vecTocStyleArrayExample();
     //stringToCharVec();
-    //vectorExample();
+    vectorExample();
 
     //resizeVSreserve();
 
     //emplace_back_VS_Push_back();
-    copyVectors();
+    //copyVectors();
 
 
 }
