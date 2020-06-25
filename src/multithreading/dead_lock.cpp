@@ -1,16 +1,7 @@
 #include <iostream>
 #include <thread>
-#include <vector>
-#include <algorithm>
-#include <unistd.h>// for usleep function
-
-#include <chrono>//for  sleep_for function
-#include<mutex>
-#include <condition_variable>
+#include <mutex>
 #include <fstream>
-#include <queue>
-#include <functional>
-/////////////////////////////////////Dead Lock///////////////////////////////
 
 std::mutex mu1, mu2;
 
@@ -55,14 +46,12 @@ void func1DeadLockSolved()
 
 void func2DeadLockSolved()
 {
-    
     mu1.lock();
     std::cout<<"func2" <<std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     mu2.lock();
     mu1.unlock();
     mu2.unlock();
-    
 }
 
 void deadLockSolvedExample()
@@ -102,4 +91,5 @@ void deadLockGuardSolvedExample()
 
 int main()
 {
+
 }
