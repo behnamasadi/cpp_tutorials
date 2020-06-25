@@ -218,6 +218,10 @@ ADD_EXECUTABLE(thread_callable_objects src/multithreading/thread_callable_object
 TARGET_LINK_LIBRARIES(thread_callable_objects -pthread)
 
 
+ADD_EXECUTABLE(unique_lock src/multithreading/unique_lock.cpp)
+TARGET_LINK_LIBRARIES(unique_lock -pthread)
+
+
 
 
 ADD_EXECUTABLE(function_pointer src/function_pointer.cpp)

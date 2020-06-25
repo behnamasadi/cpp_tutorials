@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
-
+#include <mutex>
 
 namespace notThreadSafe
 {
@@ -60,8 +60,5 @@ public:
 
 int main()
 {
-    stack<int> myStack;
-    myStack.push(2);
-    myStack.push(4);
-    myStack.push(6);
+
 }
