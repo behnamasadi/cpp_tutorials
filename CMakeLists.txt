@@ -175,8 +175,50 @@ TARGET_LINK_LIBRARIES(bitwise_operations)
 ADD_EXECUTABLE(bitset src/bitset.cpp)
 TARGET_LINK_LIBRARIES(bitset)
 
-ADD_EXECUTABLE(multithreading src/multithreading.cpp)
-TARGET_LINK_LIBRARIES(multithreading -pthread)
+
+############################# Multithreading #############################
+
+ADD_EXECUTABLE(creating_and_terminating_threads src/multithreading/creating_and_terminating_threads.cpp)
+TARGET_LINK_LIBRARIES(creating_and_terminating_threads -pthread)
+
+ADD_EXECUTABLE(differentiating_between_threads src/multithreading/differentiating_between_threads.cpp)
+TARGET_LINK_LIBRARIES(differentiating_between_threads -pthread)
+
+ADD_EXECUTABLE(sleeping_threads src/multithreading/sleeping_threads.cpp)
+TARGET_LINK_LIBRARIES(sleeping_threads -pthread)
+
+ADD_EXECUTABLE(join_detach_threads src/multithreading/join_detach_threads.cpp)
+TARGET_LINK_LIBRARIES(join_detach_threads -pthread)
+
+ADD_EXECUTABLE(mutex src/multithreading/mutex.cpp)
+TARGET_LINK_LIBRARIES(mutex -pthread)
+
+
+ADD_EXECUTABLE(condition_variable src/multithreading/condition_variable.cpp)
+TARGET_LINK_LIBRARIES(condition_variable -pthread)
+
+
+ADD_EXECUTABLE(async_future_promise src/multithreading/async_future_promise.cpp)
+TARGET_LINK_LIBRARIES(async_future_promise -pthread)
+
+ADD_EXECUTABLE(dead_lock src/multithreading/dead_lock.cpp)
+TARGET_LINK_LIBRARIES(dead_lock -pthread)
+
+ADD_EXECUTABLE(thread_safe src/multithreading/thread_safe.cpp)
+TARGET_LINK_LIBRARIES(thread_safe -pthread)
+
+ADD_EXECUTABLE(packaged_task src/multithreading/packaged_task.cpp)
+TARGET_LINK_LIBRARIES(packaged_task -pthread)
+
+ADD_EXECUTABLE(race_condition src/multithreading/race_condition.cpp)
+TARGET_LINK_LIBRARIES(race_condition -pthread)
+
+
+ADD_EXECUTABLE(thread_callable_objects src/multithreading/thread_callable_objects.cpp)
+TARGET_LINK_LIBRARIES(thread_callable_objects -pthread)
+
+
+
 
 ADD_EXECUTABLE(function_pointer src/function_pointer.cpp)
 TARGET_LINK_LIBRARIES(function_pointer)

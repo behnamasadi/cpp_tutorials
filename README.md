@@ -80,7 +80,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Virtual Function Abstract Class](src/class/virtual_function_abstract_class.cpp)  
 [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.cpp)  
 [Virtual Destructor, Constructor, Copy Constructor](src/class/virtual_(copy)_constructor_destructor.cpp)
-## [Multithreading](class/non_modifing_algorithm.cpp)
+## [Multithreading](multithreading)
 
 [Creating Threads](src/multithreading.cpp)  
 [Differentiating Between Threads](src/multithreading.cpp)  
