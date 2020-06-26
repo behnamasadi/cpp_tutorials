@@ -210,8 +210,8 @@ TARGET_LINK_LIBRARIES(thread_safe -pthread)
 ADD_EXECUTABLE(packaged_task src/multithreading/packaged_task.cpp)
 TARGET_LINK_LIBRARIES(packaged_task -pthread)
 
-ADD_EXECUTABLE(race_condition src/multithreading/race_condition.cpp)
-TARGET_LINK_LIBRARIES(race_condition -pthread)
+ADD_EXECUTABLE(racing_problem src/multithreading/racing_problem.cpp)
+TARGET_LINK_LIBRARIES(racing_problem -pthread)
 
 
 ADD_EXECUTABLE(thread_callable_objects src/multithreading/thread_callable_objects.cpp)

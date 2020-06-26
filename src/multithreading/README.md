@@ -143,11 +143,11 @@ std::thread t6(lambdaExpression,n);
 
 Full Example [here](creating_and_terminating_threads.cpp) 
 
-# Differentiating Between Threads
+# <a name="differentiating_between_threads"/> Differentiating Between Threads
 
 You can use    ```std::this_thread::get_id() ``` to get the thread ID.
 
-# Sleeping Threads
+# <a name="sleeping_threads"/> Sleeping Threads
 
 ```
 std::this_thread::sleep_for(std::chrono::microseconds(numberOfMicroseconds));
@@ -157,7 +157,7 @@ usleep(numberOfMicroseconds);
 
 Full example [here](sleeping_threads.cpp) 
 
-# Joining Threads
+# <a name="join_detach_threads"/> Joining Threads
 Join will pause the current thread untill the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
 
 
@@ -172,7 +172,7 @@ Once you detattach a thread you can't call join() again so before joining check 
 
 
 
-# Race Condition
+# <a name="racing_problem"/> Racing Problem
 
 When two or more threads perform a set of operations in parallel, that access the same memory location.
 Also, one or more thread out of them modifies the data in that memory location, then this can lead to an
@@ -265,7 +265,7 @@ Message from function1: -95
 Message from function1: 95
 ```
 
-First soluton would be using `mutex`.
+First soluton would be using <a name="mutex"/> `mutex`.
 
 ```
 std::mutex mu;
@@ -311,7 +311,7 @@ But the other problem is that `std::cout` might be still manipulated outside of 
 
 
 
-# Thread Safe Functions
+# <a name="thread_safe"/>Thread Safe Functions
 Let say we have the following stack data structure:
 ```
 template<typename T>
@@ -384,7 +384,7 @@ public:
 };
 ```
 
-# DeadLock
+# <a name="dead_lock"/>Dead Lock
 In the following example two function are depending on each other lock:
 
 ```
@@ -477,7 +477,7 @@ When mutex goes out of scope it will unclock the mutex.
 If you lock small part of your code many times, you program will become very complicated, if you lock piece of code, you might lose 
 the advantageous of concurrent programming since your program need requeir lots of resources for switching between threads.
 
-# unique_lock
+# <a name="unique_lock"/>Unique Lock
 Follow up our logger example, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`.
 ```
 class LogFile
@@ -575,7 +575,7 @@ std::call_once(flag,[&](){file.open("log.txt");});
 File will be opened once only by one thread.
 
 
-# Condition Variable
+# <a name="condition_variable"/>Condition Variable
 In the following example `function_1` produce data and `function_2` and we utilized mutex to synchronize accessing the data. The problem that rises is `function_2` is in a checking state and keep looping. If we change the `function_2` to the following we make it a bit better but we 
 cant easily decide for how long we should suspend the thread in `function_2`
 
@@ -633,11 +633,11 @@ while ( data != 1) {
 }
 ```
 
-# Future, Promise and async
+# <a name="async_future_promise"/>Async, Future and Promise
 
-# Packaged Task
+# <a name="packaged_task"/>Packaged Task
 
-# Printing Process Tree
+# <a name="printing_process_tree"/>Printing Process Tree
 
 `ps -aef --forest` 
 
@@ -646,6 +646,7 @@ while ( data != 1) {
 
 
 
+# <a name="thread_callable_objects"/>Thread Callable Objects
 
 
 
