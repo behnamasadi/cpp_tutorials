@@ -1,8 +1,7 @@
-/////////////////////////////////Packaged Task////////////////////////////////////
-//https://www.youtube.com/watch?v=FfbZfBk-3rI
-
-
-
+//https://en.cppreference.com/w/cpp/thread/packaged_task
+#include <thread>
+#include <future>
+#include <iostream>
 
 int main()
 {

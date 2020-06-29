@@ -1,7 +1,7 @@
 # C++ Tutorials
 This repository contains my tutorials code for my c++ projects. It includes varuois examples for:
 
-[{} Aggregate Initialization, std::initializer_list, C++ Initialization()](src/{}_aggregate_Initialization.cpp)  
+[{} Operator, Aggregate Initialization, Uniform initialization, std::initializer_list, C++ Initialization()](src/{}_aggregate_Initialization.cpp)  
 [Align](src/align.cpp)  
 [Allocator](src/allocator.cpp)  
 [Arrays](src/arrays.cpp)  
@@ -13,6 +13,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Cassting (Static_Cassting, Dynamic_Casting), Run-Time Type Information(RTTI)](src/cast_RTTI.cpp)  
 [Callbacks, Callable Objects](src/callbacks.cpp)  
 [Conditional Compilation](src/conditional_compilation.cpp)  
+[Copy initialization](src/copy_initialization.cpp)  
 [Data Type Info](src/data_type_info.cpp)   
 [Dynamic Memory Allocation (C Style)](src/dynamic_memory_allocation.cpp)  
 [Enum](src/enum.cpp)  
@@ -80,11 +81,11 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Virtual Function Abstract Class](src/class/virtual_function_abstract_class.cpp)  
 [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.cpp)  
 [Virtual Destructor, Constructor, Copy Constructor](src/class/virtual_(copy)_constructor_destructor.cpp)
-## [Multithreading](src/multithreading/README.md)
 
+## [Multithreading](src/multithreading/README.md)
 [Creating/ Terminating Threads](src/multithreading/README.md#creation_and_termination)  
 [Differentiating Between Threads](src/multithreading/README.md#differentiating_between_threads)  
-[Sleeping Threads](ssrc/multithreading/README.md#sleeping_threads)  
+[Sleeping Threads](src/multithreading/README.md#sleeping_threads)  
 [Joining/Detaching Threads, Joinable Detachable](src/multithreading/README.md#join_detach_threads)  
 [Racing Problem](src/multithreading/README.md#racing_problem)  
 [Mutex](src/multithreading/README.md#mutex)  
@@ -95,10 +96,8 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Future, Promise and async](src/multithreading/README.md#async_future_promise)  
 [Packaged Task](src/multithreading/README.md#packaged_task)  
 [Printing Process Tree](src/multithreading/README.md#printing_process_tree)  
-
-
-
 [Thread Callable Objects](src/multithreading/README.md#thread_callable_objects)  
+
 
 ## Modern C++ (C++ 11, 14 and 17)
 [C style Pointers, Shared, Unique, Weak Pointers](src/pointers.cpp)  
