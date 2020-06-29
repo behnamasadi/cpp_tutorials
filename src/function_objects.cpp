@@ -3,7 +3,7 @@
 http://www.cprogramming.com/tutorial/functors-function-objects-in-c++.html
 
 
-Function objects (aka "functors"), Functors are objects that can be treated as though they are a function or function pointer
+Function objects (aka "functors"), Functors are objects that can be treated as they are a function or function pointer
 You could write code that looks like this:
 
 

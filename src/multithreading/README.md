@@ -605,6 +605,10 @@ void function_2()
 By using `condition_variable` we notify anyone thread who is waiting for the condition:
 
 ```
+std::deque<int> q;
+std::mutex mu;
+std::condition_variable cond ;
+
 void function_1()
 {
 int count = 10;
@@ -634,8 +638,173 @@ while ( data != 1) {
 ```
 
 # <a name="async_future_promise"/>Async, Future and Promise
+Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:
 
-# <a name="packaged_task"/>Packaged Task
+```
+void factorial(int input, int &output)
+{
+    int value=1;
+    for(int i=1;i<=input;i++)
+        value=i*value;
+
+    output=value;
+}
+
+int main()
+{
+    int input=8;
+    int output;
+
+    std::thread t1(factorial,input,std::ref(output));
+    t1.join();
+    std::cout<< output<<std::endl;
+}
+```
+you can use `condition_variable` and `mutex` but it would look complicated. There is an easier way, instead of creating a thread object, we can 
+use some function call:
+
+```
+int factorial(int input)
+{
+    int value=1;
+    for(int i=1;i<=input;i++)
+        value=i*value;
+    return value;
+}
+
+int main()
+{
+    int input=8;
+    int output;
+    std::future<int> future_thread= std::async(factorial,input);
+    output=future_thread.get();
+    std::cout<< output<<std::endl;
+}
+```
+ 
+`future_thread.get()` function will wait for child thread to get finished and the return the value. If you call `future_thread.get()` again, your program will crash.
+We can ask `std::async` to create a thread for the function call or not. If we add `std::launch::deferred` to the list of parameters, it won't
+create a thread and just create a function call.
+
+```
+std::future<int> future_function= std::async(std::launch::deferred, factorial,input);
+
+```
+If you want to make sure a seperate thread will be created use `std::launch::async` in the parameters list:
+
+```
+std::async(std::launch::async, factorial,input);
+```
+
+We can also set a parameter from parent thread to child thread not in the creation time but in the future:
+
+```
+int factorialFuture(std::future<int>& f)
+{
+    int value=1;
+    int n=f.get();
+    for(int i=1;i<=n;i++)
+        value=i*value;
+    return value;
+}
+
+
+int main()
+{
+    int input=8;
+    std::promise<int> p;
+    std::future<int> inputFuture=p.get_future();
+    std::future<int> future_promise_factorial= std::async(std::launch::async, factorialFuture,std::ref(inputFuture) );
+    //some code here
+    p.set_value(input);
+    std::cout<< future_promise_factorial.get()<<std::endl;
+}
+
+```
+If we can't set value for the future we will get an exception. To avoid that we can set the exception:
+```
+p.set_exception(std::make_exception_ptr(std::runtime_error("Value couldn't be assigned")));
+``` 
+
+and you can only `std::move()` future and promise.
+
+
+If you need to send a `future` into multiple thread, since you can not copy it and calling `future.get()` will raise an exception, you can use the following:
+
+
+```
+int factorialSharedFuture(std::shared_future<int> f)
+{
+    int value=1;
+    int n=f.get();
+    for(int i=1;i<=n;i++)
+        value=i*value;
+    return value;
+}
+
+int main()
+{
+    std::promise<int> p;
+    std::future inputFuture=p.get_future();
+    std::shared_future<int> inputFutureShared=inputFuture.share();
+    std::future<int> future_promise_factorial1= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
+    std::future<int> future_promise_factorial2= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
+    std::future<int> future_promise_factorial3= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
+}
+```
+
+# <a name="thread_callable_objects"/>Thread Callable Objects
+
+```
+class myClass
+{
+public:
+    void f(int x, char c){}
+    long g(double x){return 0;}
+    int operator()(int n){return 0;}
+};
+```
+
+This make a copy of `myObject`
+
+```
+myClass myObject;
+std::thread t1(myObject,6);
+```
+
+This will launch `myObject()` in a different thread:
+```
+std::thread t2(std::ref(myObject),myObject,6);
+```
+
+This will launch a temporarily instance of `myClass` and it will be moved to thread object.
+```
+std::thread t3(myClass(),6);
+
+```
+
+This will create a copy of `myObject` and invoke `f()`
+```
+std::thread t5(&myClass::f,myObject,7,8,'w');
+```
+We can also avoid copying:
+
+```
+std::thread t6(&myClass::f, &myObject,7,8,'w');
+```
+
+
+We can move objects from parent thread to child thread but then `myObject` is no longer useable in the parent thread:
+```
+std::thread t8(&myClass::f, std::move(myObject),8,'w');
+```
+
+
+# <a name="packaged_task"/> Packaged Task
+It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
+invoked asynchronously.
+
+
 
 # <a name="printing_process_tree"/>Printing Process Tree
 
@@ -646,7 +815,7 @@ while ( data != 1) {
 
 
 
-# <a name="thread_callable_objects"/>Thread Callable Objects
+
 
 
 

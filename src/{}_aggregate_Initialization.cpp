@@ -36,7 +36,7 @@ public:
         std::cout << "constructor called" << std::endl;
     }
 
-    void print() 
+    void operator()(int x, int y)
     {
         std::cout<<"x: "<<x <<" y: "<<y <<std::endl;
     }
@@ -45,7 +45,7 @@ public:
 int main() 
 {
 
-    /*
+/*
 Aggregate Initialization:
 It means the use of brace-enclosed initializer lists to initialize all members of an aggregate
 (i.e. an array or struct). This type of initialization safe guards one from over stepping the boundary and provides for initializing an array with set values.
@@ -74,7 +74,7 @@ It means the use of brace-enclosed initializer lists to initialize all members o
 
 
     //Calling initializer_list
-    point point1{ 2,3 };
-    point point2={ 2,3 };
-    point point3 (2, 3) ;
+    point point1{2,3};
+    point point2={2,3};
+    point point3(2,3) ;
 }

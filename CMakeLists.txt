@@ -337,6 +337,9 @@ TARGET_LINK_LIBRARIES(optimizing_cpp)
 ADD_EXECUTABLE(track_memoy_allocations src/track_memoy_allocations.cpp)
 TARGET_LINK_LIBRARIES(track_memoy_allocations)
 
+ADD_EXECUTABLE(copy_initialization src/copy_initialization.cpp)
+TARGET_LINK_LIBRARIES(copy_initialization)
+
 SET(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 find_package(PkgConfig)
