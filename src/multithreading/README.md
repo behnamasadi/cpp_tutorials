@@ -319,6 +319,8 @@ A callable can be either of the three
  - A lambda expression
 
 
+
+
 ## Function pointer
 ```
 void functionPointer(int n)
@@ -330,6 +332,52 @@ std::thread t1(functionPointer,n );
 std::thread t2{functionPointer,n };
 ```
 
+
+## Thread Callable Objects
+
+```
+class myClass
+{
+public:
+    void f(int x, char c){}
+    long g(double x){return 0;}
+    int operator()(int n){return 0;}
+};
+```
+
+This make a copy of `myObject`
+
+```
+myClass myObject;
+std::thread t1(myObject,6);
+```
+
+This will launch `myObject()` in a different thread:
+```
+std::thread t2(std::ref(myObject),myObject,6);
+```
+
+This will launch a temporarily instance of `myClass` and it will be moved to thread object.
+```
+std::thread t3(myClass(),6);
+
+```
+
+This will create a copy of `myObject` and invoke `f()`
+```
+std::thread t5(&myClass::f,myObject,7,8,'w');
+```
+We can also avoid copying:
+
+```
+std::thread t6(&myClass::f, &myObject,7,8,'w');
+```
+
+
+We can move objects from parent thread to child thread but then `myObject` is no longer useable in the parent thread:
+```
+std::thread t8(&myClass::f, std::move(myObject),8,'w');
+```
 
 ## Function object
 ```
@@ -390,6 +438,16 @@ Thread can not be copied and can only be moved:
 t2=std::moved(t1);
 ```
 
+## Lambda expression
+```
+auto lambdaExpression = [](int n) {std::cout<<++n <<std::endl;};
+std::thread t6(lambdaExpression,n);
+
+```
+
+Full Example [here](creating_and_terminating_threads.cpp) 
+
+
 # Over Subscrition 
 If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
 
@@ -400,17 +458,6 @@ con_threads = std::thread::hardware_concurrency();
 std::cout << "Number of concurrent threads supported are: " << con_threads << std::endl;
 
 ```
-
-
-
-## Lambda expression
-```
-auto lambdaExpression = [](int n) {std::cout<<++n <<std::endl;};
-std::thread t6(lambdaExpression,n);
-
-```
-
-Full Example [here](creating_and_terminating_threads.cpp) 
 
 # <a name="differentiating_between_threads"/> Differentiating Between Threads
 
@@ -438,6 +485,13 @@ If we instead of join() we call detach() the child thread will become demean pro
 
 
 Once you detattach a thread you can't call join() again so before joining check if it is joinable()
+
+# <a name="yield"/> Yield
+
+You can indicate to the OS that the current thread can be rescheduled so that other threads can run instead. 
+For this, one uses the `std::this_thread::yield()` function. The precise result of this function depends on the 
+OS and its scheduler. Within the case of a FIFO scheduler, it's likely that the calling thread will be put at the back of the line.
+
 
 
 
@@ -1022,51 +1076,6 @@ int main()
 }
 ```
 
-# <a name="thread_callable_objects"/>Thread Callable Objects
-
-```
-class myClass
-{
-public:
-    void f(int x, char c){}
-    long g(double x){return 0;}
-    int operator()(int n){return 0;}
-};
-```
-
-This make a copy of `myObject`
-
-```
-myClass myObject;
-std::thread t1(myObject,6);
-```
-
-This will launch `myObject()` in a different thread:
-```
-std::thread t2(std::ref(myObject),myObject,6);
-```
-
-This will launch a temporarily instance of `myClass` and it will be moved to thread object.
-```
-std::thread t3(myClass(),6);
-
-```
-
-This will create a copy of `myObject` and invoke `f()`
-```
-std::thread t5(&myClass::f,myObject,7,8,'w');
-```
-We can also avoid copying:
-
-```
-std::thread t6(&myClass::f, &myObject,7,8,'w');
-```
-
-
-We can move objects from parent thread to child thread but then `myObject` is no longer useable in the parent thread:
-```
-std::thread t8(&myClass::f, std::move(myObject),8,'w');
-```
 
 
 # <a name="packaged_task"/> Packaged Task

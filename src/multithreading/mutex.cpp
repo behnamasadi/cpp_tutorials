@@ -4,6 +4,12 @@
 #include <fstream>
 #include <queue>
 
+/*
+Timed mutex
+try_lock_for and try_lock_until
+mutex.try_lock()
+Unique lock
+*/
 
 namespace noMutex
 {
