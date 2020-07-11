@@ -3,6 +3,8 @@
 #include <thread>
 #include <string>
 
+//std::defer_lock, std::try_lock, std::adopt_lock
+
 class LogFile
 {
     std::mutex mu;

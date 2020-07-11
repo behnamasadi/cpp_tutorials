@@ -45,8 +45,6 @@ namespace pooling
     }
 }
 
-
-
 namespace condition_variable
 {
     void function_1()
@@ -76,6 +74,5 @@ namespace condition_variable
         }
     }
 }
-
 
 int main(){}
