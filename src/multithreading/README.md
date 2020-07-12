@@ -28,7 +28,7 @@
   * [Process vs Thread](#process-vs-thread)
     + [Inter Process Communication (IPC)](#inter-process-communication--ipc-)
 - [Thread Basics](#thread-basics)
-- [<a name="creation_and_termination"></a>Creation and Termination](#-a-name--creation-and-termination----a-creation-and-termination)
+- [Creation and Termination<a name="creation_and_termination"></a>](#creation-and-termination-a-name--creation-and-termination----a-)
   * [Function pointer](#function-pointer)
   * [Thread Callable Objects](#thread-callable-objects)
   * [Function object](#function-object)
@@ -61,6 +61,7 @@
   * [Thread vs Process](#thread-vs-process)
   * [Heap](#heap)
   * [Stack](#stack)
+
 # Process 
 A process is just a running  program. The execution of a process must progress in a sequential fashion.
 
@@ -374,7 +375,7 @@ Each thread has a unique:
 
 
 
-# <a name="creation_and_termination"></a>Creation and Termination
+# Creation and Termination<a name="creation_and_termination"></a>
 
 std::thread is the thread class that represents a single thread in C++. To start a thread we simply need to create a new thread object and pass the executing code to be called (i.e, a callable object) into the constructor of the object. Once the object is created a new thread is launched which will execute the code specified in callable.
 
