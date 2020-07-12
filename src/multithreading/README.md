@@ -257,7 +257,7 @@ Processes can communicate with each other through both:
 2) Message passing
 
 
-Full example [here].(inter_process_communicationshared_memory.cpp)
+Full example [here](inter_process_communicationshared_memory.cpp).
 https://www.geeksforgeeks.org/inter-process-communication-ipc/
 
 
@@ -447,7 +447,7 @@ std::thread t6(lambdaExpression,n);
 
 ```
 
-Full example [here].(creating_and_terminating_threads.cpp) 
+Full example [here](creating_and_terminating_threads.cpp). 
 
 
 # <a name="over_subscrition"/> Over Subscrition 
@@ -464,7 +464,7 @@ std::cout << "Number of concurrent threads supported are: " << con_threads << st
 # <a name="differentiating_between_threads"/> Differentiating Between Threads
 
 You can use    ```std::this_thread::get_id() ``` to get the thread ID.
-Full example [here].(differentiating_between_threads.cpp)
+Full example [here](differentiating_between_threads.cpp).
 
 # <a name="sleeping_threads"/> Sleeping Threads
 
@@ -474,7 +474,7 @@ usleep(numberOfMicroseconds);
 
 ```
 
-Full example [here].(sleeping_threads.cpp) 
+Full example [here](sleeping_threads.cpp). 
 
 # <a name="join_detach_threads"/> Joining Threads
 Join will pause the current thread untill the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
@@ -488,7 +488,7 @@ If we instead of join() we call detach() the child thread will become demean pro
 
 
 Once you detattach a thread you can't call join() again so before joining check if it is joinable()
-Full example [here].(join_detach_threads.cpp)
+Full example [here](join_detach_threads.cpp).
 # <a name="yield"/> Yield
 
 You can indicate to the OS that the current thread can be rescheduled so that other threads can run instead. 
@@ -622,7 +622,7 @@ Message from function1: -95
 Message from function1: 95
 ```
 
-Full example [here].(race_condition.cpp)
+Full example [here](race_condition.cpp).
 First soluton would be using `mutex`.
 
 # <a name="mutex"/> Mutex
@@ -670,11 +670,11 @@ void sharedPrinter(std::string s,int id)
 }
 ```
 But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
-Full example [here].(mutex.cpp)
+Full example [here](mutex.cpp).
 # <a name="semaphor"/>Semaphor
 Semaphor use signaling while Mutex is an object.
 
-Full example [here].(semaphor.cpp)
+Full example [here](semaphor.cpp).
 
 # <a name="thread_safe"/>Thread Safe Functions
 Let say we have the following stack data structure:
@@ -748,7 +748,7 @@ public:
 
 };
 ```
-Full example [here].(thread_safe.cpp)
+Full example [here](thread_safe.cpp).
 # <a name="dead_lock"/>Dead Lock
 In the following example two function are depending on each other lock:
 
@@ -809,7 +809,7 @@ void func2DeadLockSolved()
 }
 
 ```
-Full example [here].(dead_lock.cpp)
+Full example [here](dead_lock.cpp).
 The second solution is using `std::lock` and extra parameters `std::adopt_lock` for `lock_guard`:
 
 # <a name="lock_guard"/> Lock Guard
@@ -886,7 +886,7 @@ When mutex goes out of scope it will unclock the mutex.
 
 If you lock small part of your code many times, you program will become very complicated, if you lock piece of code, you might lose 
 the advantageous of concurrent programming since your program need requeir lots of resources for switching between threads.
-Full example [here].(lock_guard.cpp)
+Full example [here](lock_guard.cpp).
 # <a name="unique_lock"/>Unique Lock
 Follow up our logger example, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`.
 ```
@@ -996,7 +996,7 @@ The first constructor in the last code does not lock the assigned mutex (defers)
 The second attempts to lock the mutex using try_lock(). 
 Finally, the third constructor assumes that it already owns the provided mutex.
 
-Full example [here].(unique_lock.cpp) 
+Full example [here](unique_lock.cpp). 
 
 # <a name="scoped_lock"/>Scoped Lock
 It differs from a lock guard in that it is a wrapper for not one, but multiple mutexes.
@@ -1007,7 +1007,7 @@ complications with, for example, one mutex being locked by the scoped lock, anot
 still being waited upon, and another thread instance having the exactly opposite situation.
 One property of a scoped lock is that it tries to avoid such a situation, theoretically making
 this type of lock deadlock-safe.
-Full example [here].(scoped_lock.cpp) 
+Full example [here](scoped_lock.cpp). 
 
 # <a name="condition_variable"/>Condition Variable
 In the following example `function_1` produce data and `function_2` and we utilized mutex to synchronize accessing the data. The problem that rises is `function_2` is in a checking state and keep looping. If we change the `function_2` to the following we make it a bit better but we 
@@ -1083,7 +1083,7 @@ while ( data != 1) {
 }
 }
 ```
-Full example [here].(condition_variable.cpp)
+Full example [here](condition_variable.cpp).
 # <a name="async_future_promise"/>Async, Future and Promise
 Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:
 
@@ -1199,13 +1199,13 @@ int main()
     std::future<int> future_promise_factorial3= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
 }
 ```
-Full example [here].(async_future_promise.cpp)
+Full example [here](async_future_promise.cpp).
 
 
 # <a name="packaged_task"/> Packaged Task
 It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
 invoked asynchronously.
-Full example [here].(packaged_task.cpp)
+Full example [here](packaged_task.cpp).
 
 
 # <a name="printing_process_tree"/>Printing Process Tree
