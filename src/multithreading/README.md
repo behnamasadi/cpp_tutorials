@@ -375,7 +375,7 @@ Each thread has a unique:
 
 
 
-# Creation and Termination<a name="creation_and_termination"></a>
+# Creation and Termination
 
 std::thread is the thread class that represents a single thread in C++. To start a thread we simply need to create a new thread object and pass the executing code to be called (i.e, a callable object) into the constructor of the object. Once the object is created a new thread is launched which will execute the code specified in callable.
 
@@ -514,7 +514,7 @@ std::thread t6(lambdaExpression,n);
 Full example [here](creating_and_terminating_threads.cpp). 
 
 
-# <a name="over_subscrition"/> Over Subscrition 
+# Over Subscrition 
 If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
 
 ```
@@ -525,12 +525,12 @@ std::cout << "Number of concurrent threads supported are: " << con_threads << st
 
 ```
 
-# <a name="differentiating_between_threads"/> Differentiating Between Threads
+# Differentiating Between Threads
 
 You can use    ```std::this_thread::get_id() ``` to get the thread ID.
 Full example [here](differentiating_between_threads.cpp).
 
-# <a name="sleeping_threads"/> Sleeping Threads
+# Sleeping Threads
 
 ```
 std::this_thread::sleep_for(std::chrono::microseconds(numberOfMicroseconds));
@@ -540,7 +540,7 @@ usleep(numberOfMicroseconds);
 
 Full example [here](sleeping_threads.cpp). 
 
-# <a name="join_detach_threads"/> Joining Threads
+# Joining Threads
 Join will pause the current thread untill the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
 
 
@@ -553,17 +553,17 @@ If we instead of join() we call detach() the child thread will become demean pro
 
 Once you detattach a thread you can't call join() again so before joining check if it is joinable()
 Full example [here](join_detach_threads.cpp).
-# <a name="yield"/> Yield
+# Yield
 
 You can indicate to the OS that the current thread can be rescheduled so that other threads can run instead. 
 For this, one uses the `std::this_thread::yield()` function. The precise result of this function depends on the 
 OS and its scheduler. Within the case of a FIFO scheduler, it's likely that the calling thread will be put at the back of the line.
 
 
-# <a name="thread_synchronization"/> Thread Synchronization
+# Thread Synchronization
 Thread synchronization is defined as a mechanism which ensures that two or more concurrent processes or threads do not simultaneously execute some particular program segment known as a critical section. Processes’ access to critical section is controlled by using synchronization techniques. When one thread starts executing the critical section  the other thread should wait until the first thread finishes. If proper synchronization techniques are not applied, it may cause a race condition where the values of variables may be unpredictable and vary depending on the timings of context switches of the processes or threads.
 
-# <a name="racing_condition"/> Racing Condition
+# Racing Condition
 
 When two or more threads perform a set of operations in parallel, that access the same memory location.
 Also, one or more thread out of them modifies the data in that memory location, then this can lead to an
@@ -689,7 +689,7 @@ Message from function1: 95
 Full example [here](race_condition.cpp).
 First soluton would be using `mutex`.
 
-# <a name="mutex"/> Mutex
+# Mutex
 A Mutex is a lock that we set before using a shared resource and release after using it.
 When the lock is set, no other thread can access the locked region of code.
 
@@ -735,12 +735,12 @@ void sharedPrinter(std::string s,int id)
 ```
 But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
 Full example [here](mutex.cpp).
-# <a name="semaphor"/>Semaphor
+# Semaphor
 Semaphor use signaling while Mutex is an object.
 
 Full example [here](semaphor.cpp).
 
-# <a name="thread_safe"/>Thread Safe Functions
+# Thread Safe Functions
 Let say we have the following stack data structure:
 ```
 template<typename T>
@@ -813,7 +813,7 @@ public:
 };
 ```
 Full example [here](thread_safe.cpp).
-# <a name="dead_lock"/>Dead Lock
+# Dead Lock
 In the following example two function are depending on each other lock:
 
 ```
@@ -876,7 +876,7 @@ void func2DeadLockSolved()
 Full example [here](dead_lock.cpp).
 The second solution is using `std::lock` and extra parameters `std::adopt_lock` for `lock_guard`:
 
-# <a name="lock_guard"/> Lock Guard
+# Lock Guard
 A lock guard is a wrapper for mutex, which handles the obtaining of a lock on the
 mutex object as well as its release when the lock guard goes out of scope. This is a helpful
 mechanism to ensure that one does not forget to release a mutex lock, and to help reduce
@@ -951,7 +951,7 @@ When mutex goes out of scope it will unclock the mutex.
 If you lock small part of your code many times, you program will become very complicated, if you lock piece of code, you might lose 
 the advantageous of concurrent programming since your program need requeir lots of resources for switching between threads.
 Full example [here](lock_guard.cpp).
-# <a name="unique_lock"/>Unique Lock
+# Unique Lock
 Follow up our logger example, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`.
 ```
 class LogFile
@@ -1062,7 +1062,7 @@ Finally, the third constructor assumes that it already owns the provided mutex.
 
 Full example [here](unique_lock.cpp). 
 
-# <a name="scoped_lock"/>Scoped Lock
+# Scoped Lock
 It differs from a lock guard in that it is a wrapper for not one, but multiple mutexes.
 
 This can be useful when one deals with multiple mutexes in a single scope. One reason to
@@ -1073,7 +1073,7 @@ One property of a scoped lock is that it tries to avoid such a situation, theore
 this type of lock deadlock-safe.
 Full example [here](scoped_lock.cpp). 
 
-# <a name="condition_variable"/>Condition Variable
+# Condition Variable
 In the following example `function_1` produce data and `function_2` and we utilized mutex to synchronize accessing the data. The problem that rises is `function_2` is in a checking state and keep looping. If we change the `function_2` to the following we make it a bit better but we 
 cant easily decide for how long we should suspend the thread in `function_2`
 
@@ -1148,7 +1148,7 @@ while ( data != 1) {
 }
 ```
 Full example [here](condition_variable.cpp).
-# <a name="async_future_promise"/>Async, Future and Promise
+# Async, Future and Promise
 Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:
 
 ```
@@ -1266,60 +1266,21 @@ int main()
 Full example [here](async_future_promise.cpp).
 
 
-# <a name="packaged_task"/> Packaged Task
+# Packaged Task
 It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
 invoked asynchronously.
 Full example [here](packaged_task.cpp).
 
 
-# <a name="printing_process_tree"/>Printing Process Tree
+# Printing Process Tree
+
+In linux/unix OS you can use the following command to get te process tree:
+
 
 `ps -aef --forest` 
 
 
 `ps f -g<PID>`
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Memory
-When you run two programs on an Operating System that offers memory protection, as Windows and UNIX/Linux
-do, the two programs are executed as separate processes, which means they are given separate address spaces.
-This means that when:
-	program #1 modifies the address 0x800A 1234 in its memory space,
-	program #2 does not see any change in the contents of its memory at address 0x800A 1234.
-
-
-## Thread vs Process
-    
-    
-The separate address space is what is missing. When a program consists of two or more threads, all the threads
-share a single memory space. If one thread modifies the contents of the address 0x800A 1234,
-then all the other threads immediately see a change in the contents of their address 0x800A 1234.
-
-## Heap
-Furthermore, all the threads share a single heap. If one thread allocates (via malloc or new)
-all of the memory available in the heap, then attempts at additional allocations by the other
-threads will fail.
-
-## Stack
-But each thread is given its own stack.
 		
 		
 Ref:    [1](http://www.yolinux.com/TUTORIALS/LinuxTutorialPosixThreads.html), 
