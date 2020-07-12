@@ -237,15 +237,11 @@ TARGET_LINK_LIBRARIES(packaged_task -pthread)
 ADD_EXECUTABLE(race_condition src/multithreading/race_condition.cpp)
 TARGET_LINK_LIBRARIES(race_condition -pthread)
 
-ADD_EXECUTABLE(thread_callable_objects src/multithreading/thread_callable_objects.cpp)
-TARGET_LINK_LIBRARIES(thread_callable_objects -pthread)
-
 ADD_EXECUTABLE(unique_lock src/multithreading/unique_lock.cpp)
 TARGET_LINK_LIBRARIES(unique_lock -pthread)
 
 ADD_EXECUTABLE(lock_guard src/multithreading/lock_guard.cpp)
 TARGET_LINK_LIBRARIES(lock_guard -pthread)
-
 
 #ADD_EXECUTABLE(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
 #TARGET_LINK_LIBRARIES(inter_process_communicationshared_memory -pthread)
