@@ -5,12 +5,14 @@
 #include <queue>
 #include <functional>
 
-std::deque<int> q;
-std::mutex mu;
-std::condition_variable cond ;
+
 
 namespace pooling
 {
+    std::deque<int> q;
+    std::mutex mu;
+    std::condition_variable cond;
+
     void function_1()
     {
         int count = 10;
@@ -47,6 +49,9 @@ namespace pooling
 
 namespace condition_variable
 {
+    std::deque<int> q;
+    std::mutex mu;
+    std::condition_variable cond;
     void function_1()
     {
         int count = 10;

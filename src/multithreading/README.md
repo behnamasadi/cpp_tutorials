@@ -1040,14 +1040,16 @@ File will be opened once only by one thread.
 Whether a unique lock instance has ownership of its mutex, and whether it's locked or not,
 is first determined when creating the lock, as can be seen with its constructors. For example:
 ```
-std::mutex m1, m2, m3;
+std::mutex m0, m1, m2, m3;
+std::unique_lock<std::mutex> lock1(m1);
 std::unique_lock<std::mutex> lock1(m1, std::defer_lock);
 std::unique_lock<std::mutex> lock2(m2, std::try_lock);
 std::unique_lock<std::mutex> lock3(m3, std::adopt_lock);
 ```
-The first constructor in the last code does not lock the assigned mutex (defers). 
-The second attempts to lock the mutex using try_lock(). 
-Finally, the third constructor assumes that it already owns the provided mutex.
+The first locks the associated mutex by calling m0.lock()
+The second one constructor in the last code does not lock the assigned mutex (defers). 
+The third one attempts to lock the mutex using try_lock(). 
+Finally, the last constructor assumes that it already owns the provided mutex.
 
 Full example [here](unique_lock.cpp). 
 
