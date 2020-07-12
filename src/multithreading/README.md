@@ -111,19 +111,19 @@ Suspend ready – Process that was initially in the ready state but were swapped
 Suspend wait or suspend blocked – Similar to suspend ready but uses the process which was performing I/O operation and lack of main memory caused them to move to secondary memory.
 When work is finished it may go to suspend ready.
 
-### Process privileges (user mode vs kernel mode)
-#### User mode 
+## Process privileges (user mode vs kernel mode)
+### User mode 
 When the computer system run user applications like creating a text document or using any application program, 
 then the system is in the user mode. When the user application requests for a service from the operating system 
 or an interrupt occurs or system call, then there will be a transition from user to kernel mode to fulfill the requests.
 
-#### Kernel Mode
+### Kernel Mode
 When the system boots, hardware starts in kernel mode and when operating system is loaded, it start user application in user mode.
 To provide protection to the hardware, we have privileged instructions which execute only in kernel mode. 
 If user attempt to run privileged instruction in user mode then it will treat instruction as illegal and traps to OS. 
 Some of the privileged instructions are:
 
-### Handling Interrupts
+## Handling Interrupts
 To switch from user mode to kernel mode.
 Input-Output management.
 
@@ -145,7 +145,7 @@ Input-Output management.
 
 
 
-### CPU Scheduling in Operating Systems
+## CPU Scheduling in Operating Systems
 The OS maintains all PCBs in Process Scheduling Queues. The OS maintains a separate queue for each of the process
 states and PCBs of all processes in the same execution state are placed in the same queue.
 When the state of a process is changed, its PCB is unlinked from its current queue and moved to its new state queue.
@@ -166,7 +166,7 @@ Device queues − The processes which are blocked due to unavailability of an I/
 2) Short term
 3) Medium term
 
-## CPU Scheduling in Operating Systems
+### CPU Scheduling in Operating Systems
 
 Arrival Time: Time at which the process arrives in the ready queue.
 Completion Time: Time at which process completes its execution.
@@ -178,7 +178,7 @@ Waiting Time = Turn Around Time – Burst Time
 
 
 
-## Different Scheduling Algorithms
+### Different Scheduling Algorithms
 
 
 In segmented memory management system scheme, each process is atomic, it can not be split up, it either fully 
@@ -311,7 +311,7 @@ int raise ( int signal_ )
 There are two model of concurrent programming, multi processing and multi threading.
 processes communicate with each other via **Inter Process Communication (IPC)**.
 
-### Inter Process Communication (IPC)
+## Inter Process Communication (IPC)
 Processes can communicate with each other through both:
 1) Shared Memory
 2) Message passing
@@ -328,15 +328,7 @@ Threads communicate via shared memory.
 Multi threading program can not be run over distributed system (unless your threads communicate like multi process program), however multi pressing program can.
 
 
-
-
-
-
-
-
-
-
-# Thread Basics
+# Thread
 It is most effective on multi-processor or multi-core systems where the process flow can be scheduled to run on another processor 
 thus gaining speed through parallel or distributed processing. Thread can be initiated faster because there is less for the 
 Operating System to set up.
@@ -371,7 +363,7 @@ Each thread has a unique:
 
 
 
-# Creation and Termination
+## Creation and Termination
 
 std::thread is the thread class that represents a single thread in C++. To start a thread we simply need to create a new thread object and pass the executing code to be called (i.e, a callable object) into the constructor of the object. Once the object is created a new thread is launched which will execute the code specified in callable.
 
@@ -383,7 +375,7 @@ A callable can be either of the three
 
 
 
-## Function pointer
+### Function pointer
 ```
 void functionPointer(int n)
 {
@@ -395,7 +387,7 @@ std::thread t2{functionPointer,n };
 ```
 
 
-## Thread Callable Objects
+### Thread Callable Objects
 
 ```
 class myClass
@@ -441,7 +433,7 @@ We can move objects from parent thread to child thread but then `myObject` is no
 std::thread t8(&myClass::f, std::move(myObject),8,'w');
 ```
 
-## Function object
+### Function object
 ```
 class callableObject1
 {
@@ -500,7 +492,7 @@ Thread can not be copied and can only be moved:
 t2=std::moved(t1);
 ```
 
-## Lambda expression
+### Lambda expression
 ```
 auto lambdaExpression = [](int n) {std::cout<<++n <<std::endl;};
 std::thread t6(lambdaExpression,n);
@@ -510,7 +502,7 @@ std::thread t6(lambdaExpression,n);
 Full example [here](creating_and_terminating_threads.cpp). 
 
 
-# Over Subscrition 
+## Thread Over Subscrition 
 If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
 
 ```
@@ -521,12 +513,12 @@ std::cout << "Number of concurrent threads supported are: " << con_threads << st
 
 ```
 
-# Differentiating Between Threads
+## Differentiating Between Threads
 
 You can use    ```std::this_thread::get_id() ``` to get the thread ID.
 Full example [here](differentiating_between_threads.cpp).
 
-# Sleeping Threads
+## Sleeping Threads
 
 ```
 std::this_thread::sleep_for(std::chrono::microseconds(numberOfMicroseconds));
@@ -536,36 +528,36 @@ usleep(numberOfMicroseconds);
 
 Full example [here](sleeping_threads.cpp). 
 
-# Joining Threads
+## Joining Threads
 Join will pause the current thread untill the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
 
 
 ```child_thread.join()``` will wait for the child_thread to finish it task otherwise if the main thread finish we might have some unfinished tasks in child_thread.
 
 
-# Detaching Threads
+## Detaching Threads
 If we instead of join() we call detach() the child thread will become demean process and it will run freely on its on.
 
 
 Once you detattach a thread you can't call join() again so before joining check if it is joinable()
 Full example [here](join_detach_threads.cpp).
-# Yield
+## Yield
 
 You can indicate to the OS that the current thread can be rescheduled so that other threads can run instead. 
 For this, one uses the `std::this_thread::yield()` function. The precise result of this function depends on the 
 OS and its scheduler. Within the case of a FIFO scheduler, it's likely that the calling thread will be put at the back of the line.
 
 
-# Thread Synchronization
+## Thread Synchronization
 Thread synchronization is defined as a mechanism which ensures that two or more concurrent processes or threads do not simultaneously execute some particular program segment known as a critical section. Processes’ access to critical section is controlled by using synchronization techniques. When one thread starts executing the critical section  the other thread should wait until the first thread finishes. If proper synchronization techniques are not applied, it may cause a race condition where the values of variables may be unpredictable and vary depending on the timings of context switches of the processes or threads.
 
-# Racing Condition
+## Racing Condition
 
 When two or more threads perform a set of operations in parallel, that access the same memory location.
 Also, one or more thread out of them modifies the data in that memory location, then this can lead to an
 unexpected results some times.
 
-### Job ID Example
+### Racing Condition Example: Job ID
 In the following example we expect to get the same job id when entering the worker function and wehn we exit:
 
 ```
@@ -604,7 +596,7 @@ job number: 2 finished
 job number: 2 finished
 
 ```
-### Wallet Example
+### Racing Condition Example: Wallet Example
 The following problem happens in the case for example:
 
 
@@ -635,7 +627,7 @@ public:
 let say "walletObject.money" was 10. 10 will be loaded. Both thread increase the value
 to 11, while it should be increased to 11 and then 12. so the correct value is 12 while we write back into memory 11, which wrong.
                                              
-### Common Source Example
+### Racing Condition Example: Common Source Example
 In this example both threads race for accessing shared resource `std::cout`
 
 ```
@@ -685,7 +677,7 @@ Message from function1: 95
 Full example [here](race_condition.cpp).
 First soluton would be using `mutex`.
 
-# Mutex
+## Mutex
 A Mutex is a lock that we set before using a shared resource and release after using it.
 When the lock is set, no other thread can access the locked region of code.
 
@@ -731,12 +723,12 @@ void sharedPrinter(std::string s,int id)
 ```
 But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
 Full example [here](mutex.cpp).
-# Semaphor
+## Semaphor
 Semaphor use signaling while Mutex is an object.
 
 Full example [here](semaphor.cpp).
 
-# Thread Safe Functions
+## Thread Safe Functions
 Let say we have the following stack data structure:
 ```
 template<typename T>
@@ -809,7 +801,7 @@ public:
 };
 ```
 Full example [here](thread_safe.cpp).
-# Dead Lock
+## Dead Lock
 In the following example two function are depending on each other lock:
 
 ```
@@ -872,7 +864,7 @@ void func2DeadLockSolved()
 Full example [here](dead_lock.cpp).
 The second solution is using `std::lock` and extra parameters `std::adopt_lock` for `lock_guard`:
 
-# Lock Guard
+## Lock Guard
 A lock guard is a wrapper for mutex, which handles the obtaining of a lock on the
 mutex object as well as its release when the lock guard goes out of scope. This is a helpful
 mechanism to ensure that one does not forget to release a mutex lock, and to help reduce
@@ -937,7 +929,7 @@ void func2DeadLockGuardSolved()
 
 When mutex goes out of scope it will unclock the mutex. 
 
-## Avoid Deadlock tips
+### Avoiding Deadlock tips
  - Prefer locking single mutex.
  - Avoid locking a mutex and then calling a user provided function.
  - user `std::lock()` to lock more than one mutex
@@ -947,7 +939,7 @@ When mutex goes out of scope it will unclock the mutex.
 If you lock small part of your code many times, you program will become very complicated, if you lock piece of code, you might lose 
 the advantageous of concurrent programming since your program need requeir lots of resources for switching between threads.
 Full example [here](lock_guard.cpp).
-# Unique Lock
+## Unique Lock
 Follow up our logger example, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`.
 ```
 class LogFile
@@ -1000,7 +992,7 @@ void sharedPrint(std::string msg, int id)
 
 The `unique_lock` is computationally more expensive than the `lock_guard` so if the performance issue should be considered when using it.
 
-## Lazy initialization and once_flag
+### Lazy initialization and once_flag
 In our log class example, we opened the log file in the constructor but we might need to open the log file when we need it, for instance in 
 `sharedPrint` function.
 
@@ -1069,7 +1061,7 @@ One property of a scoped lock is that it tries to avoid such a situation, theore
 this type of lock deadlock-safe.
 Full example [here](scoped_lock.cpp). 
 
-# Condition Variable
+## Condition Variable
 In the following example `function_1` produce data and `function_2` and we utilized mutex to synchronize accessing the data. The problem that rises is `function_2` is in a checking state and keep looping. If we change the `function_2` to the following we make it a bit better but we 
 cant easily decide for how long we should suspend the thread in `function_2`
 
@@ -1144,7 +1136,7 @@ while ( data != 1) {
 }
 ```
 Full example [here](condition_variable.cpp).
-# Async, Future and Promise
+## Async, Future and Promise
 Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:
 
 ```
@@ -1262,15 +1254,15 @@ int main()
 Full example [here](async_future_promise.cpp).
 
 
-# Packaged Task
+## Packaged Task
 It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
 invoked asynchronously.
 Full example [here](packaged_task.cpp).
 
 
-# Printing Process Tree
+## Printing Process Tree
 
-In linux/unix OS you can use the following command to get te process tree:
+In Linux/Unix OS you can use the following command to get te process tree:
 
 
 `ps -aef --forest` 
@@ -1292,13 +1284,3 @@ Ref:    [1](http://www.yolinux.com/TUTORIALS/LinuxTutorialPosixThreads.html),
 	[11](https://en.wikipedia.org/wiki/Virtual_address_space), 
 	[12](https://en.wikipedia.org/wiki/Page_(computer_memory)), 
 	[13](https://en.wikipedia.org/wiki/Page_replacement_algorithm)
-
-
-
-
-
-
-
-
-
-
