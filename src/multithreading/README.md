@@ -448,7 +448,7 @@ std::thread t6(lambdaExpression,n);
 Full Example [here](creating_and_terminating_threads.cpp) 
 
 
-# Over Subscrition 
+# <a name="over_subscrition"/> Over Subscrition 
 If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
 
 ```
@@ -493,14 +493,54 @@ For this, one uses the `std::this_thread::yield()` function. The precise result 
 OS and its scheduler. Within the case of a FIFO scheduler, it's likely that the calling thread will be put at the back of the line.
 
 
+# <a name="thread_synchronization"/> Thread Synchronization
+Thread synchronization is defined as a mechanism which ensures that two or more concurrent processes or threads do not simultaneously execute some particular program segment known as a critical section. Processes’ access to critical section is controlled by using synchronization techniques. When one thread starts executing the critical section  the other thread should wait until the first thread finishes. If proper synchronization techniques are not applied, it may cause a race condition where the values of variables may be unpredictable and vary depending on the timings of context switches of the processes or threads.
 
-
-# <a name="racing_problem"/> Racing Problem
+# <a name="racing_condition"/> Racing Condition
 
 When two or more threads perform a set of operations in parallel, that access the same memory location.
 Also, one or more thread out of them modifies the data in that memory location, then this can lead to an
 unexpected results some times.
 
+### Job ID Example
+In the following example we expect to get the same job id when entering the worker function and wehn we exit:
+
+```
+int counter=0;
+
+void worker()
+{
+    counter++;
+    std::cout<<"job number: "<<counter<<" started" <<std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout<<"job number: "<<counter<<" finished" <<std::endl;
+}
+
+int main()
+{
+    std::thread t1(worker);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::thread t2(worker);
+    t1.join();
+    t2.join();
+}
+```
+
+Expectation:
+```
+job number: 1 started
+job number: 1 finished
+job number: 2 started
+job number: 2 finished
+```
+But we will get:
+```
+job number: 1 started
+job number: 2 started
+job number: 2 finished
+job number: 2 finished
+
+```
 ### Wallet Example
 The following problem happens in the case for example:
 
@@ -588,7 +628,11 @@ Message from function1: -95
 Message from function1: 95
 ```
 
-First soluton would be using <a name="mutex"/> `mutex`.
+First soluton would be using `mutex`.
+
+# <a name="mutex"/> Mutex
+A Mutex is a lock that we set before using a shared resource and release after using it.
+When the lock is set, no other thread can access the locked region of code.
 
 ```
 std::mutex mu;
@@ -632,7 +676,13 @@ void sharedPrinter(std::string s,int id)
 ```
 But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
 
+# <a name="semaphor"/>Semaphor
+Semaphor use signaling while Mutex is an object.
 
+
+https://www.geeksforgeeks.org/mutex-vs-semaphore/
+https://www.geeksforgeeks.org/semaphores-in-process-synchronization/
+https://www.youtube.com/watch?v=8wcuLCvMmF8
 
 # <a name="thread_safe"/>Thread Safe Functions
 Let say we have the following stack data structure:
@@ -677,7 +727,7 @@ and we have the following call from a function:
 
 | Thread 1                                   |      Thread 2                             |
 |----------                                  |:-------------:                            |
-| int a= myStack.top(); //a=                 |                                           |
+| int a= myStack.top(); //a=6                |                                           |
 |                                            |int b= myStack.top();//b=6                 |
 | myStack.pop();//6 is poped                 |                                           |
 |                                            |myStack.pop();//4 is poped!                |
@@ -769,6 +819,51 @@ void func2DeadLockSolved()
 ```
 
 The second solution is using `std::lock` and extra parameters `std::adopt_lock` for `lock_guard`:
+
+# <a name="lock_guard"/> Lock Guard
+A lock guard is a wrapper for mutex, which handles the obtaining of a lock on the
+mutex object as well as its release when the lock guard goes out of scope. This is a helpful
+mechanism to ensure that one does not forget to release a mutex lock, and to help reduce
+clutter in one's code when one has to release the same mutex in multiple locations.
+
+
+```
+int counter = 0;
+std::mutex counter_mutex;
+void worker()
+{
+    std::lock_guard<std::mutex> lock(counter_mutex);
+    if (counter == 1) 
+    { 
+        counter += 10; 
+    }
+    else if (counter >= 10) 
+    { 
+        counter += 15; 
+    }
+    else if (counter >= 50) 
+    { 
+        return; 
+    }
+    else 
+    { 
+        ++counter; 
+    }
+    std::cout << std::this_thread::get_id() << ": " << counter << '\n';
+}
+int main()
+{
+    std::cout << __func__ << ": " << counter << '\n';
+    std::thread t1(worker);
+    std::thread t2(worker);
+    t1.join();
+    t2.join();
+    std::cout << __func__ << ": " << counter << '\n';
+}
+```
+
+We can use `lock_guard` to solve our dead lock prolem:
+
 ```
 void func1DeadLockGuardGuaredSolved()
 {
@@ -897,6 +992,30 @@ std::call_once(flag,[&](){file.open("log.txt");});
 ```
 File will be opened once only by one thread.
 
+Whether a unique lock instance has ownership of its mutex, and whether it's locked or not,
+is first determined when creating the lock, as can be seen with its constructors. For example:
+```
+std::mutex m1, m2, m3;
+std::unique_lock<std::mutex> lock1(m1, std::defer_lock);
+std::unique_lock<std::mutex> lock2(m2, std::try_lock);
+std::unique_lock<std::mutex> lock3(m3, std::adopt_lock);
+```
+The first constructor in the last code does not lock the assigned mutex (defers). 
+The second attempts to lock the mutex using try_lock(). 
+Finally, the third constructor assumes that it already owns the provided mutex.
+
+Full Example [here](unique_lock.cpp) 
+
+# <a name="scoped_lock"/>Scoped Lock
+It differs from a lock guard in that it is a wrapper for not one, but multiple mutexes.
+
+This can be useful when one deals with multiple mutexes in a single scope. One reason to
+use a scoped lock is to avoid accidentally introducing deadlocks and other unpleasant
+complications with, for example, one mutex being locked by the scoped lock, another lock
+still being waited upon, and another thread instance having the exactly opposite situation.
+One property of a scoped lock is that it tries to avoid such a situation, theoretically making
+this type of lock deadlock-safe.
+Full example [here](scoped_lock.cpp) 
 
 # <a name="condition_variable"/>Condition Variable
 In the following example `function_1` produce data and `function_2` and we utilized mutex to synchronize accessing the data. The problem that rises is `function_2` is in a checking state and keep looping. If we change the `function_2` to the following we make it a bit better but we 

@@ -49,6 +49,21 @@ void racingProblemExample()
 }
 
 
+int counter=0;
+
+void worker()
+{
+    counter++;
+    std::cout<<"job number: "<<counter<<" started" <<std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::cout<<"job number: "<<counter<<" finished" <<std::endl;
+}
+
 int main()
 {
+    std::thread t1(worker);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::thread t2(worker);
+    t1.join();
+    t2.join();
 }
