@@ -7,17 +7,16 @@
 
 
 
-namespace pooling
+namespace polling_deque
 {
     std::deque<int> q;
     std::mutex mu;
-    std::condition_variable cond;
 
     void function_1()
     {
         int count = 10;
         while (count > 0) {
-            std::unique_lock<std::mutex> locker(mu);
+            std::unique_lock<std::mutex> locker(mu);//this will create and lock the mutex
             q.push_front(count);
             locker.unlock();
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -36,7 +35,7 @@ namespace pooling
                 data=q.back();
                 q.pop_back();
                 locker.unlock();
-                std::cout<<"t2 got a value from t1" <<data<<std::endl;
+                std::cout<<"t2 got a value from t1: " <<data<<std::endl;
             }
             else
             {
@@ -47,7 +46,7 @@ namespace pooling
     }
 }
 
-namespace condition_variable
+namespace condition_variable_deque
 {
     std::deque<int> q;
     std::mutex mu;
@@ -68,10 +67,10 @@ namespace condition_variable
     void function_2()
     {
         int data = 0;
-        while ( data != 1) {
+        while ( data != 1)
+        {
             std::unique_lock<std::mutex> locker(mu);
-            cond.wait(locker, [](){ return !q.empty();} );  // Unlock mu and wait to be notified
-                // relock mu
+            cond.wait(locker, [](){ return !q.empty();} );
             data = q.back();
             q.pop_back();
             locker.unlock();
@@ -80,4 +79,32 @@ namespace condition_variable
     }
 }
 
-int main(){}
+
+void worker()
+{
+
+}
+
+int main()
+{
+
+    std::cout << "Queueing and Dequeueing with polling" << std::endl;
+
+    {
+        std::thread t1(polling_deque::function_1);
+        std::thread t2(polling_deque::function_2);
+
+        t1.join();
+        t2.join();
+    }
+
+    std::cout << "Queueing and Dequeueing with condition_variable" << std::endl;
+    {
+        std::thread t1(condition_variable_deque::function_1);
+        std::thread t2(condition_variable_deque::function_2);
+
+        t1.join();
+        t2.join();
+    }
+
+}
