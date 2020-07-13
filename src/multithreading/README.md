@@ -52,12 +52,11 @@
     + [Avoiding Deadlock tips](#avoiding-deadlock-tips)
   * [Unique Lock](#unique-lock)
     + [Lazy initialization and once_flag](#lazy-initialization-and-once-flag)
-- [Scoped Lock](#scoped-lock)
+  * [Scoped Lock](#scoped-lock)
   * [Condition Variable](#condition-variable)
   * [Async, Future and Promise](#async--future-and-promise)
   * [Packaged Task](#packaged-task)
   * [Printing Process Tree](#printing-process-tree)
-
 
 # Process 
 A process is just a running  program. The execution of a process must progress in a sequential fashion.
@@ -1053,7 +1052,7 @@ Finally, the last constructor assumes that it already owns the provided mutex.
 
 Full example [here](unique_lock.cpp). 
 
-# Scoped Lock
+## Scoped Lock
 It differs from a lock guard in that it is a wrapper for not one, but multiple mutexes.
 
 This can be useful when one deals with multiple mutexes in a single scope. One reason to
@@ -1069,6 +1068,9 @@ In the following example `function_1` produce data and `function_2` and we utili
 cant easily decide for how long we should suspend the thread in `function_2`
 
 ```
+std::deque<int> q;
+std::mutex mu;
+
 void function_1()
 {
     int count = 10;
@@ -1129,8 +1131,7 @@ void function_2()
 int data = 0;
 while ( data != 1) {
     std::unique_lock<std::mutex> locker(mu);
-    cond.wait(locker, [](){ return !q.empty();} );  // Unlock mu and wait to be notified
-        // relock mu
+    cond.wait(locker, [](){ return !q.empty();} );
     data = q.back();
     q.pop_back();
     locker.unlock();
@@ -1287,4 +1288,8 @@ Ref:    [1](http://www.yolinux.com/TUTORIALS/LinuxTutorialPosixThreads.html),
 	[10](https://en.wikipedia.org/wiki/Paging#Ferranti_Atlas), 
 	[11](https://en.wikipedia.org/wiki/Virtual_address_space), 
 	[12](https://en.wikipedia.org/wiki/Page_(computer_memory)), 
-	[13](https://en.wikipedia.org/wiki/Page_replacement_algorithm)
+	[13](https://en.wikipedia.org/wiki/Page_replacement_algorithm),
+	[14](https://www.geeksforgeeks.org/multilevel-feedback-queue-scheduling-mlfq-cpu-scheduling/),
+	[15](https://www.geeksforgeeks.org/cpu-scheduling-in-operating-systems/),
+	[16](https://stackoverflow.com/questions/11770571/how-do-mutexes-really-work)
+
