@@ -26,20 +26,58 @@ Condition_variable_any
 */
 
 std::mutex mu;
-std::conditional cond;
-int data=0;
-
-void worker()
+void worker1()
 {
-    std::cout<<"worker is working" <<std::endl;
-    std::unique_lock<std::mutex> lock(mu);
+    for(int i=0;i<1000;i++)
+    {
+        std::lock_guard<std::mutex> locker(mu);
+
+        std::cout<<"worker1 is working, i="<<i <<std::endl;
+    }
+}
+
+void worker2()
+{
+
+
+    for(int i=1000;i>0;i--)
+    {
+        std::lock_guard<std::mutex> locker(mu);
+        std::cout<<"worker2 is working, i="<<i <<std::endl;
+    }
+}
+
+class myclass
+{
+    public:
+    void func(){    std::cout<<"func is working" <<std::endl;
+}
+    void  operator  ()()
+    {
+        std::cout<<"operator ()" <<std::endl;
+    }
+
+};
+
+int myfunc(int &x)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    return x++;
 }
 
 int main()
 {
     std::cout<<"main thread is working on data" <<std::endl;
+    myclass myobj;
+    std::thread t1(worker1);
+    std::thread t2(worker2);
+    t1.join();
+    t2.join();
 
-    std::thread t1(worker);
+    std::conditional
+
+    //conditional variable
+    //call once notify all
 }
 
 
