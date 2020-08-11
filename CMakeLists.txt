@@ -5,25 +5,25 @@ set(CMAKE_BUILD_TYPE DEBUG)
 
 #option(USE_CLANG "build application with clang" ON) # OFF is the default
 
-SET (CMAKE_C_COMPILER             "/usr/bin/clang")
-#SET (CMAKE_C_FLAGS                "-Wall -std=c99")
-SET (CMAKE_C_FLAGS_DEBUG          "-g")
-SET (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-SET (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
-SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+set (CMAKE_C_COMPILER             "/usr/bin/clang")
+#set (CMAKE_C_FLAGS                "-Wall -std=c99")
+set (CMAKE_C_FLAGS_DEBUG          "-g")
+set (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+set (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
+set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
-SET (CMAKE_CXX_FLAGS                "-Wall")
-SET (CMAKE_CXX_FLAGS_DEBUG          "-g")
-SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-SET (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
-SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+set (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
+set (CMAKE_CXX_FLAGS                "-Wall")
+set (CMAKE_CXX_FLAGS_DEBUG          "-g")
+set (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+set (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
+set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-SET (CMAKE_AR      "/usr/bin/llvm-ar")
-SET (CMAKE_LINKER  "/usr/bin/llvm-ld")
-SET (CMAKE_NM      "/usr/bin/llvm-nm")
-SET (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-SET (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+set (CMAKE_AR      "/usr/bin/llvm-ar")
+set (CMAKE_LINKER  "/usr/bin/llvm-ld")
+set (CMAKE_NM      "/usr/bin/llvm-nm")
+set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
 
 
 project(Tutorials)
@@ -59,8 +59,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 
 ######################### How to cpack create deb file#########################
  
-#SET(CPACK_GENERATOR "DEB")
-#SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "David Doria") #required
+#set(CPACK_GENERATOR "DEB")
+#set(CPACK_DEBIAN_PACKAGE_MAINTAINER "David Doria") #required
  
 #INCLUDE(CPack)
  
@@ -81,288 +81,288 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 
 #https://cmake.org/Wiki/CMake:Packaging_With_CPack
 
-ADD_EXECUTABLE(pointers  src/pointers.cpp )
-TARGET_LINK_LIBRARIES( pointers)
+add_executable(pointers  src/pointers.cpp )
+target_link_libraries( pointers)
 
-ADD_EXECUTABLE(string  src/string.cpp )
-TARGET_LINK_LIBRARIES( string)
+add_executable(string  src/string.cpp )
+target_link_libraries( string)
 
-ADD_EXECUTABLE(exception_handling  src/exception_handling.cpp)
-TARGET_LINK_LIBRARIES( exception_handling)
+add_executable(exception_handling  src/exception_handling.cpp)
+target_link_libraries( exception_handling)
 
-ADD_EXECUTABLE(heap_vs_stack  src/heap_vs_stack.cpp)
-TARGET_LINK_LIBRARIES(heap_vs_stack)
+add_executable(heap_vs_stack  src/heap_vs_stack.cpp)
+target_link_libraries(heap_vs_stack)
 
-ADD_EXECUTABLE(assert  src/assert.cpp)
-TARGET_LINK_LIBRARIES(assert)
+add_executable(assert  src/assert.cpp)
+target_link_libraries(assert)
 
-ADD_EXECUTABLE(return_abort_exit  src/return_abort_exit.cpp)
-TARGET_LINK_LIBRARIES(return_abort_exit)
+add_executable(return_abort_exit  src/return_abort_exit.cpp)
+target_link_libraries(return_abort_exit)
 
-ADD_EXECUTABLE(rvalue_lvalue  src/rvalue_lvalue.cpp)
-TARGET_LINK_LIBRARIES(rvalue_lvalue)
+add_executable(rvalue_lvalue  src/rvalue_lvalue.cpp)
+target_link_libraries(rvalue_lvalue)
 
-ADD_EXECUTABLE(primitive_data_types_numerical_limits_accuracy  src/primitive_data_types_numerical_limits_accuracy.cpp)
-TARGET_LINK_LIBRARIES(primitive_data_types_numerical_limits_accuracy)
+add_executable(primitive_data_types_numerical_limits_accuracy  src/primitive_data_types_numerical_limits_accuracy.cpp)
+target_link_libraries(primitive_data_types_numerical_limits_accuracy)
 
-ADD_EXECUTABLE(arrays  src/arrays.cpp)
-TARGET_LINK_LIBRARIES(arrays)
+add_executable(arrays  src/arrays.cpp)
+target_link_libraries(arrays)
 
 
-ADD_EXECUTABLE(data_type_info  src/data_type_info.cpp)
-TARGET_LINK_LIBRARIES(data_type_info)
+add_executable(data_type_info  src/data_type_info.cpp)
+target_link_libraries(data_type_info)
 
-ADD_EXECUTABLE(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
-TARGET_LINK_LIBRARIES(dynamic_memory_allocation)
+add_executable(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
+target_link_libraries(dynamic_memory_allocation)
 
 #ADD_LIBRARY(add MODULE src/add.cpp)
-ADD_EXECUTABLE(loadeding_libraries src/loadeding_libraries.cpp )
-TARGET_LINK_LIBRARIES(loadeding_libraries dl)
+add_executable(loadeding_libraries src/loadeding_libraries.cpp )
+target_link_libraries(loadeding_libraries dl)
 
-ADD_EXECUTABLE(template src/template.cpp )
-TARGET_LINK_LIBRARIES(template)
+add_executable(template src/template.cpp )
+target_link_libraries(template)
 
 ADD_DEFINITIONS(-DLOGING=0)
-ADD_EXECUTABLE(macro src/macro.cpp)
-TARGET_LINK_LIBRARIES(macro)
+add_executable(macro src/macro.cpp)
+target_link_libraries(macro)
 
-ADD_EXECUTABLE(inline_functions src/inline_functions.cpp)
-TARGET_LINK_LIBRARIES(inline_functions)
+add_executable(inline_functions src/inline_functions.cpp)
+target_link_libraries(inline_functions)
 
-ADD_EXECUTABLE(align src/align.cpp)
-TARGET_LINK_LIBRARIES(align)
+add_executable(align src/align.cpp)
+target_link_libraries(align)
 
-ADD_EXECUTABLE(non_modifing_algorithm src/non_modifing_algorithm.cpp)
-TARGET_LINK_LIBRARIES(non_modifing_algorithm)
+add_executable(non_modifing_algorithm src/non_modifing_algorithm.cpp)
+target_link_libraries(non_modifing_algorithm)
 
-ADD_EXECUTABLE(vector src/vector.cpp)
-TARGET_LINK_LIBRARIES(vector)
+add_executable(vector src/vector.cpp)
+target_link_libraries(vector)
 
-ADD_EXECUTABLE(variadic_templates src/variadic_templates.cpp)
-TARGET_LINK_LIBRARIES(variadic_templates)
+add_executable(variadic_templates src/variadic_templates.cpp)
+target_link_libraries(variadic_templates)
 
-ADD_EXECUTABLE(enum src/enum.cpp)
-TARGET_LINK_LIBRARIES(enum)
+add_executable(enum src/enum.cpp)
+target_link_libraries(enum)
 
-ADD_EXECUTABLE(diamond_problem_virtual_inheritance src/class/diamond_problem_virtual_inheritance.cpp)
-TARGET_LINK_LIBRARIES(diamond_problem_virtual_inheritance)
+add_executable(diamond_problem_virtual_inheritance src/class/diamond_problem_virtual_inheritance.cpp)
+target_link_libraries(diamond_problem_virtual_inheritance)
 
-ADD_EXECUTABLE(shadowing src/class/shadowing.cpp)
-TARGET_LINK_LIBRARIES(shadowing)
+add_executable(shadowing src/class/shadowing.cpp)
+target_link_libraries(shadowing)
 
-ADD_EXECUTABLE(protected_friend_class_function src/class/protected_friend_class_function.cpp)
-TARGET_LINK_LIBRARIES(protected_friend_class_function)
+add_executable(protected_friend_class_function src/class/protected_friend_class_function.cpp)
+target_link_libraries(protected_friend_class_function)
 
-ADD_EXECUTABLE(virtual_function_abstract_class src/class/virtual_function_abstract_class.cpp)
-TARGET_LINK_LIBRARIES(virtual_function_abstract_class)
+add_executable(virtual_function_abstract_class src/class/virtual_function_abstract_class.cpp)
+target_link_libraries(virtual_function_abstract_class)
 
-ADD_EXECUTABLE(multiple_inheritance_polymorphism src/class/multiple_inheritance_polymorphism.cpp)
-TARGET_LINK_LIBRARIES(multiple_inheritance_polymorphism)
+add_executable(multiple_inheritance_polymorphism src/class/multiple_inheritance_polymorphism.cpp)
+target_link_libraries(multiple_inheritance_polymorphism)
 
-ADD_EXECUTABLE(private_public_protected_inheritance src/class/private_public_protected_inheritance.cpp)
-TARGET_LINK_LIBRARIES(private_public_protected_inheritance)
+add_executable(private_public_protected_inheritance src/class/private_public_protected_inheritance.cpp)
+target_link_libraries(private_public_protected_inheritance)
 
-ADD_EXECUTABLE(cast_Base_to_Derived_to_Base src/class/cast_Base_to_Derived_to_Base.cpp)
-TARGET_LINK_LIBRARIES(cast_Base_to_Derived_to_Base)
+add_executable(cast_Base_to_Derived_to_Base src/class/cast_Base_to_Derived_to_Base.cpp)
+target_link_libraries(cast_Base_to_Derived_to_Base)
 
-ADD_EXECUTABLE(operator_overloading  src/class/operator_overloading.cpp )
-TARGET_LINK_LIBRARIES( operator_overloading)
+add_executable(operator_overloading  src/class/operator_overloading.cpp )
+target_link_libraries( operator_overloading)
 
-ADD_EXECUTABLE(default_0_delete_meaning  src/class/default_0_delete_meaning.cpp)
-TARGET_LINK_LIBRARIES(default_0_delete_meaning)
+add_executable(default_0_delete_meaning  src/class/default_0_delete_meaning.cpp)
+target_link_libraries(default_0_delete_meaning)
 
-ADD_EXECUTABLE(circular_dependency
+add_executable(circular_dependency
     src/class/Circular_Dependency/circular_dependency.cpp
     src/class/Circular_Dependency/a.cpp
     src/class/Circular_Dependency/b.cpp
     src/class/Circular_Dependency/c.cpp)
-TARGET_LINK_LIBRARIES(circular_dependency)
+target_link_libraries(circular_dependency)
 
-ADD_EXECUTABLE(switch_case src/switch_case.cpp)
-TARGET_LINK_LIBRARIES(switch_case)
+add_executable(switch_case src/switch_case.cpp)
+target_link_libraries(switch_case)
 
-ADD_EXECUTABLE(set_map_pair_tuple src/set_map_pair_tuple.cpp)
-TARGET_LINK_LIBRARIES(set_map_pair_tuple)
+add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
+target_link_libraries(set_map_pair_tuple)
 
-ADD_EXECUTABLE(cast_RTTI src/cast_RTTI.cpp)
-TARGET_LINK_LIBRARIES(cast_RTTI)
+add_executable(cast_RTTI src/cast_RTTI.cpp)
+target_link_libraries(cast_RTTI)
 
-ADD_EXECUTABLE(signals src/signals.cpp)
-TARGET_LINK_LIBRARIES(signals)
+add_executable(signals src/signals.cpp)
+target_link_libraries(signals)
 
-ADD_EXECUTABLE(error_handling src/error_handling.cpp)
-TARGET_LINK_LIBRARIES(error_handling)
+add_executable(error_handling src/error_handling.cpp)
+target_link_libraries(error_handling)
 
-ADD_EXECUTABLE(bitwise_operations src/bitwise_operations.cpp)
-TARGET_LINK_LIBRARIES(bitwise_operations)
+add_executable(bitwise_operations src/bitwise_operations.cpp)
+target_link_libraries(bitwise_operations)
 
-ADD_EXECUTABLE(bitset src/bitset.cpp)
-TARGET_LINK_LIBRARIES(bitset)
+add_executable(bitset src/bitset.cpp)
+target_link_libraries(bitset)
 
 
 ############################# Multithreading #############################
 
-ADD_EXECUTABLE(creating_and_terminating_threads src/multithreading/creating_and_terminating_threads.cpp)
-TARGET_LINK_LIBRARIES(creating_and_terminating_threads -pthread)
+add_executable(creating_and_terminating_threads src/multithreading/creating_and_terminating_threads.cpp)
+target_link_libraries(creating_and_terminating_threads -pthread)
 
-ADD_EXECUTABLE(differentiating_between_threads src/multithreading/differentiating_between_threads.cpp)
-TARGET_LINK_LIBRARIES(differentiating_between_threads -pthread)
+add_executable(differentiating_between_threads src/multithreading/differentiating_between_threads.cpp)
+target_link_libraries(differentiating_between_threads -pthread)
 
-ADD_EXECUTABLE(sleeping_threads src/multithreading/sleeping_threads.cpp)
-TARGET_LINK_LIBRARIES(sleeping_threads -pthread)
+add_executable(sleeping_threads src/multithreading/sleeping_threads.cpp)
+target_link_libraries(sleeping_threads -pthread)
 
-ADD_EXECUTABLE(join_detach_threads src/multithreading/join_detach_threads.cpp)
-TARGET_LINK_LIBRARIES(join_detach_threads -pthread)
+add_executable(join_detach_threads src/multithreading/join_detach_threads.cpp)
+target_link_libraries(join_detach_threads -pthread)
 
-ADD_EXECUTABLE(mutex src/multithreading/mutex.cpp)
-TARGET_LINK_LIBRARIES(mutex -pthread)
-
-
-ADD_EXECUTABLE(condition_variable src/multithreading/condition_variable.cpp)
-TARGET_LINK_LIBRARIES(condition_variable -pthread)
+add_executable(mutex src/multithreading/mutex.cpp)
+target_link_libraries(mutex -pthread)
 
 
-ADD_EXECUTABLE(async_future_promise src/multithreading/async_future_promise.cpp)
-TARGET_LINK_LIBRARIES(async_future_promise -pthread)
-
-ADD_EXECUTABLE(dead_lock src/multithreading/dead_lock.cpp)
-TARGET_LINK_LIBRARIES(dead_lock -pthread)
-
-ADD_EXECUTABLE(thread_safe src/multithreading/thread_safe.cpp)
-TARGET_LINK_LIBRARIES(thread_safe -pthread)
-
-ADD_EXECUTABLE(packaged_task src/multithreading/packaged_task.cpp)
-TARGET_LINK_LIBRARIES(packaged_task -pthread)
-
-ADD_EXECUTABLE(race_condition src/multithreading/race_condition.cpp)
-TARGET_LINK_LIBRARIES(race_condition -pthread)
-
-ADD_EXECUTABLE(unique_lock src/multithreading/unique_lock.cpp)
-TARGET_LINK_LIBRARIES(unique_lock -pthread)
-
-ADD_EXECUTABLE(lock_guard src/multithreading/lock_guard.cpp)
-TARGET_LINK_LIBRARIES(lock_guard -pthread)
-
-#ADD_EXECUTABLE(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
-#TARGET_LINK_LIBRARIES(inter_process_communicationshared_memory -pthread)
-
-ADD_EXECUTABLE(function_pointer src/function_pointer.cpp)
-TARGET_LINK_LIBRARIES(function_pointer)
-
-ADD_EXECUTABLE(bind src/bind.cpp)
-TARGET_LINK_LIBRARIES(bind)
-
-ADD_EXECUTABLE(function src/function.cpp)
-TARGET_LINK_LIBRARIES(function)
-
-ADD_EXECUTABLE(lambda src/lambda.cpp)
-TARGET_LINK_LIBRARIES(lambda)
-
-ADD_EXECUTABLE(unions src/unions.cpp)
-TARGET_LINK_LIBRARIES(unions)
-
-ADD_EXECUTABLE(date_time src/date_time.cpp)
-TARGET_LINK_LIBRARIES(date_time)
-
-ADD_EXECUTABLE(fork src/fork.cpp)
-TARGET_LINK_LIBRARIES(fork)
-
-ADD_EXECUTABLE(basic_IO_operation_streams src/basic_IO_operation_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
-TARGET_LINK_LIBRARIES(basic_IO_operation_streams)
-
-ADD_EXECUTABLE(explicit  src/explicit.cpp)
-TARGET_LINK_LIBRARIES(explicit)
-
-ADD_EXECUTABLE(volatile  src/volatile.cpp)
-TARGET_LINK_LIBRARIES(volatile)
-
-ADD_EXECUTABLE(register  src/register.cpp)
-TARGET_LINK_LIBRARIES(register)
-
-ADD_EXECUTABLE(const_constexpr_mutable  src/const_constexpr_mutable.cpp)
-TARGET_LINK_LIBRARIES(const_constexpr_mutable)
-
-ADD_EXECUTABLE(literals  src/literals.cpp)
-TARGET_LINK_LIBRARIES(literals)
-
-ADD_EXECUTABLE(ternary src/ternary.cpp)
-TARGET_LINK_LIBRARIES(ternary)
-
-ADD_EXECUTABLE(lists src/lists.cpp)
-TARGET_LINK_LIBRARIES(lists)
-
-ADD_EXECUTABLE(type_traits src/type_traits.cpp)
-TARGET_LINK_LIBRARIES(type_traits)
-
-ADD_EXECUTABLE(pimpl src/pimpl/main.cpp src/pimpl/studentpimpl.cpp)
-TARGET_LINK_LIBRARIES(pimpl)
-
-ADD_EXECUTABLE(abstract_class_vs_interface src/class/abstract_class_vs_interface.cpp)
-TARGET_LINK_LIBRARIES(abstract_class_vs_interface)
-
-ADD_EXECUTABLE(typedef_type_alias_using_keyword src/typedef_type_alias_using_keyword.cpp)
-TARGET_LINK_LIBRARIES(typedef_type_alias_using_keyword)
-
-ADD_EXECUTABLE(most_vexing_parse src/most_vexing_parse.cpp)
-TARGET_LINK_LIBRARIES(most_vexing_parse)
-
-ADD_EXECUTABLE(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
-TARGET_LINK_LIBRARIES(VTABLE_and_VPTR)
+add_executable(condition_variable src/multithreading/condition_variable.cpp)
+target_link_libraries(condition_variable -pthread)
 
 
-ADD_EXECUTABLE(aggregate_Initialization  src/{}_aggregate_Initialization.cpp )
-TARGET_LINK_LIBRARIES( aggregate_Initialization)
+add_executable(async_future_promise src/multithreading/async_future_promise.cpp)
+target_link_libraries(async_future_promise -pthread)
 
-ADD_EXECUTABLE(allocator src/allocator.cpp)
-TARGET_LINK_LIBRARIES(allocator)
+add_executable(dead_lock src/multithreading/dead_lock.cpp)
+target_link_libraries(dead_lock -pthread)
 
-ADD_EXECUTABLE(noexcept_operator_specifier src/noexcept_operator_specifier.cpp)
-TARGET_LINK_LIBRARIES(noexcept_operator_specifier)
+add_executable(thread_safe src/multithreading/thread_safe.cpp)
+target_link_libraries(thread_safe -pthread)
 
-ADD_EXECUTABLE(callbacks src/callbacks.cpp)
-TARGET_LINK_LIBRARIES(callbacks)
+add_executable(packaged_task src/multithreading/packaged_task.cpp)
+target_link_libraries(packaged_task -pthread)
 
-ADD_EXECUTABLE(template_specialization_tag_dispatch_SFINAE src/template_specialization_tag_dispatch_SFINAE.cpp)
-TARGET_LINK_LIBRARIES(template_specialization_tag_dispatch_SFINAE)
+add_executable(race_condition src/multithreading/race_condition.cpp)
+target_link_libraries(race_condition -pthread)
 
-ADD_EXECUTABLE(copy_move src/class/copy_move.cpp)
-TARGET_LINK_LIBRARIES(copy_move)
+add_executable(unique_lock src/multithreading/unique_lock.cpp)
+target_link_libraries(unique_lock -pthread)
 
-ADD_EXECUTABLE(forward src/forward.cpp)
-TARGET_LINK_LIBRARIES(forward)
+add_executable(lock_guard src/multithreading/lock_guard.cpp)
+target_link_libraries(lock_guard -pthread)
 
-ADD_EXECUTABLE(RVO_NRVO_copy_elision src/RVO_NRVO_copy_elision.cpp)
-TARGET_LINK_LIBRARIES(RVO_NRVO_copy_elision)
+#add_executable(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
+#target_link_libraries(inter_process_communicationshared_memory -pthread)
 
-ADD_EXECUTABLE(virtual_copy_constructor_destructor src/class/virtual_copy_constructor_destructor.cpp)
-TARGET_LINK_LIBRARIES(virtual_copy_constructor_destructor)
+add_executable(function_pointer src/function_pointer.cpp)
+target_link_libraries(function_pointer)
+
+add_executable(bind src/bind.cpp)
+target_link_libraries(bind)
+
+add_executable(function src/function.cpp)
+target_link_libraries(function)
+
+add_executable(lambda src/lambda.cpp)
+target_link_libraries(lambda)
+
+add_executable(unions src/unions.cpp)
+target_link_libraries(unions)
+
+add_executable(date_time src/date_time.cpp)
+target_link_libraries(date_time)
+
+add_executable(fork src/fork.cpp)
+target_link_libraries(fork)
+
+add_executable(basic_IO_operation_streams src/basic_IO_operation_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
+target_link_libraries(basic_IO_operation_streams)
+
+add_executable(explicit  src/explicit.cpp)
+target_link_libraries(explicit)
+
+add_executable(volatile  src/volatile.cpp)
+target_link_libraries(volatile)
+
+add_executable(register  src/register.cpp)
+target_link_libraries(register)
+
+add_executable(const_constexpr_mutable  src/const_constexpr_mutable.cpp)
+target_link_libraries(const_constexpr_mutable)
+
+add_executable(literals  src/literals.cpp)
+target_link_libraries(literals)
+
+add_executable(ternary src/ternary.cpp)
+target_link_libraries(ternary)
+
+add_executable(lists src/lists.cpp)
+target_link_libraries(lists)
+
+add_executable(type_traits src/type_traits.cpp)
+target_link_libraries(type_traits)
+
+add_executable(pimpl src/pimpl/main.cpp src/pimpl/studentpimpl.cpp)
+target_link_libraries(pimpl)
+
+add_executable(abstract_class_vs_interface src/class/abstract_class_vs_interface.cpp)
+target_link_libraries(abstract_class_vs_interface)
+
+add_executable(typedef_type_alias_using_keyword src/typedef_type_alias_using_keyword.cpp)
+target_link_libraries(typedef_type_alias_using_keyword)
+
+add_executable(most_vexing_parse src/most_vexing_parse.cpp)
+target_link_libraries(most_vexing_parse)
+
+add_executable(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
+target_link_libraries(VTABLE_and_VPTR)
 
 
-ADD_EXECUTABLE(range_for_loop src/range_for_loop.cpp)
-TARGET_LINK_LIBRARIES(range_for_loop)
+add_executable(aggregate_Initialization  src/{}_aggregate_Initialization.cpp )
+target_link_libraries( aggregate_Initialization)
 
-ADD_EXECUTABLE(cpp_17 src/cpp_17.cpp)
-TARGET_LINK_LIBRARIES(cpp_17)
+add_executable(allocator src/allocator.cpp)
+target_link_libraries(allocator)
 
-ADD_EXECUTABLE(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
-TARGET_LINK_LIBRARIES(csv_reading_example)
+add_executable(noexcept_operator_specifier src/noexcept_operator_specifier.cpp)
+target_link_libraries(noexcept_operator_specifier)
 
-ADD_EXECUTABLE(json_example src/third_party_tools/jason/nlohmann/json_example.cpp)
-TARGET_LINK_LIBRARIES(json_example)
+add_executable(callbacks src/callbacks.cpp)
+target_link_libraries(callbacks)
 
-ADD_EXECUTABLE(header_guard src/class/header_guard/main.cpp)
-TARGET_LINK_LIBRARIES(header_guard)
+add_executable(template_specialization_tag_dispatch_SFINAE src/template_specialization_tag_dispatch_SFINAE.cpp)
+target_link_libraries(template_specialization_tag_dispatch_SFINAE)
 
-ADD_EXECUTABLE(optimizing_cpp src/optimizing_cpp/index.cpp)
-TARGET_LINK_LIBRARIES(optimizing_cpp)
+add_executable(copy_move src/class/copy_move.cpp)
+target_link_libraries(copy_move)
 
-ADD_EXECUTABLE(track_memoy_allocations src/track_memoy_allocations.cpp)
-TARGET_LINK_LIBRARIES(track_memoy_allocations)
+add_executable(forward src/forward.cpp)
+target_link_libraries(forward)
 
-ADD_EXECUTABLE(copy_initialization src/copy_initialization.cpp)
-TARGET_LINK_LIBRARIES(copy_initialization)
+add_executable(RVO_NRVO_copy_elision src/RVO_NRVO_copy_elision.cpp)
+target_link_libraries(RVO_NRVO_copy_elision)
 
-SET(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
+add_executable(virtual_copy_constructor_destructor src/class/virtual_copy_constructor_destructor.cpp)
+target_link_libraries(virtual_copy_constructor_destructor)
+
+
+add_executable(range_for_loop src/range_for_loop.cpp)
+target_link_libraries(range_for_loop)
+
+add_executable(cpp_17 src/cpp_17.cpp)
+target_link_libraries(cpp_17)
+
+add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
+target_link_libraries(csv_reading_example)
+
+add_executable(json_example src/third_party_tools/jason/nlohmann/json_example.cpp)
+target_link_libraries(json_example)
+
+add_executable(header_guard src/class/header_guard/main.cpp)
+target_link_libraries(header_guard)
+
+add_executable(optimizing_cpp src/optimizing_cpp/index.cpp)
+target_link_libraries(optimizing_cpp)
+
+add_executable(track_memoy_allocations src/track_memoy_allocations.cpp)
+target_link_libraries(track_memoy_allocations)
+
+add_executable(copy_initialization src/copy_initialization.cpp)
+target_link_libraries(copy_initialization)
+
+set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 find_package(PkgConfig)
 pkg_check_modules(TINYXML2 tinyxml2)
@@ -374,17 +374,17 @@ if(${TINYXML2_FOUND})
     MESSAGE("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
     INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
     LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
-    ADD_EXECUTABLE(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
-    TARGET_LINK_LIBRARIES(tinyxml2_demo ${TINYXML2_LIBRARIES})
+    add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
+    target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
 endif()
 
-SET(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
+set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
 FIND_PACKAGE(yaml-cpp)
 IF(${yaml-cpp_FOUND})
     MESSAGE("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
     MESSAGE("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
-    ADD_EXECUTABLE(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
-    TARGET_LINK_LIBRARIES(yaml-cpp_example yaml-cpp)
+    add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
+    target_link_libraries(yaml-cpp_example yaml-cpp)
 ENDIF()
 
 
@@ -397,8 +397,8 @@ if(${BENCHMARK_FOUND})
     MESSAGE("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
     INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
     LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
-    ADD_EXECUTABLE(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
-    TARGET_LINK_LIBRARIES(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
+    add_executable(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
+    target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
 endif()
 
 
