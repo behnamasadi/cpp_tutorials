@@ -64,20 +64,10 @@ int myfunc(int &x)
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     return x++;
 }
-
+//https://www.geeksforgeeks.org/features-of-c17-with-examples/?ref=leftbar-rightbar
 int main()
 {
-    std::cout<<"main thread is working on data" <<std::endl;
-    myclass myobj;
-    std::thread t1(worker1);
-    std::thread t2(worker2);
-    t1.join();
-    t2.join();
 
-    std::conditional
-
-    //conditional variable
-    //call once notify all
 }
 
 
