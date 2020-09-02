@@ -4,6 +4,7 @@
 #include <iterator>
 #include <cstring>
 #include <random>
+#include <algorithm>
 
 
 template <typename T>
@@ -321,6 +322,81 @@ void copyVectors()
         std::copy(vect1.begin(), vect1.end(), std::back_inserter(vect2));
         vect1.clear();
         printVector(vect2);
+    }
+
+}
+
+/*
+
+std::remove :
+It doesn’t actually delete elements from the container but only shunts non-deleted
+elements forwards on top of deleted elements.
+
+vector::erase :
+Removes from the vector either a single element (position) or a range of
+elements ([first, last)).
+
+By using vector::erase all elements in a std::vector will be shifted by
+1 causing a large amount of copies; std::remove does just a ‘logical’
+delete and leaves the vector unchanged by moving things around.
+
+If you need to remove multiple elements from the vector, the std::remove will
+copy each, not removed element only once to its final location, while the
+vector::erase approach would move all of the elements from the position to the end multiple times.
+
+*/
+void ereaseVSremove()
+{
+/*
+    Using erase, If you went over the vector removing elements one by one,
+    you would remove the 1, causing copies of the remainder elements that get shifted (4).
+    Then you would remove 2 and shift all remaining elements by one (3)… if
+    you see the pattern this is a O(N^2) algorithm.
+*/
+    std::vector v { 1, 2, 3, 4, 5 };
+    std::vector v_copy(v);
+
+    v.erase(v.begin());
+    v.erase(v.begin());
+    v.erase(v.begin());
+    v.erase(v.begin());
+
+
+    /*
+    std::remove does not actually erase the element from the container, but it does return the new end
+    iterator which can be passed to container_type::erase to do the REAL removal of the extra elements
+    that are now at the end of the container:
+    */
+
+    std::vector<int> vec;
+    // .. put in some values ..
+    int int_to_remove = 5;
+    vec.erase(std::remove(vec.begin(), vec.end(), int_to_remove), vec.end());
+
+    /*
+    If you want to remove an item, the following will be a bit more efficient.
+    */
+
+
+    auto it = std::find(v_copy.begin(), v_copy.end(), 5);
+    if(it != v.end())
+        v_copy.erase(it);
+
+    /*
+        or you may avoid overhead of moving the items if the order does not matter to you:
+    */
+
+
+    it = std::find(v_copy.begin(), v_copy.end(), 4);
+
+    if (it != v_copy.end()) {
+      using std::swap;
+
+      // swap the one to be removed with the last element
+      // and remove the item at the end of the container
+      // to prevent moving all items after '5' by one
+      swap(*it, v_copy.back());
+      v_copy.pop_back();
     }
 
 }

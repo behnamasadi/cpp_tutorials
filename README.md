@@ -6,7 +6,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Allocator](src/allocator.cpp)  
 [Arrays](src/arrays.cpp)  
 [Assert](src/assert.cpp)  
-[Basic IO Operation, Streams, Reading/Writing Files, Formating Output, cin,scanf,gets,getline,printf](src/basic_IO_operation_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)  
+[Basic IO Operation, filesystem, Streams, Reading/Writing Files, Formating Output, cin,scanf,gets,getline,printf](src/basic_IO_operation_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)  
 [Bindinng](src/bind.cpp)  
 [Bitset](src/bitset.cpp)  
 [Bitwise Operations](src/bitwise_operations.cpp)  
@@ -80,7 +80,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Static Member Function](src/class/static_member_function.cpp)  
 [Virtual Function Abstract Class](src/class/virtual_function_abstract_class.cpp)  
 [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.cpp)  
-[Virtual Destructor, Constructor, Copy Constructor](src/class/virtual_(copy)_constructor_destructor.cpp)
+[Virtual Destructor, Constructor, Copy Constructor](src/class/virtual_copy_constructor_destructor.cpp)
 
 ## [Multithreading](src/multithreading/README.md)
 [Creating (Thread Callable Objects), Terminating Threads](src/multithreading/README.md#creation_and_termination)  
@@ -104,11 +104,14 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Printing Process Tree](src/multithreading/README.md#printing_process_tree)  
 
 ## Modern C++ (C++ 11, 14 and 17)
+[cpp 17](src/cpp_17.cpp)  
 [C style Pointers, Shared, Unique, Weak Pointers](src/pointers.cpp)  
 [Const, Constexpr and Mutable](src/const_constexpr_mutable.cpp) 
 [Lambda](src/lambda.cpp)  
 [rvalue and lvalue](src/rvalue_lvalue.cpp)  
 [Variadic Templates Function](src/variadic_templates.cpp)  
+[Nested Namespaces](src/nested_namespaces.cpp)  
+
 ### [Algorithms](src/non_modifing_algorithm.cpp)
 [std::unique](src/non_modifing_algorithm.cpp)  
 [std::rotate](src/non_modifing_algorithm.cpp)  

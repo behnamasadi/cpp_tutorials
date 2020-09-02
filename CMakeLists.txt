@@ -267,8 +267,8 @@ target_link_libraries(date_time)
 add_executable(fork src/fork.cpp)
 target_link_libraries(fork)
 
-add_executable(basic_IO_operation_streams src/basic_IO_operation_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
-target_link_libraries(basic_IO_operation_streams)
+add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
+target_link_libraries(basic_IO_operation_streams stdc++fs)
 
 add_executable(explicit  src/explicit.cpp)
 target_link_libraries(explicit)
@@ -342,7 +342,7 @@ add_executable(range_for_loop src/range_for_loop.cpp)
 target_link_libraries(range_for_loop)
 
 add_executable(cpp_17 src/cpp_17.cpp)
-target_link_libraries(cpp_17)
+target_link_libraries(cpp_17 stdc++fs)
 
 add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
 target_link_libraries(csv_reading_example)
@@ -361,6 +361,12 @@ target_link_libraries(track_memoy_allocations)
 
 add_executable(copy_initialization src/copy_initialization.cpp)
 target_link_libraries(copy_initialization)
+
+add_executable(buffer_overflow src/buffer_overflow.cpp)
+target_link_libraries(buffer_overflow)
+
+add_executable(nested_namespaces src/nested_namespaces.cpp)
+target_link_libraries(nested_namespaces)
 
 set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
