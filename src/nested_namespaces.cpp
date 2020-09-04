@@ -13,7 +13,7 @@ namespace Game {
         } 
     } 
 }
-*/
+
 
   
 namespace Game::Graphics::Physics { 
@@ -21,6 +21,6 @@ namespace Game::Graphics::Physics {
     class 2D { 
 
     }; 
-} 
+} */
 
 int main(){}

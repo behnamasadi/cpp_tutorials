@@ -184,8 +184,7 @@ target_link_libraries(switch_case)
 add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
 target_link_libraries(set_map_pair_tuple)
 
-add_executable(cast_RTTI src/cast_RTTI.cpp)
-target_link_libraries(cast_RTTI)
+
 
 add_executable(signals src/signals.cpp)
 target_link_libraries(signals)
@@ -198,6 +197,31 @@ target_link_libraries(bitwise_operations)
 
 add_executable(bitset src/bitset.cpp)
 target_link_libraries(bitset)
+
+############################# Advance C++ Concepts/ Idiom #############################
+add_executable(RTTI src/RTTI.cpp)
+target_link_libraries(RTTI)
+
+add_executable(CRTP src/CRTP.cpp)
+target_link_libraries(CRTP)
+
+add_executable(RVO_NRVO_copy_elision src/RVO_NRVO_copy_elision.cpp)
+target_link_libraries(RVO_NRVO_copy_elision)
+
+add_executable(pimpl src/pimpl/main.cpp src/pimpl/studentpimpl.cpp)
+target_link_libraries(pimpl)
+
+add_executable(return_type_resolver src/return_type_resolver.cpp)
+target_link_libraries(return_type_resolver)
+
+add_executable(RAII src/RAII.cpp)
+target_link_libraries(RAII)
+
+add_executable(SFINAE src/SFINAE.cpp)
+target_link_libraries(SFINAE)
+
+add_executable(type_erasure src/type_erasure.cpp)
+target_link_libraries(type_erasure)
 
 
 ############################# Multithreading #############################
@@ -294,9 +318,6 @@ target_link_libraries(lists)
 add_executable(type_traits src/type_traits.cpp)
 target_link_libraries(type_traits)
 
-add_executable(pimpl src/pimpl/main.cpp src/pimpl/studentpimpl.cpp)
-target_link_libraries(pimpl)
-
 add_executable(abstract_class_vs_interface src/class/abstract_class_vs_interface.cpp)
 target_link_libraries(abstract_class_vs_interface)
 
@@ -322,17 +343,14 @@ target_link_libraries(noexcept_operator_specifier)
 add_executable(callbacks src/callbacks.cpp)
 target_link_libraries(callbacks)
 
-add_executable(template_specialization_tag_dispatch_SFINAE src/template_specialization_tag_dispatch_SFINAE.cpp)
-target_link_libraries(template_specialization_tag_dispatch_SFINAE)
+add_executable(template_specialization_tag_dispatch src/template_specialization_tag_dispatch.cpp)
+target_link_libraries(template_specialization_tag_dispatch)
 
 add_executable(copy_move src/class/copy_move.cpp)
 target_link_libraries(copy_move)
 
 add_executable(forward src/forward.cpp)
 target_link_libraries(forward)
-
-add_executable(RVO_NRVO_copy_elision src/RVO_NRVO_copy_elision.cpp)
-target_link_libraries(RVO_NRVO_copy_elision)
 
 add_executable(virtual_copy_constructor_destructor src/class/virtual_copy_constructor_destructor.cpp)
 target_link_libraries(virtual_copy_constructor_destructor)
