@@ -114,7 +114,7 @@ This repository contains my tutorials code for my c++ projects. It includes varu
 [Pointer to implementation (PIMPL)](src/pimpl/)  
 [Return Type Resolver](src/return_type_resolver.cpp)
 [Resource Acquisition Is Initialization (RAII)](src/RAII.cpp)  
-[Substitution failure is not an error(SFINAE)](SFINAE) ](src/SFINAE.cpp)    
+[Substitution failure is not an error(SFINAE)](src/SFINAE.cpp)    
 [Type Erasure](src/type_erasure.cpp)
 [Template Specialization, Tag Dispatch](src/template_specialization_tag_dispatch.cpp)
 [Virtual Destructor, Virtual Constructor, Copy Constructor](src/class/virtual_copy_constructor_destructor.cpp)
