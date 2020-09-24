@@ -126,7 +126,7 @@ This repository contains my C++ tutorials code on C++ concepts/ idioms, optimize
    * [Google Benchmark ](src/third_party_tools/benchmark)
 - [CMake Tutorials](CMake_Tutorials)  
 
-[![Build Status](https://travis-ci.com/behnamasadi/Tutorials.svg?branch=master)](https://travis-ci.com/behnamasadi/Tutorials)
+[![Build Status](https://travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://travis-ci.com/behnamasadi/cpp_tutorials)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
 
