@@ -311,6 +311,15 @@ pointer is a variable that store the address of an other avriable.
     *ptr=30;
 }
 
+void addressofExample()
+{
+}
+
+void reference_wrapperExample()
+{
+
+}
+
 int main()
 {
     std::cout<<"=================== raw pointer example ===================" <<std::endl;

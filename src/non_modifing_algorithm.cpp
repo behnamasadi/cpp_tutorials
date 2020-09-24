@@ -13,6 +13,42 @@
 #include <iomanip>
 
 
+/*
+std::unique 
+std::rotate 
+std::count 
+std::min_max 
+std::distance 
+std::find 
+std::search 
+std::adjacent_find 
+std::equal 
+std::mismatch 
+std::partition 
+std::transform 
+std::swap 
+std::fill 
+std::generate 
+std::replace 
+std::remove 
+std::next_permutation  
+std::lexicographical_compare 
+std::shuffel 
+std::ranndomGenerator 
+std::sort 
+std::heap 
+binary_search 
+std::includes 
+std::priority_queue
+std::lower_upper_equal_bound 
+std::upper_bound 
+std::advance 
+std::merge 
+std::accumulate 
+*/
+
+
+
 bool IsOdd (int i) { return (i%2)==1; }
 
 void unique()
