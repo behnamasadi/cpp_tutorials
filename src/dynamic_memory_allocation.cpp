@@ -22,8 +22,6 @@ int mallocExample()
 	return 0;
 }
 
-
-
 int reallocExample()
 {
 	int * x=(int *)malloc(4 * sizeof(int));

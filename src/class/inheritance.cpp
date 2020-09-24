@@ -52,9 +52,12 @@ public:
     }
 };
 
+//you can't inherit from this class
+class CBase final
+{
+};
 
-int Inheritancemain()
-//int main()
+int main()
 {
     Base cBase;
     cBase.m_nPublic = 1; // allowed: can access public members from outside class

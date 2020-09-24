@@ -184,8 +184,6 @@ target_link_libraries(switch_case)
 add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
 target_link_libraries(set_map_pair_tuple)
 
-
-
 add_executable(signals src/signals.cpp)
 target_link_libraries(signals)
 
@@ -198,12 +196,18 @@ target_link_libraries(bitwise_operations)
 add_executable(bitset src/bitset.cpp)
 target_link_libraries(bitset)
 
+add_executable(inheritance src/class/inheritance.cpp)
+target_link_libraries(inheritance)
+
 ############################# Advance C++ Concepts/ Idiom #############################
 add_executable(RTTI src/RTTI.cpp)
 target_link_libraries(RTTI)
 
 add_executable(CRTP src/CRTP.cpp)
 target_link_libraries(CRTP)
+
+add_executable(double_dispatch src/double_dispatch.cpp)
+target_link_libraries(double_dispatch)
 
 add_executable(RVO_NRVO_copy_elision src/RVO_NRVO_copy_elision.cpp)
 target_link_libraries(RVO_NRVO_copy_elision)
