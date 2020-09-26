@@ -26,7 +26,7 @@ set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
 set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
 
 
-project(Tutorials)
+project(cpp_tutorials)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -198,6 +198,12 @@ target_link_libraries(bitset)
 
 add_executable(inheritance src/class/inheritance.cpp)
 target_link_libraries(inheritance)
+
+add_executable(hash src/hash.cpp)
+target_link_libraries(hash)
+
+add_executable(containers src/containers.cpp)
+target_link_libraries(containers)
 
 ############################# Advance C++ Concepts/ Idiom #############################
 add_executable(RTTI src/RTTI.cpp)

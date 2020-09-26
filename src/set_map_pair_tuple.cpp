@@ -6,7 +6,6 @@
 #include <set>
 #include <unordered_set>
 #include <sstream>
-
 /*
 //////////////////////////// std::map, std::set ///////////////////////
 std::map is red black tree and NOT hash table.
@@ -37,6 +36,34 @@ key-type, you need to define two things:
 
 2) A comparison function for equality; this is required because the hash cannot rely on the fact that the hash function will always provide a unique hash value for every distinct key (i.e., it needs to be able to deal with collisions), so it needs a way to compare two given keys for an exact match. You can implement this either as a class that overrides operator(), or as a specialization of std::equal, or – easiest of all – by overloading operator==() for your key type (as you did already).
 
+
+                |     set             | unordered_set
+---------------------------------------------------------
+Ordering        | increasing  order   | no ordering
+                | (by default)        |
+
+Implementation  | Self balancing BST  | Hash Table
+                | like Red-Black Tree |
+
+search time     | log(n)              | O(1) -> Average
+                |                     | O(n) -> Worst Case
+
+Insertion time  | log(n) + Rebalance  | Same as search
+
+Deletion time   | log(n) + Rebalance  | Same as search
+
+Use set when
+
+    We need ordered data.
+    We would have to print/access the data (in sorted order).
+    We need predecessor/successor of elements.
+    Since set is ordered, we can use functions like binary_search(), lower_bound() and upper_bound() on set elements. These functions cannot be used on unordered_set().
+    See advantages of BST over Hash Table for more cases.
+
+Use unordered_set when
+
+    We need to keep a set of distinct elements and no ordering is required.
+    We need single element access i.e. no traversal.
  
 //////////////////////////////  Tie ////////////////////////////// 
 
@@ -417,6 +444,63 @@ void unordered_setExample()
 
 	std::set<int> fourth (second.begin(), second.end());  // iterator ctor.
    
+}
+
+class Course
+{
+public:
+    std::string m_name;
+    bool m_isAdvanced;
+
+    Course (std::string name, bool isAdvanced)
+    {
+        m_name=name;
+        m_isAdvanced=isAdvanced;
+    }
+
+    bool isAdvanced()
+    {
+        return m_isAdvanced;
+    }
+
+    bool operator ==(const Course& rhs) const
+    {
+        return ((rhs.m_isAdvanced==this->m_isAdvanced )&&(rhs.m_name==this->m_name));
+    }
+};
+
+class CourseHashFunction
+{
+public:
+    std::size_t operator ()(const Course& k) const
+    {
+        // We use predfined hash functions of string and bool and define our hash function as XOR of the hash values.
+        return (std::hash<std::string>()(k.m_name)) ^ (std::hash<bool>()(k.m_isAdvanced)) ;
+    }
+};
+
+
+void unordered_setUserDefinedClassExample()
+{
+/*
+The unordered_set internally implements a hash table to store elements. By default we can store only
+pre definded type as int, string, float etc.
+
+Some comparison function need to be designed. Since unordered_set also store implements hash table
+to store elements we should also have to implement hash function to perform hashing related work.
+*/
+
+    std::unordered_set<Course,CourseHashFunction> courses;
+
+    Course c1=Course("Smalltalk Programming", false);
+    Course c2=Course("Appreciating Single Malts", true);
+
+    courses.insert(c1);
+    courses.insert(c2);
+
+    courses.find(c2)->m_name;
+
+
 }
 
 void tieExample()
