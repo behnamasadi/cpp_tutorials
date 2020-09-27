@@ -132,8 +132,8 @@ target_link_libraries(inline_functions)
 add_executable(align src/align.cpp)
 target_link_libraries(align)
 
-add_executable(non_modifing_algorithm src/non_modifing_algorithm.cpp)
-target_link_libraries(non_modifing_algorithm)
+add_executable(algorithms_library src/algorithms_library.cpp)
+target_link_libraries(algorithms_library)
 
 add_executable(vector src/vector.cpp)
 target_link_libraries(vector)
@@ -204,6 +204,10 @@ target_link_libraries(hash)
 
 add_executable(containers src/containers.cpp)
 target_link_libraries(containers)
+
+add_executable(iterator src/iterator.cpp)
+target_link_libraries(iterator)
+
 
 ############################# Advance C++ Concepts/ Idiom #############################
 add_executable(RTTI src/RTTI.cpp)
