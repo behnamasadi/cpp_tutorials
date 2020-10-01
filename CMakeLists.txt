@@ -237,6 +237,14 @@ target_link_libraries(SFINAE)
 add_executable(type_erasure src/type_erasure.cpp)
 target_link_libraries(type_erasure)
 
+add_executable(buffer_overflow src/buffer_overflow.cpp)
+target_link_libraries(buffer_overflow)
+
+add_executable(stack_overflow src/stack_overflow.cpp)
+target_link_libraries(stack_overflow)
+
+add_executable(stack_unwinding src/stack_unwinding.cpp)
+target_link_libraries(stack_unwinding)
 
 ############################# Multithreading #############################
 
@@ -394,8 +402,6 @@ target_link_libraries(track_memoy_allocations)
 add_executable(copy_initialization src/copy_initialization.cpp)
 target_link_libraries(copy_initialization)
 
-add_executable(buffer_overflow src/buffer_overflow.cpp)
-target_link_libraries(buffer_overflow)
 
 add_executable(nested_namespaces src/nested_namespaces.cpp)
 target_link_libraries(nested_namespaces)
