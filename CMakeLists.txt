@@ -81,7 +81,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 
 #https://cmake.org/Wiki/CMake:Packaging_With_CPack
 
-add_executable(pointers  src/pointers.cpp )
+add_executable(pointers  src/pointers/pointers.cpp )
 target_link_libraries( pointers)
 
 add_executable(string  src/string.cpp )

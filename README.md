@@ -100,7 +100,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Printing Process Tree](src/multithreading/README.md#printing_process_tree)  
 ## [Modern C++ 11, 14 and 17](#)
    * [C++ 17](src/cpp_17.cpp)  
-   * [C style Pointers, addressof, reference_wrapper, Reference, Shared, Unique, Weak Pointers](src/pointers.cpp)  
+   * [C style Pointers, addressof, reference_wrapper, Reference, Shared, Unique, Weak Pointers](src/pointers)  
    * [Const, Constexpr and Mutable](src/const_constexpr_mutable.cpp) 
    * [Lambda](src/lambda.cpp)  
    * [rvalue and lvalue](src/rvalue_lvalue.cpp)  

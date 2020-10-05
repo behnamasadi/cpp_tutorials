@@ -94,23 +94,23 @@ void rawPointerExample()
 
 void weakPointerExample()
 {
-    //weak pointer, it doens't increase the ref count
+//weak pointer, it doens't increase the ref count
 
-    std::shared_ptr<person> person0;
-    {
-        std::shared_ptr<person> sharedEntity0(new person(0));
-        person0=sharedEntity0;
-    }
-    std::cout<<"sharedEntity0 is still alive because of person0=sharedEntity0" <<std::endl;
+std::shared_ptr<person> person0;
+{
+    std::shared_ptr<person> sharedEntity0(new person(0));
+    person0=sharedEntity0;
+}
+std::cout<<"sharedEntity0 is still alive because of person0=sharedEntity0" <<std::endl;
 
-    //if we change teh above code to the following the object will die after the {} block
+//if we change the above code to the following the object will die after the {} block
 
-    std::weak_ptr<person> person1;
-    {
-        std::shared_ptr<person> sharedEntity1(new person(1));
-        person1=sharedEntity1;
-    }
-    std::cout<<"sharedEntity1 died befor reaching here since person1 is a weak_ptr" <<std::endl;
+std::weak_ptr<person> person1;
+{
+    std::shared_ptr<person> sharedEntity1(new person(1));
+    person1=sharedEntity1;
+}
+std::cout<<"sharedEntity1 died befor reaching here since person1 is a weak_ptr" <<std::endl;
 }
 
 std::unique_ptr<person> createPersonUnique_ptr()
@@ -317,7 +317,20 @@ void addressofExample()
 
 void reference_wrapperExample()
 {
+    std::vector<std::reference_wrapper<std::unique_ptr<person>>> people;
+    std::unique_ptr empolyee1= std::make_unique<person>();
+    people.push_back(empolyee1 );
 
+
+//    std::vector<const person&> m_people{};
+
+}
+
+
+person* getperson()
+{
+    std::unique_ptr<person> person_ptr = std::make_unique<person>();
+    return person_ptr.release();
 }
 
 int main()
