@@ -4,26 +4,31 @@ set(CMAKE_BUILD_TYPE DEBUG)
 
 
 #option(USE_CLANG "build application with clang" ON) # OFF is the default
+option(USE_CLANG "build application with clang" OFF)
 
-set (CMAKE_C_COMPILER             "/usr/bin/clang")
-#set (CMAKE_C_FLAGS                "-Wall -std=c99")
-set (CMAKE_C_FLAGS_DEBUG          "-g")
-set (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-set (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
-set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+if(USE_CLANG)
+	set (CMAKE_C_COMPILER             "/usr/bin/clang")
+	#set (CMAKE_C_FLAGS                "-Wall -std=c99")
+	set (CMAKE_C_FLAGS_DEBUG          "-g")
+	set (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+	set (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
+	set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-set (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
-set (CMAKE_CXX_FLAGS                "-Wall")
-set (CMAKE_CXX_FLAGS_DEBUG          "-g")
-set (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-set (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
-set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+	set (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
+	set (CMAKE_CXX_FLAGS                "-Wall")
+	set (CMAKE_CXX_FLAGS_DEBUG          "-g")
+	set (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+	set (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
+	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-set (CMAKE_AR      "/usr/bin/llvm-ar")
-set (CMAKE_LINKER  "/usr/bin/llvm-ld")
-set (CMAKE_NM      "/usr/bin/llvm-nm")
-set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+	set (CMAKE_AR      "/usr/bin/llvm-ar")
+	set (CMAKE_LINKER  "/usr/bin/llvm-ld")
+	set (CMAKE_NM      "/usr/bin/llvm-nm")
+	set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+	set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+endif()
+
+
 
 
 project(cpp_tutorials)
@@ -444,8 +449,6 @@ if(${BENCHMARK_FOUND})
     add_executable(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
     target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
 endif()
-
-
 
 
 OPTION(TESTING "Enable testing" OFF)
