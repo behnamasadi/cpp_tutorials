@@ -17,7 +17,7 @@
     + [Thread Callable Objects](#thread-callable-objects)
     + [Function object](#function-object)
     + [Lambda expression](#lambda-expression)
-  * [Thread Over Subscrition](#thread-over-subscrition)
+  * [Thread Oversubscription](#thread-oversubscription)
   * [Differentiating Between Threads](#differentiating-between-threads)
   * [Sleeping Threads](#sleeping-threads)
   * [Joining Threads](#joining-threads)
@@ -308,7 +308,7 @@ std::thread t6(lambdaExpression,n);
 Full example [here](creating_and_terminating_threads.cpp). 
 
 
-## Thread Over Subscrition 
+## Thread Oversubscription
 If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
 
 ```
