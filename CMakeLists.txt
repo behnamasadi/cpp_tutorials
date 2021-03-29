@@ -176,12 +176,18 @@ target_link_libraries( operator_overloading)
 add_executable(default_0_delete_meaning  src/class/default_0_delete_meaning.cpp)
 target_link_libraries(default_0_delete_meaning)
 
+add_executable(object_slicing  src/class/object_slicing.cpp)
+target_link_libraries(object_slicing)
+
 add_executable(circular_dependency
     src/class/Circular_Dependency/circular_dependency.cpp
     src/class/Circular_Dependency/a.cpp
     src/class/Circular_Dependency/b.cpp
     src/class/Circular_Dependency/c.cpp)
 target_link_libraries(circular_dependency)
+
+add_executable(static_member_function  src/class/static_member_function.cpp)
+target_link_libraries(static_member_function)
 
 add_executable(switch_case src/switch_case.cpp)
 target_link_libraries(switch_case)

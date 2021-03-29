@@ -27,6 +27,7 @@ std::mismatch
 std::partition 
 std::transform 
 std::swap 
+std::exchange
 std::fill 
 std::generate 
 std::replace 
@@ -291,6 +292,33 @@ void swap()
 //std::swap
 }
 
+//  is a setter returning the old value
+void exchange()
+{
+    int x,y,z;
+    x=2;
+    y=4;
+//    x is assigned the value of y,
+//    z is assigned the value that x had initially.
+    z = std::exchange(x, y);
+}
+
+//The std::exchange can be used when implementing
+// move assignment operators and move constructors:
+struct S
+{
+  int n;
+
+  S(S&& other) noexcept : n{std::exchange(other.n, 0)}
+  {}
+
+  S& operator=(S&& other) noexcept
+  {
+    if(this != &other)
+        n = std::exchange(other.n, 0); // move n, while leaving zero in other.n
+    return *this;
+  }
+};
 void fill()
 {
     std::vector<int> vec2(10,0);
