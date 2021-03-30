@@ -216,8 +216,8 @@ target_link_libraries(hash)
 add_executable(containers src/containers.cpp)
 target_link_libraries(containers)
 
-add_executable(iterator src/iterator.cpp)
-target_link_libraries(iterator)
+add_executable(iterator_loop src/iterator_loop.cpp)
+target_link_libraries(iterator_loop)
 
 
 ############################# Advance C++ Concepts/ Idiom #############################
@@ -240,7 +240,7 @@ add_executable(return_type_resolver src/return_type_resolver.cpp)
 target_link_libraries(return_type_resolver)
 
 add_executable(RAII src/RAII.cpp)
-target_link_libraries(RAII)
+target_link_libraries(RAII -pthread)
 
 add_executable(SFINAE src/SFINAE.cpp)
 target_link_libraries(SFINAE)
@@ -387,10 +387,6 @@ target_link_libraries(forward)
 
 add_executable(virtual_copy_constructor_destructor src/class/virtual_copy_constructor_destructor.cpp)
 target_link_libraries(virtual_copy_constructor_destructor)
-
-
-add_executable(range_for_loop src/range_for_loop.cpp)
-target_link_libraries(range_for_loop)
 
 add_executable(cpp_17 src/cpp_17.cpp)
 target_link_libraries(cpp_17 stdc++fs)

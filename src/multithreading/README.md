@@ -171,7 +171,9 @@ Each thread has a unique:
 
 ## Creation and Termination
 
-std::thread is the thread class that represents a single thread in C++. To start a thread we simply need to create a new thread object and pass the executing code to be called (i.e, a callable object) into the constructor of the object. Once the object is created a new thread is launched which will execute the code specified in callable.
+std::thread is the thread class that represents a single thread in C++. To start a thread we simply need to create a new thread object and pass the executing code to be called (i.e, a callable object) into the constructor of the object. 
+
+<b>Once the object is created, a new thread is launched</b> which will execute the code specified in callable.
 
 A callable can be either of the three
  - A function pointer
@@ -307,6 +309,26 @@ std::thread t6(lambdaExpression,n);
 
 Full example [here](creating_and_terminating_threads.cpp). 
 
+## Transferring ownership of a thread
+
+## Threads order of execution
+It is totally up to the operating system in which order threads are scheduled. You can assume it is totally random.
+
+### Waiting for a thread to complete (Joining Threads)
+Join will pause the current thread until the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
+
+
+```child_thread.join()``` will wait for the child_thread to finish it task otherwise if the main thread finish we might have some unfinished tasks in child_thread.
+
+
+### Detaching Threads
+If we instead of join() we call detach() the child thread will become <b>demean thread</b> and it will run freely on its on. detach() leaves the thread to run in the background, with no direct means of communicating with it. 
+
+
+Once you detattach a thread you can't call join() again so before joining check if it is joinable()
+Full example [here](join_detach_threads.cpp).
+
+
 
 ## Thread Oversubscription
 If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
@@ -334,19 +356,6 @@ usleep(numberOfMicroseconds);
 
 Full example [here](sleeping_threads.cpp). 
 
-## Joining Threads
-Join will pause the current thread untill the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
-
-
-```child_thread.join()``` will wait for the child_thread to finish it task otherwise if the main thread finish we might have some unfinished tasks in child_thread.
-
-
-## Detaching Threads
-If we instead of join() we call detach() the child thread will become demean process and it will run freely on its on.
-
-
-Once you detattach a thread you can't call join() again so before joining check if it is joinable()
-Full example [here](join_detach_threads.cpp).
 ## Yield
 
 You can indicate to the OS that the current thread can be rescheduled so that other threads can run instead. 
@@ -481,7 +490,13 @@ Message from function1: 95
 ```
 
 Full example [here](race_condition.cpp).
-First soluton would be using `mutex`.
+Soluton would be using `mutex` and `emaphor`.
+
+## Semaphor
+Semaphor use signaling while Mutex is an object.
+
+Full example [here](semaphor.cpp).
+
 
 ## Mutex
 A Mutex is a lock that we set before using a shared resource and release after using it.
@@ -529,10 +544,7 @@ void sharedPrinter(std::string s,int id)
 ```
 But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
 Full example [here](mutex.cpp).
-## Semaphor
-Semaphor use signaling while Mutex is an object.
 
-Full example [here](semaphor.cpp).
 
 ## Thread Safe Functions
 Let say we have the following stack data structure:
@@ -746,7 +758,7 @@ If you lock small part of your code many times, you program will become very com
 the advantageous of concurrent programming since your program need requeir lots of resources for switching between threads.
 Full example [here](lock_guard.cpp).
 ## Unique Lock
-Follow up our logger example, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`.
+Follow up our logger example, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`. 
 ```
 class LogFile
 {
@@ -767,6 +779,12 @@ public:
 ```
 The third way is using `unique_lock`. If we have some operations after opening the file that doesn't need any lock we can 
 explicitly only lock the part that we need and unclock it when we don't need lock.
+
+`unique_lock` use the `RAII` pattern. When you want to lock a mutex, you create a local variable of type `unique_lock` passing the mutex as parameter. When the `unique_lock`is constructed it will lock the mutex, and it gets destructed it will unlock the mutex. More importantly: If a exceptions is thrown, the unique_lock destructer will be called and so the mutex will be <b>unlocked</b>.
+
+`unique_lock` and `scoped_lock` work kind of like `unique_pointer` and `scoped_pointer`
+
+
 
 ```
 class LogFile
@@ -796,7 +814,10 @@ void sharedPrint(std::string msg, int id)
 };
 ```
 
+The difference between `lock_guard` and `unique_lock`: you can lock and unlock a `unique_lock`. `std::lock_guard` will be locked only once on construction and unlocked on destruction.
 The `unique_lock` is computationally more expensive than the `lock_guard` so if the performance issue should be considered when using it.
+
+Since, C++17, one should use `scoped_lock` instead of `lock_guard`.
 
 ### Lazy initialization and once_flag
 In our log class example, we opened the log file in the constructor but we might need to open the log file when we need it, for instance in 
