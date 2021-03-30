@@ -17,19 +17,21 @@
     + [Thread Callable Objects](#thread-callable-objects)
     + [Function object](#function-object)
     + [Lambda expression](#lambda-expression)
+  * [Transferring ownership of a thread](#transferring-ownership-of-a-thread)
+  * [Threads order of execution](#threads-order-of-execution)
+    + [Waiting for a thread to complete (Joining Threads)](#waiting-for-a-thread-to-complete--joining-threads-)
+    + [Detaching Threads](#detaching-threads)
   * [Thread Oversubscription](#thread-oversubscription)
   * [Differentiating Between Threads](#differentiating-between-threads)
   * [Sleeping Threads](#sleeping-threads)
-  * [Joining Threads](#joining-threads)
-  * [Detaching Threads](#detaching-threads)
   * [Yield](#yield)
   * [Thread Synchronization](#thread-synchronization)
   * [Racing Condition](#racing-condition)
     + [Racing Condition Example: Job ID](#racing-condition-example--job-id)
     + [Racing Condition Example: Wallet Example](#racing-condition-example--wallet-example)
     + [Racing Condition Example: Common Source Example](#racing-condition-example--common-source-example)
-  * [Mutex](#mutex)
   * [Semaphor](#semaphor)
+  * [Mutex](#mutex)
   * [Thread Safe Functions](#thread-safe-functions)
   * [Dead Lock](#dead-lock)
   * [Lock Guard](#lock-guard)
@@ -880,7 +882,7 @@ Finally, the last constructor assumes that it already owns the provided mutex.
 Full example [here](unique_lock.cpp). 
 
 ## Scoped Lock
-It differs from a lock guard in that it is a wrapper for not one, but multiple mutexes.
+It differs from a `lock_guard` in that it is a wrapper for not one, but multiple mutexes.
 
 This can be useful when one deals with multiple mutexes in a single scope. One reason to
 use a scoped lock is to avoid accidentally introducing deadlocks and other unpleasant
