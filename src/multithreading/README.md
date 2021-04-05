@@ -893,81 +893,56 @@ this type of lock deadlock-safe.
 Full example [here](scoped_lock.cpp). 
 
 ## Condition Variable
-In the following example `function_1` produce data and `function_2` and we utilized mutex to synchronize accessing the data. The problem that rises is `function_2` is in a checking state and keep looping. If we change the `function_2` to the following we make it a bit better but we 
-cant easily decide for how long we should suspend the thread in `function_2`
+In the following example the `worker_func()` should waits until `main` has pre-processed the data.
+Then `worker_func()` can start working on the data. When the worker finsihed it job, then the main can 
+do its job with the processed data. The function `wait()` from `std::condition_variable` has the following signature:  
+
+`wait(unique_lock<mutex>& lock, Predicate pred)`:
+Atomically unlocks lock, causes the current thread to block, adds it to the list of threads waiting on `*this`
+until `notify_all()` or `notify_one()` is executed
+
+`Predicate()`:
+A callable object or function that takes no arguments and returns a value that can be evaluated as a bool.
+This is called repeatedly until it evaluates to true.
+
 
 ```
-std::deque<int> q;
+std::condition_variable cond;
 std::mutex mu;
 
-void function_1()
+bool main_thread_is_ready=false;
+bool data_has_been_processed = false;
+
+int worker_func()
 {
-    int count = 10;
-    while (count > 0) 
-    {
-        std::unique_lock<std::mutex> locker(mu);
-        q.push_front(count);
-        locker.unlock();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        count--;
-    }
-}
-
-void function_2()
-    {
-        int data = 0;
-        while ( data != 1)
-        {
-            std::unique_lock<std::mutex> locker(mu);
-            if(!q.empty())
-            {
-                data=q.back();
-                q.pop_back();
-                locker.unlock();
-                std::cout<<"t2 got a value from t1" <<data<<std::endl;
-            }
-            else
-            {
-                locker.unlock();
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-        }
-    }
-```
-
-By using `condition_variable` we notify anyone thread who is waiting for the condition:
-
-```
-std::deque<int> q;
-std::mutex mu;
-std::condition_variable cond ;
-
-void function_1()
-{
-int count = 10;
-while (count > 0) {
-    std::unique_lock<std::mutex> locker(mu);
-    q.push_front(count);
-    locker.unlock();
-    cond.notify_one();  // Notify one waiting thread, if there is one.
+    std::unique_lock<std::mutex> worker_lock(mu);
+    cond.wait(worker_lock,[]{return main_thread_is_ready;});
+    std::cout << "Worker thread is processing data"<<std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    count--;
-}
+    data_has_been_processed=true;
+    std::cout << "Worker thread has processed the data"<<std::endl;
+    worker_lock.unlock();
+    cond.notify_one();
 }
 
-void function_2()
+int main ()
 {
-int data = 0;
-while ( data != 1) {
-    std::unique_lock<std::mutex> locker(mu);
-    cond.wait(locker, [](){ return !q.empty();} );
-    data = q.back();
-    q.pop_back();
-    locker.unlock();
-    std::cout << "t2 got a value from t1: " << data << std::endl;
-}
+    std::thread worker_thread(worker_func);
+    {
+        std::cout<<"pre-preparing data in main thread" <<std::endl;
+        std::lock_guard<std::mutex>main_thread_lock(mu);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout<<"main thread is ready" <<std::endl;
+        main_thread_is_ready=true;
+    }
+    cond.notify_one();
+    std::unique_lock<std::mutex> main_lock(mu);
+    cond.wait(main_lock,[]{return data_has_been_processed;});
+    std::cout << "Back in main()"  <<std::endl;
+    worker_thread.join();
 }
 ```
+
 Full example [here](condition_variable.cpp).
 ## Async, Future and Promise
 Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:

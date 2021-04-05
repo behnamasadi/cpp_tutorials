@@ -32,7 +32,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Hash](src/hash.cpp)    
    * [Heap And Stack, Memory Layout of C Programs](src/heap_vs_stack.cpp)  
    * [Inline Functions](src/inline_functions.cpp)  
-   * [Iterator, Range for loop, Loop optimization](src/iterator_loop.cpp)  
+   * [Iterator, for_each loop, range-for loop, Loop optimization](src/iterator_loop.cpp)  
    * [Lists](src/lists.cpp)  
    * [Literals](src/literals.cpp)  
    * [Loading Libraries](src/loadeding_libraries.cpp)  
