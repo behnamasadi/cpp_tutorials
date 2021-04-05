@@ -79,32 +79,62 @@ namespace condition_variable_deque
     }
 }
 
+std::condition_variable cond;
+std::mutex mu;
 
-void worker()
+bool main_thread_is_ready=false;
+bool data_has_been_processed = false;
+int worker_func()
 {
-
+    std::unique_lock<std::mutex> worker_lock(mu);
+    cond.wait(worker_lock,[]{return main_thread_is_ready;});
+    std::cout << "Worker thread is processing data"<<std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    data_has_been_processed=true;
+    std::cout << "Worker thread has processed the data"<<std::endl;
+    /* Manual unlocking is done before notifying, to avoid waking up the waiting thread only to block again. */
+    worker_lock.unlock();
+    cond.notify_one();
 }
 
 int main()
 {
+    {// queue example
+        std::cout << "Queueing and Dequeueing with polling" << std::endl;
 
-    std::cout << "Queueing and Dequeueing with polling" << std::endl;
+        {
+            std::thread t1(polling_deque::function_1);
+            std::thread t2(polling_deque::function_2);
 
-    {
-        std::thread t1(polling_deque::function_1);
-        std::thread t2(polling_deque::function_2);
+            t1.join();
+            t2.join();
+        }
 
-        t1.join();
-        t2.join();
+        std::cout << "Queueing and Dequeueing with condition_variable" << std::endl;
+        {
+            std::thread t1(condition_variable_deque::function_1);
+            std::thread t2(condition_variable_deque::function_2);
+
+            t1.join();
+            t2.join();
+        }
     }
 
-    std::cout << "Queueing and Dequeueing with condition_variable" << std::endl;
-    {
-        std::thread t1(condition_variable_deque::function_1);
-        std::thread t2(condition_variable_deque::function_2);
+    {// worker example
+        std::thread worker_thread(worker_func);
+        {
+            std::cout<<"pre-preparing data in main thread" <<std::endl;
+            std::lock_guard<std::mutex>main_thread_lock(mu);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::cout<<"main thread is ready" <<std::endl;
+            main_thread_is_ready=true;
+        }
+        cond.notify_one();
+        std::unique_lock<std::mutex> main_lock(mu);
+        cond.wait(main_lock,[]{return data_has_been_processed;});
+        std::cout << "Back in main()"  <<std::endl;
+        worker_thread.join();
 
-        t1.join();
-        t2.join();
     }
 
 }
