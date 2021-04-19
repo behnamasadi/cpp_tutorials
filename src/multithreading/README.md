@@ -43,6 +43,18 @@
   * [Async, Future and Promise](#async--future-and-promise)
   * [Packaged Task](#packaged-task)
   * [Printing Process Tree](#printing-process-tree)
+  * [Multi Threading Models in Process Management](#multi-threading-models-in-process-management)
+    + [Many to many model](#many-to-many-model)
+    + [Many to one model](#many-to-one-model)
+    + [One to one model](#one-to-one-model)
+  * [Thread design pattern](#thread-design-pattern)
+    + [Thread Pool (Boos and Worker/ Replicated Workers / Worker-crew Model)](#thread-pool--boos-and-worker--replicated-workers---worker-crew-model-)
+    + [Peer (Work Crew)](#peer--work-crew-)
+    + [Pipeline](#pipeline)
+  * [Priority Inversion](#priority-inversion)
+  * [Busy Waiting Vs Blocked](#busy-waiting-vs-blocked)
+  * [Spinlock](#spinlock)
+  * [Barriers](#barriers)
 
 # Process 
 A process is just a running  program. The execution of a process must progress in a sequential fashion.
