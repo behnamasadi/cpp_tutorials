@@ -109,7 +109,9 @@ kill generates SIGTERM by default.
 
 
 ### raise() function
-csignal header file declared the function raise() to handle a particular signal. Signal learns some unusual behavior in a program, and calls the signal handler. It is implemented to check if the default handler will get called or it will be ignored.
+csignal header file declared the function raise() to handle a particular signal. Signal learns some unusual 
+behavior in a program, and calls the signal handler. It is implemented to check if the default handler will 
+get called or it will be ignored.
 
 ```
 int raise ( int signal_ )
@@ -133,7 +135,8 @@ Socket, Message queue, Anonymous pipe, Message passing
 
 
 Threads communicate via shared memory.
-Multi threading program can not be run over distributed system (unless your threads communicate like multi process program), however multi pressing program can.
+Multi threading program can not be run over distributed system (unless your threads communicate like multi 
+process program), however multi pressing program can.
 
 
 # Thread
@@ -165,10 +168,6 @@ Each thread has a unique:
  - signal mask
  - priority
  - Return value: errno
-
-
-
-
 
 
 ## Creation and Termination
@@ -893,7 +892,58 @@ this type of lock deadlock-safe.
 Full example [here](scoped_lock.cpp). 
 
 ## Condition Variable
-In the following example the `worker_func()` should waits until `main` has pre-processed the data.
+Condition variables are used for two purposes:
+1. Notify other threads
+2. Waiting for some condition
+
+In the following exmaple:
+
+```
+std::condition_variable cond;
+std::mutex mu;
+
+int balance = 0;
+
+void withdrawMoney(int amount) 
+{
+	std::unique_lock<std::mutex> lock(mu);
+	cond.wait(lock, [] {if (balance == 0) return false; else return true; });
+	balance = balance - amount;
+	std::cout<<"Amount withdrawn, new balance is: "<< balance <<std::endl;
+}
+
+void addMoney(int amount)
+{
+	std::unique_lock<std::mutex> lock(mu);
+	balance = balance + amount;
+	std::cout << "Amount added, new balance is: " << balance << std::endl;
+	cond.notify_one();
+}
+
+int main()
+{
+	int amountToAdd, amountToWithdraw;
+	amountToAdd=200;
+	amountToWithdraw=100;
+	std::thread t_add(addMoney, amountToAdd);
+	std::thread t_withdrawMoney(withdrawMoney, amountToWithdraw);
+
+	t_add.join();
+	t_withdrawMoney.join();
+}
+```
+We don't know the order that threads will be run, but logically we only want to withdraw money only if we have added
+some money first. So in this example in the line:
+`cond.wait(lock, [] {if (balance == 0) return false; else return true; });`
+our conditional variable `cond` will lock the mutex, then check the condition, if it is not true, it will suspend the 
+current thread, put it in the waiting list, release the mutex so the other thread `t_add` can continue.
+
+In the thread `t_add` after we added the amount, we call `cond.notify_one();`. This will awake the thread in the 
+waiting list, if the condition is true, it resume the `t_withdrawMoney` from the line after `cond.wait()`   
+
+Refs: [1](https://www.youtube.com/watch?v=eh_9zUNmTig)
+
+In the other example the `worker_func()` should waits until `main` has pre-processed the data.
 Then `worker_func()` can start working on the data. When the worker finsihed it job, then the main can 
 do its job with the processed data. The function `wait()` from `std::condition_variable` has the following signature:  
 
@@ -1077,6 +1127,53 @@ In Linux/Unix OS you can use the following command to get te process tree:
 
 
 `ps f -g<PID>`
+
+## Multi Threading Models in Process Management
+### Many to many model
+In this model, we have multiple user threads multiplex to same or lesser number of kernel level threads. 
+Number of kernel level threads are specific to the machine, advantage of this model is if a user thread 
+is blocked we can schedule others user thread to other kernel thread. Thus, System doesn’t block 
+if a particular thread is blocked.
+
+### Many to one model
+In this model, we have multiple user threads mapped to one kernel thread. In this model when a user thread makes a blocking system call entire process blocks.
+ As we have only one kernel thread and only one user thread can access kernel at a time, so multiple threads 
+ are not able access multiprocessor at the same time.
+ 
+### One to one model
+In this model, one to one relationship between kernel and user thread. In this model multiple thread can run on multiple processor. 
+Problem with this model is that creating a user thread requires the corresponding kernel thread.
+
+Refs: [1](https://www.geeksforgeeks.org/multi-threading-models-in-process-management/)
+
+## Thread design pattern
+
+### Thread Pool (Boos and Worker/ Replicated Workers / Worker-crew Model)
+One benefit of a thread pool over creating a new thread for each task is that thread creation and destruction 
+overhead is restricted to the initial creation of the pool, which may result in better performance and better 
+system stability. Creating and destroying a thread and its associated resources can be an expensive
+ process in terms of time. An excessive number of threads in reserve, however, wastes memory,
+ and context-switching between the runnable threads invokes performance penalties.
+ 
+
+Refs: [1](https://codereview.stackexchange.com/questions/221617/thread-pool-c-implementation),
+[2](https://www.youtube.com/watch?v=eWTGtp3HXiw), [3](https://vorbrodt.blog/2019/02/12/simple-thread-pool/)
+ 
+### Peer (Work Crew)
+
+### Pipeline
+
+
+## Priority Inversion
+
+## Busy Waiting Vs Blocked
+
+Refs: [1](https://stackoverflow.com/questions/26541119/whats-different-between-the-blocked-and-busy-waiting)
+
+## Spinlock
+Refs: [1](https://rigtorp.se/spinlock/), [2](https://stackoverflow.com/questions/26583433/c11-implementation-of-spinlock-using-atomic)
+
+## Barriers
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 		
