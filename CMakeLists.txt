@@ -300,6 +300,9 @@ target_link_libraries(unique_lock -pthread)
 add_executable(lock_guard src/multithreading/lock_guard.cpp)
 target_link_libraries(lock_guard -pthread)
 
+add_executable(thread_pool src/multithreading/thread_pool.cpp)
+target_link_libraries(thread_pool -pthread)
+
 #add_executable(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
 #target_link_libraries(inter_process_communicationshared_memory -pthread)
 

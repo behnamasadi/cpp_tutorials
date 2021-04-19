@@ -205,7 +205,42 @@ std::vector<std::reference_wrapper<std::unique_ptr<person>>> people;
 std::unique_ptr empolyee1= std::make_unique<person>();
 people.push_back(empolyee1 );
 ```
+## Pointer vs Reference
 
+basically pointers can be reassigned to different location in memory but references can only
+stick to one variable.
+
+reference is like an alias for an existing variable. is shares the same address as the original variable.
+also a refferece can not be null.
+
+pointer is a variable that store the address of an other avriable.
+
+```
+int foo=2;
+int &ref=foo;
+int *ptr=&foo;
+
+std::cout<<"ref is: " << ref <<" &ref is: " << &ref<<" &foo is :"  <<&foo<< " *ptr is: "<<*ptr  <<std::endl;
+
+int var=10;
+ref=var;
+// since we updated ref and rf is a ref to foo, foo will also change into 10
+std::cout<<"ref is: " << ref <<" var is: " << var<< " foo is "<< foo<<std::endl;
+
+//this will not effect foo
+int new_foo=20;
+ptr=&new_foo;
+*ptr=30;
+```
+In the following `int & r3 = 200;` will rise an error:
+
+```
+const int & r1 = 100;
+int v = 200;
+int &r2 = v;
+int & r3 = 200;
+return 0;
+```
 Refs: 
         [1](https://www.internalpointers.com/post/move-smart-pointers-and-out-functions-modern-c),
         [2](https://www.acodersjourney.com/top-10-dumb-mistakes-avoid-c-11-smart-pointers/),
