@@ -134,8 +134,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [XML ](src/third_party_tools/xml)
 ## [Code Benchmarking](src/third_party_tools/benchmark)
    * [Google Benchmark ](src/third_party_tools/benchmark)
-## [CMake](CMake_Tutorials)
-   * [CMake Tutorials](CMake_Tutorials)  
+
 
 [![Build Status](https://travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://travis-ci.com/behnamasadi/cpp_tutorials)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
