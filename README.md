@@ -55,8 +55,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Date, Time](src/date_time.cpp)  
    * [Type Traits](src/type_traits.cpp)
    * [Typedef, Type alias (using keyword))](src/typedef.cpp)
-   * [type dispatch, integral_constant](src/type_dispatch_integral_constant.cpp)    
-   
+   * [type_dispatch, integral_constant, true/false type](src/type_dispatch_integral_constant_true_false_type.cpp)    
    * [Unions](src/unions.cpp)  
    * [Vector](src/vector.cpp)  
    * [Volatile Keyword](src/volatile.cpp)  
