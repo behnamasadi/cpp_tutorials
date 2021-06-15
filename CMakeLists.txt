@@ -412,9 +412,11 @@ target_link_libraries(track_memoy_allocations)
 add_executable(copy_initialization src/copy_initialization.cpp)
 target_link_libraries(copy_initialization)
 
-
 add_executable(nested_namespaces src/nested_namespaces.cpp)
 target_link_libraries(nested_namespaces)
+
+add_executable(type_dispatch_integral_constant_true_false_type  src/type_dispatch_integral_constant_true_false_type.cpp)
+target_link_libraries(type_dispatch_integral_constant_true_false_type)
 
 set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})

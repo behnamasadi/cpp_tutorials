@@ -54,7 +54,9 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Track Memoy Allocations](src/track_memoy_allocations.cpp)  
    * [Date, Time](src/date_time.cpp)  
    * [Type Traits](src/type_traits.cpp)
-   * [Typedef, Type alias (using keyword))](src/typedef.cpp)  
+   * [Typedef, Type alias (using keyword))](src/typedef.cpp)
+   * [type dispatch, integral_constant](src/type_dispatch_integral_constant.cpp)    
+   
    * [Unions](src/unions.cpp)  
    * [Vector](src/vector.cpp)  
    * [Volatile Keyword](src/volatile.cpp)  
