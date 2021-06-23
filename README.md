@@ -49,7 +49,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [String C/C++, string_view, string literal, string conversion, ASCII, Unicode](src/string.cpp)  
    * [Structs](src/structs.cpp)  
    * [Switch Case](src/switch_case.cpp)  
-   * [Template](src/template.cpp)  
+   * [Template, Expression templates](src/template.cpp)  
    * [Ternary (One Line If)](src/ternary.cpp)  
    * [Track Memoy Allocations](src/track_memoy_allocations.cpp)  
    * [Date, Time](src/date_time.cpp)  
