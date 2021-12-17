@@ -403,6 +403,10 @@ target_link_libraries(json_example)
 add_executable(header_guard src/class/header_guard/main.cpp)
 target_link_libraries(header_guard)
 
+add_executable(virtual_destructors src/class/virtual_destructors.cpp)
+target_link_libraries(virtual_destructors)
+
+
 add_executable(optimizing_cpp src/optimizing_cpp/index.cpp)
 target_link_libraries(optimizing_cpp)
 
