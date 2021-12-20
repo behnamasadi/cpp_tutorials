@@ -4,7 +4,8 @@ dist: focal
 # Enable C++ support
 language: cpp
 
-#yaml-cpp
+install:
+# yaml-cpp
   - cd ~
   - git clone https://github.com/jbeder/yaml-cpp
   - cd yaml-cpp
@@ -12,7 +13,7 @@ language: cpp
   - cd build
   - cmake -DCMAKE_CXX_FLAGS=-std=c++1z -DCMAKE_BUILD_TYPE=Release -DYAML_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX:PATH=~/usr .. && make -j8 all install  
 
-#tinyxml2p
+# tinyxml2p
   - cd ~
   - git clone https://github.com/leethomason/tinyxml2
   - cd tinyxml2
