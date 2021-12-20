@@ -406,8 +406,8 @@ target_link_libraries(header_guard)
 add_executable(optimizing_cpp src/optimizing_cpp/index.cpp)
 target_link_libraries(optimizing_cpp)
 
-add_executable(track_memoy_allocations src/track_memoy_allocations.cpp)
-target_link_libraries(track_memoy_allocations)
+add_executable(track_memory_allocations src/track_memory_allocations.cpp)
+target_link_libraries(track_memory_allocations)
 
 add_executable(copy_initialization src/copy_initialization.cpp)
 target_link_libraries(copy_initialization)

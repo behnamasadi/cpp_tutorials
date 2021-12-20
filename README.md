@@ -51,7 +51,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Switch Case](src/switch_case.cpp)  
    * [Template, Expression templates](src/template.cpp)  
    * [Ternary (One Line If)](src/ternary.cpp)  
-   * [Track Memoy Allocations](src/track_memoy_allocations.cpp)  
+   * [Track Memory Allocations](src/track_memoy_allocations.cpp)  
    * [Date, Time](src/date_time.cpp)  
    * [Type Traits](src/type_traits.cpp)
    * [Typedef, Type alias (using keyword))](src/typedef.cpp)
@@ -128,7 +128,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Stack Unwinding](src/stack_unwinding.cpp)    
    * [Type Erasure](src/type_erasure.cpp)
    * [Template Specialization, Tag Dispatch](src/template_specialization_tag_dispatch.cpp)
-   * [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.cpp)  
+   * [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.md)  
 ## [Optimizing C++](src/optimizing_cpp)
 ## [Data File Storage Parsing](#)
    * [CSV ](src/third_party_tools/csv)
@@ -139,7 +139,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Google Benchmark ](src/third_party_tools/benchmark)
 
 
-[![Build Status](https://travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://travis-ci.com/behnamasadi/cpp_tutorials)
+[![Build Status](https://app.travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://app.travis-ci.com/behnamasadi/cpp_tutorials)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
 
