@@ -26,50 +26,8 @@ struct S
     S& operator = (S&& rhs){std::cout<<"move assignment operator" <<std::endl;}
 
 
-    //All The Assignment Operators
-    //https://www.youtube.com/watch?v=2gjroKLyWKE&t=1s
-/*
-    S& operator =(const S &)& =default;
-    S& operator =(S &&)& =default;
-    S& operator =(S &)& =default;
 
-    S& operator =(const S &)&& =default;
-    S& operator =(S &&)&& =default;
-    S& operator =(S &)&& =default;
-
-    S& operator =(const S &&) & =delete;
-    S& operator =(const S &&) && =delete;
-
-    S& operator =(const S &) const& =delete;
-    S& operator =(S &&) const & =delete;
-    S& operator =(S &)const & =delete;
-    S& operator =(const S &&) const& =delete;
-
-
-    S& operator =(const S &)const && =delete;
-    S& operator =(S &&)const && =delete;
-    S& operator =(S &) const && =delete;
-    S& operator =(const S &&)const && =delete;
-*/
 };
-
-/********************************copy constructor, move constructor***********************************/
-/*
-Before c++11, copying was the only way to transfer data from one object to an other object.
-To move data, you had to copy data and then delete the old data. with c++11 you can use move semantic to transfer the ownership of a resource held by one object to an other object.
-
-The move constructor is used instead of the copy constructor, if the object has type "rvalue-reference" (Type &&).
-
-
-rvalues: denotes temporary objects created at runtime which doesnt have name.
-Exampl: money4+money3 in the
-
-    money  money10(money4+money3);
-
-
-*/
-
-
 
 
 
@@ -192,8 +150,7 @@ money operator + (const money &t1,const money &t2)
 }
 
 
-/**************************How to make class non-copyable, non-moveable**************************/
-//https://ariya.io/2015/01/c-class-and-preventing-object-copy
+
 
 struct nonmovable
 {
