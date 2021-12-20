@@ -2,38 +2,48 @@
 #include <vector>
 #include <algorithm>
 
-
-class  base
+class Base
 {
-private:
-    int x;
-    int y;
-protected:
-    int z;
+    int * data;
 public:
-    int virtual getx()=0 ;
-    int gety(){}
-
+    Base()
+    {
+        std::cout<<"base constrcutor" <<std::endl;
+        int size=10;
+        data=new int[size];
+    }
+    virtual ~Base()
+    {
+        std::cout<<"base destrcutor" <<std::endl;
+        delete []data;
+    }
 };
 
-
-class derived : public base
+class Derived: public Base
 {
-public:
-    int  getx() override ;
+    double * points;
+    public:
+        Derived()
+        {
+            std::cout<<"derived constrcutor" <<std::endl;
+            int size=5;
+            points=new double[size];
+        }
+        ~Derived()
+        {
+            delete [] points;
+            std::cout<<"derived destrcutor" <<std::endl;
+        }
 };
-
-int derived::getx()
-{
-    return z;
-}
-
-
 int main ()
 {
-    //base b;
-    //std::cout<<b.getx() <<std::endl;
+//    std::cout<<"=================== base =================== " <<std::endl;
+//    Base * objBase=new Base;
+//    delete objBase;
+//    std::cout<<"=================== derived =================== " <<std::endl;
+//    Derived * objDerived=new Derived;
+//    delete objDerived;
+
+    Base * objPolymorphic=new Derived;
+    delete objPolymorphic;
 }
-
-
-

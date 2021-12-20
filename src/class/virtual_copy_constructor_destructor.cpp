@@ -1,50 +1,42 @@
 #include <iostream>
-//Virtual Copy Constructor
-/*
-We can't make the constructor of a class virtuall,
-compiler must be aware of the class type to create the object.
-If we make constructor virtual, compiler flags an error. In fact
-except inline, no other keyword is allowed in the declaration of constructor.
-*/
 
-/*==================================Virtual Destructor==================================
-if we don't make the destructor virtual in the folloing example, we only call the destructor of Base and not
-Dervied class so we will have memory leaking.
-
-*/
 
 namespace virtual_destructor
 {
 
 class Base
 {
-
     int * data;
 public:
-    Base(int size): data(new int[size]){}
-    virtual ~Base()
+    Base()
+    {
+        std::cout<<"base constrcutor" <<std::endl;
+        int size=10;
+        data=new int[size];
+    }
+    ~Base()
     {
         std::cout<<"base destrcutor" <<std::endl;
         delete []data;
     }
 };
 
-class Derived1:public Base
+class Derived: public Base
 {
-
     double * points;
     public:
-        Derived1(int size):Base(size)
+        Derived()
         {
+            std::cout<<"derived constrcutor" <<std::endl;
+            int size=5;
             points=new double[size];
         }
-        virtual ~Derived1()
+        ~Derived()
         {
             delete [] points;
-            std::cout<<"derived1 destrcutor" <<std::endl;
+            std::cout<<"derived destrcutor" <<std::endl;
         }
 };
-
 }
 
 namespace virtual_constructor {
@@ -61,8 +53,12 @@ int main()
 {
     {
         using namespace   virtual_destructor;
-        Base *b2=new Derived1(10);
-        delete b2;
+        std::cout<<"=================== base =================== " <<std::endl;
+        Base * objBase=new Base;
+        delete objBase;
+        std::cout<<"=================== derived =================== " <<std::endl;
+        Derived * objDerived=new Derived;
+        delete objDerived;
     }
 }
 
