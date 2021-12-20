@@ -1,26 +1,5 @@
 #include <iostream>
 
-
-/*
-https://www.geeksforgeeks.org/virtual-function-cpp/
-
-Very Important
-
-1)Virtual functions are always defined in base class (declaration is not enough, you have to define them as well in the base) and (may or may not) overridden in derived class.
- 
-2)It is not mandatory for derived class to override (or re-define the virtual function), in that case base class version of function is used.
-
-3)A class may have virtual destructor but it cannot have a virtual constructor.
-
-4)A pure virtual function or pure virtual method is a virtual function that is required to be implemented by a derived class,
-if that class is not abstract.
- 
-Here BaseAbstract is an abstract class, meaning it contains at least one pure virtual function.
-You can't amke an object from it and you can only derive from it.
-*/
-
-
-
 namespace VirtualFunction
 {
 class base

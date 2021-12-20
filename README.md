@@ -79,8 +79,8 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Protected Friend Class Function](src/class/protected_friend_class_function.cpp)  
    * [Shadowing](src/class/shadowing.cpp)  
    * [Static Member Function, Static Initialization Order Fiasco](src/class/static_member_function.cpp)  
-   * [Virtual Function Abstract Class](src/class/virtual_function_abstract_class.cpp)  
-   * [Virtual destructors](src/class/virtual_destructors.cpp)  
+   * [Virtual Function Abstract Class](src/class/virtual_function_abstract_class.md)  
+   * [Virtual Destructor, Virtual Constructor, Copy Constructor](src/class/virtual_copy_constructor_destructor.cpp)
    
 - [Multithreading](src/multithreading/)
    * [Creating (Thread Callable Objects), Terminating Threads](src/multithreading/README.md#creation_and_termination)  
@@ -128,7 +128,6 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Stack Unwinding](src/stack_unwinding.cpp)    
    * [Type Erasure](src/type_erasure.cpp)
    * [Template Specialization, Tag Dispatch](src/template_specialization_tag_dispatch.cpp)
-   * [Virtual Destructor, Virtual Constructor, Copy Constructor](src/class/virtual_copy_constructor_destructor.cpp)
    * [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.cpp)  
 ## [Optimizing C++](src/optimizing_cpp)
 ## [Data File Storage Parsing](#)
