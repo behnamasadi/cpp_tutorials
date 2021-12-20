@@ -12,9 +12,71 @@ std::cout<<"sizeof(double *)= " <<sizeof(double *)<<std::endl;
 std::cout<<"sizeof(person *)= " <<sizeof(person *)<<std::endl;
 std::cout<<"sizeof(employee *)= " <<sizeof(employee *)<<std::endl;
 ```
+### Dereference a Pointer
+
+When you want to access the data/value in the memory that the pointer points to - the contents of the address with that numerical index - then you **dereference** the pointer.
+Consider given a pointer such as p below:
+```cpp
+const char* p = "abc";
+```
+To refer to the characters p points to, we dereference p using one of these notations:
+```cpp
+*p == 'a';  // The first character at address p will be 'a'
+p[1] == 'b'; // p[1] actually dereferences a pointer created by adding  p and 1 times the size of the things to which p points,  In this case they're char which are 1 byte in C...
+*(p + 1) == 'b';  // Another notation for p[1]
+```
+
+### Null pointers
+
+In **C**, `NULL` and `0` - and additionally in **C++** `nullptr` - can be used to indicate that a pointer doesn't currently hold the memory address of a variable, and shouldn't be dereferenced
+
+### Wild pointer
+### Dangling pointer
+A dangling pointer is a (non-NULL) pointer which points to unallocated (already freed) memory area.
+```cpp
+Class *object = new Class();
+Class *object2 = object;
+
+delete object;
+object = nullptr;
+// now object2 points to something which is not valid anymore
+```
+
+This can occur even in stack allocated objects:
+
+```cpp
+Object *method() {
+  Object object;
+  return &object;
+}
+
+Object *object2 = method();
+// obj
+```
+Refs: [1](https://stackoverflow.com/questions/17997228/what-is-a-dangling-pointer)
+
+## Memory safety and Pointers
+The following are some typical causes of a segmentation fault:
+1) Attempting to access a nonexistent memory address (outside process's address space)
+2) Attempting to access memory the program does not have rights to (such as kernel structures in process context)
+3) Attempting to write read-only memory (such as code segment)
+These often happens while dereferencing or assigning null pointer/ wild pointer/ dangling pointer, heap overflow, stack overflow
+When you access an array index, C and C++ don't do bound checking. Segmentation faults only happen when you try to
+read or write to a page that was not allocated (or try to do something on a page which isn't permitted,
+e.g. trying to write to a read-only page), but since pages are usually pretty big
+(multiples of a few kilobytes), it often leaves you with lots of room to overflow.
+
+
+By setting the followings flag you can find the issue:
+```
+set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+```
+
+
 
 ## shared_ptr
-There are seevral ways to create a shared pointer:
+There are several ways to create a shared pointer:
 
 Single line with new:
 ```cpp
@@ -28,7 +90,7 @@ std::shared_ptr<manager> cto;
 cto.reset(new manager);
 ```
 
-Prefered way using make_shared:
+Preferred way using make_shared:
 ```cpp
 std::shared_ptr<manager> boss=std::make_shared<manager>();
 ```
@@ -67,6 +129,52 @@ std::unique_ptr<person> secondentity=std::move(entity);
 ```
 
 ## weak_pointer
+std::weak_ptr is a very good way to solve the **dangling pointer** problem. By just using raw pointers it is impossible to know if the referenced 
+data has been deallocated or not. Instead, by letting a `std::shared_ptr` manage the data, and supplying `std::weak_ptr` to users of the data, the users can check validity of the data by calling `expired()` or `lock()`.
+
+You could not do this with `std::shared_ptr` alone, because all `std::shared_ptr` instances share the ownership of the data which is not removed before all instances of `std::shared_ptr` are removed. Here is an example of how to check for dangling pointer using `lock()`:
+
+
+```cpp
+   // OLD, problem with dangling pointer
+    // PROBLEM: ref will point to undefined data!
+
+    int* ptr = new int(10);
+    int* ref = ptr;
+    delete ptr;
+
+    // NEW
+    // SOLUTION: check expired() or lock() to determine if pointer is valid
+
+    // empty definition
+    std::shared_ptr<int> sptr;
+
+    // takes ownership of pointer
+    sptr.reset(new int);
+    *sptr = 10;
+
+    // get pointer to data without taking ownership
+    std::weak_ptr<int> weak1 = sptr;
+
+    // deletes managed object, acquires new pointer
+    sptr.reset(new int);
+    *sptr = 5;
+
+    // get pointer to new data without taking ownership
+    std::weak_ptr<int> weak2 = sptr;
+
+    // weak1 is expired!
+    if(auto tmp = weak1.lock())
+        std::cout << *tmp << '\n';
+    else
+        std::cout << "weak1 is expired\n";
+    
+    // weak2 points to new data (5)
+    if(auto tmp = weak2.lock())
+        std::cout << *tmp << '\n';
+    else
+        std::cout << "weak2 is expired\n";
+```
 
 Weak pointer, they don't increase the ref count:
 
@@ -90,6 +198,12 @@ std::weak_ptr<person> person1;
 std::cout<<"sharedEntity1 died befor reaching here since person1 is a weak_ptr" <<std::endl;
 ```
 
+
+### Avoiding cyclic references when using shared pointers 
+
+
+Refs: [1](https://stackoverflow.com/questions/12030650/when-is-stdweak-ptr-useful#:~:text=The%20example%20illustrates%20how%20a,(a.k.a.%20a%20circular%20reference).)
+
 ## Pointer casting
 
 ```cpp
@@ -101,9 +215,13 @@ std::shared_ptr<manager> d = std::static_pointer_cast<manager>(b);
 
 ```
 
-## Avoiding cyclic references when using shared pointers 
+
 
 ## Passing smart pointers to functions
+
+According to the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#r30-take-smart-pointers-as-parameters-only-to-explicitly-express-lifetime-semantics) a function should take a smart pointer as parameter only if it examines/manipulates the smart pointer itself, i.e:
+counting the references of a std::shared_ptr, increasing them by making a copy, change of ownership (moving data from a std::unique_ptr to another one).
+
 Smart pointers can be passed to functions in following ways
 ```cpp
 void f(std::unique_ptr<Object>);    // (1)
@@ -115,8 +233,6 @@ void f(Object&);                    // (6) also const &
 void f(Object*);                    // (7) also const *
 ```
 
-According to the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#r30-take-smart-pointers-as-parameters-only-to-explicitly-express-lifetime-semantics) a function should take a smart pointer as parameter only if it examines/manipulates the smart pointer itself, i.e:
-counting the references of a std::shared_ptr, increasing them by making a copy, change of ownership (moving data from a std::unique_ptr to another one).
 
 ### Pass by value to lend the ownership
 Cases in (1), (2), (3), Pass smart pointers by value to lend their ownership to the function, that is when the function wants its own copy of 
