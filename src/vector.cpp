@@ -165,7 +165,7 @@ void  vectorExample()
 }
 
 /*
-very important tip, since here pushing during the loop, the dstination vector 
+very important tip, since here pushing during the loop, the destination vector
 might need to resize couple of times, so we resize it once in the begining
 */
 void vectorPushBack()
@@ -191,6 +191,27 @@ void vectorAccessingElements()
         std::cout<<src[i];
     
     
+}
+
+void vectorInitialization()
+{
+    //Initializing by pushing values one by one :
+    std::vector<int> vect1;
+
+    vect1.push_back(10);
+    vect1.push_back(20);
+    vect1.push_back(30);
+
+
+
+    //Specifying size and initializing all values  Create a vector of size 10 with  all values as 0.5.
+    int size = 10;
+    double value=0.5;
+    std::vector<double> vect2(size, value);
+
+    //Initializing like arrays :
+    std::vector<int> vect3{ 1, 2, 3 };
+
 }
 
 class human
