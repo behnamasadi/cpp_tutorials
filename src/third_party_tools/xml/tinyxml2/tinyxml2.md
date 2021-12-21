@@ -119,13 +119,9 @@ An attribute is a markup construct consisting of a name-value pair that exists w
 
 `<movie category="sci-fi">`
 
-Attributes can **not** contain multiple values nor tree structures and they are not easily expandable (for future changes)
+Attributes can **not** contain tree structures and they are not easily expandable (for future changes)
 Attribute values must always be quoted. Either single or double quotes can be used.
-The following is an **invalid** XML doc:
 
-```
-<person gender="female" firstname=Anna>
-```
 
 
 ## XML Elements vs. Attributes
@@ -288,49 +284,140 @@ The file `address.dtd` contains:
 PCDATA means parse-able text data.
 
 # XML XSD (Schema Definition)
-It is used to describe and validate the structure and the content of XML data. XML schema defines
-the elements, attributes and data types. Basically it describe the legitimacy of a XML document.
+It is also used to describe and validate the structure and the content of XML data. 
+The fundamental distinction between DTDs and XML Schema is that XML Schema uses an XML-based syntax, whereas DTDs use a unique syntax that dates back to SGML DTDs. Although DTDs are frequently chastised for requiring users to learn a new grammar, the syntax is actually extremely simple. 
+The converse is true for XML Schema, which is verbose but also uses tags and XML, making the syntax of XML Schema less scary.
+DTDs were created with the objective of maintaining SGML compatibility for programs that might desire to convert SGML DTDs to XML DTDs. However, because "conciseness in XML markup is of minimum importance," one of the aims of XML, there is no actual care about keeping the syntax short.
+
+
+### XSD Schema
+The `<schema>` element is the root element of every XML Schema:
+
 ```
-<xs:element name = "name-of-the-element" type = "xs-type" />
+<?xml version="1.0"?>
 
-xs-type: xs:integer, xs:boolean, xs:string, xs:date, ...
-```
-
-Complex Type
-A complex type is a container for other element definitions.
-This allows you to specify which child elements an element can contain and to provide some
-structure within your XML documents.
-
-
-Attributes
-Attributes in XSD provide extra information within an element. Attributes have name and type property as shown below −
-`<xs:attribute name = "x" type = "y"/>`
-
-Full Example
-```
-<?xml version="1.0" encoding = "UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-    <xs:element name="contact">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="name" type="xs:string" />
-                <xs:element name="company" type="xs:string" />
-                <xs:element name="phone" type="xs:int" />
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
+<xs:schema>
+.
+.
+.
 </xs:schema>
 ```
-XSD is used for example more by Microsoft schemas.There is no difference, it is just a matter of choice.
+
+Referencing a Schema in an XML Document: 
+
+```
+<?xml version="1.0"?>
+
+<movie xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://www.example.com/movie.xsd">
+    <title>The Matrix Resurrections</title>
+    <director>Lana Wachowski</director>
+    <year>2021-10-01 </year>
+    <length>2h 28m</length>
+</movie>
+```
+
+### XSD Simple Elements
+A simple element is an XML element that can contain only text. It cannot contain any other elements or attributes.
+some of the  built-in data types are:
+
+- xs:boolean
+- xs:decimal
+- xs:integer
+- xs:string
+- xs:date
+- xs:time
+
+Here are some XML elements:
+
+```
+<title>The Matrix Resurrections</title>
+<director>Lana Wachowski</director>
+<year>2021-10-01 </year>
+<length>2h 28m</length>
+```
+
+The corresponding simple element definitions:
+
+```
+<xs::element name="title" type="xs:string" />
+<xs::element name="director" type="xs:string" />
+<xs::element name="year" type="xs:date"/>
+<xs::element name="length" type="xs:string" />
+```
+
+
+#### Default and Fixed Values for Elements
+When no additional value is specified for an element, it is given a default value.
+```
+<xs::element name="year" type="xs:date" default="2020-01-01"/>
+```
+
+A fixed value is also automatically assigned to the element, and you cannot specify another value.
+
+```
+<xs::element name="year" type="xs:date" fixed="2020-01-01"/>
+```
+### XSD Attributes
+
+The syntax for defining an attribute is:
+
+```
+<xs:attribute name = "x" type = "y"/>
+```
+Here is an XML element with an attribute:
+
+```
+<name lang="EN">Smith</name>
+```
+ 
+```
+<xs:attribute name="lang" type="xs:string"/>
+```
+
+#### Default and Fixed Values for Attributes
+Just like elements, when no additional value is specified, it is given a default value.
+```
+<xs:attribute name="lang" type="xs:string" default="EN"/>
+```
+#### Optional and Required Attributes
+Attributes are optional by default. To specify that the attribute is required, use the "use" attribute:
+```
+<xs:attribute name="lang" type="xs:string" use="required"/>
+```
+
+
+### XSD Complex Type
+An XML element that contains other elements and/or attributes is known as a complicated type element.
+
+There are four kinds of complex elements:
+
+1) empty elements.
+2) elements that containing only other elements.
+3) elements that containing only text.
+4) elements that containing both other elements and text.
+
+Any of above element may or may not contain attributes as well.
+
+
+
+## XSD Data
+
+Refs: [1](https://stackoverflow.com/questions/1544200/what-is-difference-between-xml-schema-and-dtd)
 
 # XML Databases XQuery and XPath
-XML Database could be used to store information in the XML format.
-The data stored in the database can be queried using XQuery, serialized, and exported into a desired format.
+Information in the XML format could be stored in an XML database. 
+<!-- 
+There are two major types of XML databases:
 
-There are two major types of XML databases −
-1)XML- enabled
-2)Native XML (NXD)
+1) XML- enabled
+2) Native XML (NXD)
+-->
 
+## XQuery
+The data in the XML database can be queried, and exported in a variety of formats using **XQuery**.
+XQuery is to XML what SQL is to databases. XQuery is built on **XPath** expressions.
+
+## XPath
 XPath: is made of a path like syntax similar to directory structures.
 XQuery: is very similar to SWL query and is a superset of XPath. You need an XQuery engine to “run” the query.
 For - selects a sequence of nodes
@@ -426,7 +513,4 @@ The output is:
 </body>
 </html>
 ```
-
-## XML HttpRequest
-
 
