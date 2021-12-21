@@ -112,50 +112,20 @@ public:
 
 int main()
 {
-    // OLD, problem with dangling pointer
-    // PROBLEM: ref will point to undefined data!
-
-    int* ptr = new int(10);
-    int* ref = ptr;
-    delete ptr;
-
-    // NEW
-    // SOLUTION: check expired() or lock() to determine if pointer is valid
-
-    // empty definition
-    std::shared_ptr<int> sptr;
-
-    // takes ownership of pointer
-    sptr.reset(new int);
-    *sptr = 10;
-
-    // get pointer to data without taking ownership
-    std::weak_ptr<int> weak1 = sptr;
-
-    // deletes managed object, acquires new pointer
-    sptr.reset(new int);
-    *sptr = 5;
-
-    // get pointer to new data without taking ownership
-    std::weak_ptr<int> weak2 = sptr;
-
-    // weak1 is expired!
-    if(auto tmp = weak1.lock())
-        std::cout << *tmp << '\n';
-    else
-        std::cout << "weak1 is expired\n";
-
-    // weak2 points to new data (5)
-    if(auto tmp = weak2.lock())
-        std::cout << *tmp << '\n';
-    else
-        std::cout << "weak2 is expired\n";
+    //std::vector<person> vectPerson={person(10),person(12),person(3)};
+    std::vector<person> vectPerson;
+//    vectPerson.emplace_back(person(10));
+//    vectPerson.emplace_back(person(12));
+//    vectPerson.emplace_back(person(3));
 
 
-    std::cout<<"sizeof(char *)= " << sizeof(char *)<<std::endl;
-    std::cout<<"sizeof(int *)= " <<sizeof(int *)<<std::endl;
-    std::cout<<"sizeof(void *)= " <<sizeof(void *)<<std::endl;
-    std::cout<<"sizeof(double *)= " <<sizeof(double *)<<std::endl;
-    std::cout<<"sizeof(person *)= " <<sizeof(person *)<<std::endl;
-    std::cout<<"sizeof(employee *)= " <<sizeof(employee *)<<std::endl;
+    vectPerson.push_back(person(10));
+    vectPerson.push_back(person(12));
+    vectPerson.push_back(person(3));
+
+
+    for(auto &p:vectPerson)
+    {
+        std::cout<<p.id<<std::endl;
+    }
 }

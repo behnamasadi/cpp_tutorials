@@ -1,7 +1,3 @@
-//http://www.cplusplus.com/reference/iterator/
-//https://en.cppreference.com/w/cpp/language/range-for
-//https://en.wikipedia.org/wiki/Loop_optimization
-
 #include <vector>
 #include <iostream>
 #include <algorithm>
