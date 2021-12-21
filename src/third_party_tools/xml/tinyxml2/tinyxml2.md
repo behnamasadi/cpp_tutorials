@@ -339,23 +339,23 @@ Here are some XML elements:
 The corresponding simple element definitions:
 
 ```
-<xs::element name="title" type="xs:string" />
-<xs::element name="director" type="xs:string" />
-<xs::element name="year" type="xs:date"/>
-<xs::element name="length" type="xs:string" />
+<xs:element name="title" type="xs:string" />
+<xs:element name="director" type="xs:string" />
+<xs:element name="year" type="xs:date"/>
+<xs:element name="length" type="xs:string" />
 ```
 
 
 #### Default and Fixed Values for Elements
 When no additional value is specified for an element, it is given a default value.
 ```
-<xs::element name="year" type="xs:date" default="2020-01-01"/>
+<xs:element name="year" type="xs:date" default="2020-01-01"/>
 ```
 
 A fixed value is also automatically assigned to the element, and you cannot specify another value.
 
 ```
-<xs::element name="year" type="xs:date" fixed="2020-01-01"/>
+<xs:element name="year" type="xs:date" fixed="2020-01-01"/>
 ```
 ### XSD Attributes
 
@@ -419,7 +419,7 @@ XQuery is to XML what SQL is to databases. XQuery is built on **XPath** expressi
 
 ## XPath
 XPath: is made of a path like syntax similar to directory structures.
-XQuery: is very similar to SWL query and is a superset of XPath. You need an XQuery engine to “run” the query.
+XQuery: is very similar to SQL query and is a superset of XPath. You need an XQuery engine to “run” the query.
 For - selects a sequence of nodes
 Let - binds a sequence to a variable
 Where - filters the nodes
