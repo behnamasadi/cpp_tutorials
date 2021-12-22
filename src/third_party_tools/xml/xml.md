@@ -1,30 +1,65 @@
-# XML
-XML is the abbreviation for eXtensible Markup Language and it has been designed with the purpose of storing and transporting data. XML was created with the goal of being both human and machine readable.
-XML does not DO anything. XML is just information wrapped in tags. XML, unlike HTML does not use predefined tags
+- [XML Tutorial](#xml-tutorial)
+  * [XML Syntax Rules](#xml-syntax-rules)
+  * [Characters and Encoding](#characters-and-encoding)
+  * [Element](#element)
+  * [Attribute](#attribute)
+  * [XML Elements vs. Attributes](#xml-elements-vs-attributes)
+  * [XML Prefix and Namespaces](#xml-prefix-and-namespaces)
+  * [CDATA](#cdata)
+- [XML DTD](#xml-dtd)
+- [XML XSD](#xml-xsd)
+    + [XSD Schema](#xsd-schema)
+  * [XSD Data Types](#xsd-data-types)
+    + [String](#string)
+    + [Date/ Time/ DateTime/Duration Data Type](#date--time--datetime-duration-data-type)
+      - [Date](#date)
+      - [Time](#time)
+      - [DateTime](#datetime)
+      - [Duration](#duration)
+    + [Numeric Data](#numeric-data)
+      - [Decimal](#decimal)
+      - [Integer](#integer)
+    + [XSD Simple Elements](#xsd-simple-elements)
+    + [XSD Complex Type](#xsd-complex-type)
+      - [Default and Fixed Values for Elements](#default-and-fixed-values-for-elements)
+    + [XSD Attributes](#xsd-attributes)
+      - [Default and Fixed Values for Attributes](#default-and-fixed-values-for-attributes)
+      - [Optional and Required Attributes](#optional-and-required-attributes)
+- [XML Databases](#xml-databases)
+  * [XPath](#xpath)
+    + [XPath Path Expressions](#xpath-path-expressions)
+    + [XPath Functions](#xpath-functions)
+    + [XPath Operators](#xpath-operators)
+    + [XPath Axes](#xpath-axes)
+  * [XQuery](#xquery)
+- [XSLT](#xslt)
+
+# XML Tutorial
+
+XML is the abbreviation for eXtensible Markup Language and it has been designed with the purpose of storing and transporting data. XML was created with the goal of being both human and machine readable. XML is just information wrapped in tags. XML, unlike HTML does not use predefined tags.
 ```
 <?xml version="1.0" encoding="UTF-8"?>
-<message>
-  <to>you</to>
-  <from>me</from>
-  <title>reminder</title>
-  <body>any text</body>
-</message>
+<book>
+	<title lang="fr">UML Distilled</title>
+	<ISBN>789654 </ISBN>
+	<author>Martin Fowler </author>
+	<author>Kendall Scott </author>
+</book>
 ```
 XML is extensible, that means you can add the followings:
 
 ```
 <?xml version="1.0" encoding="UTF-8"?>
-<message>
-  <time>10:00 </time>
-  <date>01.01.2020 </date>
-  <to>you</to>
-  <from>me</from>
-  <title>reminder</title>
-  <body>any text</body>
-</message>
+<book>
+	<title lang="fr">UML Distilled</title>
+	<ISBN>789654 </ISBN>
+	<author>Martin Fowler </author>
+	<author>Kendall Scott </author>
+	<price>19.0</price>
+</book>
 ```
-## XML Tree
-An XML tree begins with a root element and branches to child elements from there. child elements are allowed to have sub-child elements as well.
+## XML Syntax Rules
+An XML document begins with a root element and branches to child elements from there. child elements are allowed to have sub-child elements as well.
 XML documents must contain one root element which is the parent of all other elements:
 ```
 <root>
@@ -33,16 +68,18 @@ XML documents must contain one root element which is the parent of all other ele
   </child>
 </root>
 ```
-## Encoding Detection
+## Characters and Encoding
+Almost every legal Unicode character may appear in an XML document, i.e. `ø,æ,å,ê,è,é`. XML document is **case-sensitive**.
+Escaping characters begin with the character `&` and end with a `;`
 
-## Escaping Character
 - `&lt;` represents "<";
 - `&gt;` represents ">";
 - `&amp;` represents "&";
 - `&apos;` represents "'";
 - `&quot;` represents '"'.
+White spaces are preserved in XML.
 
-## XML Declaration
+To declare XML document you should add the following line (**Prolog**) to the top of your document (optional, but if it exists, it must come as the first line in the document):
 `<?xml version = "version_number" encoding = "encoding_declaration" standalone = "standalone_status" ?>`
 
 - Version:	`1.0,  1.1`
@@ -50,26 +87,6 @@ XML documents must contain one root element which is the parent of all other ele
 - Standalone:		`yes` or `no`
 
 
-
-### The XML Prolog
-The following line is called **Prolog**:
-```
-<?xml version="1.0" encoding="UTF-8"?>
-```
-It is optional, but if it exists, it must come as the first line in the document.
-## Legal Character
-Almost every legal Unicode character may appear in an XML document, i.e. `ø,æ,å,ê,è,é`. XML document is **case-sensitive**.
-
-## Markup and Content
-Strings that constitute markup either begin with the character `<` and end with a `>`, or they begin
-with the character `&` and end with `a ;`, i.e. `&lt;` represents "<"
-Strings of characters that are not markup are content.
-
-
-## Tag
-A tag is a markup construct that begins with `<` and ends with `>`
-start-tag, such as `<section>`, end-tag, such as `</section>`
-empty-element tag, such as `<line-break />`.
 
 
 ## Element
@@ -83,10 +100,10 @@ or consists only of an empty-element tag:
 <element-name attributes="value" /> 
 ```
 An element can contain:
-- other elements
-- text
-- attributes
-- a mixture of the above, including none of them
+- other elements.
+- text.
+- attributes.
+- a mixture of the above (including none of them).
 
 ```
 <mediatech>
@@ -129,19 +146,23 @@ There are no rules about when to use attributes or when to use elements in XML.
 
 Elements form:
 ```
-<person>
-  <gender>female</gender>
-  <firstname>Anna</firstname>
-  <lastname>Smith</lastname>
-</person>
+<movie>
+	<category>sci-fi<category>
+	<title>The Matrix Resurrections</title>
+	<director>Lana Wachowski</director>
+	<year>2021 </year>
+	<length>2h 28m</length>
+</movie>
 ```
 
 Attribute form:
 ```
-<person gender="female">
-  <firstname>Anna</firstname>
-  <lastname>Smith</lastname>
-</person>
+<movie category="sci-fi">
+	<title>The Matrix Resurrections</title>
+	<director>Lana Wachowski</director>
+	<year>2021 </year>
+	<length>2h 28m</length>
+</movie>
 ```
 
 ## XML Prefix and Namespaces
@@ -162,7 +183,7 @@ and
 </library>
 ```
 
-If these were added together, there would be a name conflict and a user or an XML parser will not be able to handle these differences.This problem can be solved by using a prefix.
+If these were added together, there would be a name conflict and a user or an XML parser will not be able to handle these differences. This problem can be solved by using a prefix.
 
 
 ```
@@ -178,12 +199,7 @@ If these were added together, there would be a name conflict and a user or an XM
 </p:library>
 </root>
 ```
-
-
 If you use prefixes in XML, a namespace for the prefix must be defined. The namespace can be defined by an `xmlns` attribute in the start tag of an element with the following syntax. `xmlns:prefix="URI"`. An URI (Uniform Resource Identifier) is a string of characters which identifies an Internet Resource. URL is the most common URI which identifies an Internet domain address. 
-
-
-
 
 ```
 <root>
@@ -236,9 +252,9 @@ while (x < len && !done) {
 The key differences between CDATA and comments is CDATA is **still part of the document, while a comment is not**.
 
 
-##  XML DTD (Document Type Definition)
-A DTD defines what elements are required and what attributes can be set. "Well Formed" XML refers to an XML document having correct syntax. A DTD-validated XML document is both 
-"Well Formed" and "Valid."
+# XML DTD
+XML DTD (Document Type Definition) defines what elements are required and what attributes can be set. "Well Formed" XML refers to an XML document having correct syntax. 
+A DTD-validated XML document is both "Well Formed" and "Valid."
 DTDs check vocabulary and validity of the structure of XML documents against grammatical rules of appropriate XML language.
 An XML DTD can be either specified inside the document, or outside.
 
@@ -315,6 +331,71 @@ Referencing a Schema in an XML Document:
     <length>2h 28m</length>
 </movie>
 ```
+## XSD Data Types
+
+The following is the list of most common XSD data types
+### String 
+```
+<xs:element name="elementName" type="xs:string"/>
+```
+to trim spaces, line feeds, carriage returns, tabs use `xs:token`
+```
+<xs:element name="elementName" type="xs:token"/>
+```
+[List of all XSD string types](https://www.w3schools.com/xml/schema_dtypes_string.asp)
+
+### Date/ Time/ DateTime/Duration Data Type
+All field are mandatory.
+
+#### Date
+```
+<xs:element name="startTime" type="xs:time"/>
+<startDate>YYYY-MM-DD</startDate>
+```
+#### Time
+```
+<xs:element name="startDate" type="xs:date"/>
+<startTime>hh:mm:ss</startTime>
+```
+#### DateTime
+
+```
+<xs:element name="startDateTime" type="xs:dateTime"/>
+<startDateTime>YYYY-MM-DDThh:mm:ss</startDateTime>
+```
+#### Duration
+
+```
+<xs:element name="period" type="xs:duration"/>
+<period>P2Y4M7DT1H</period>
+```
+
+Period of 2 years, 4 months, 7 days, and 1 hours.
+
+[List of all XSD  date time data types](https://www.w3schools.com/xml/schema_dtypes_date.asp)
+
+
+### Numeric Data
+#### Decimal
+```
+<xs:element name="size" type="xs:decimal"/>
+<size>69.420</size>
+```
+#### Integer
+```
+<xs:element name="id" type="xs:integer"/>
+<id>10</id>
+```
+
+
+
+[List of all XSD numeric types](https://www.w3schools.com/xml/schema_dtypes_numeric.asp)
+
+
+
+[List of all built in primitive datatypes](https://www.w3.org/TR/xmlschema11-2/#built-in-primitive-datatypes)
+
+
 
 ### XSD Simple Elements
 A simple element is an XML element that can contain only text. It cannot contain any other elements or attributes.
@@ -349,6 +430,17 @@ The corresponding simple element definitions:
 </xs:schema>
 ```
 
+### XSD Complex Type
+An XML element that contains other elements and/or attributes is known as a complicated type element.
+
+There are four kinds of complex elements:
+
+1) empty elements.
+2) elements that containing only other elements.
+3) elements that containing only text.
+4) elements that containing both other elements and text.
+
+Any of above element may or may not contain attributes as well.
 
 #### Default and Fixed Values for Elements
 When no additional value is specified for an element, it is given a default value.
@@ -390,29 +482,11 @@ Attributes are optional by default. To specify that the attribute is required, u
 ```
 
 
-### XSD Complex Type
-An XML element that contains other elements and/or attributes is known as a complicated type element.
-
-There are four kinds of complex elements:
-
-1) empty elements.
-2) elements that containing only other elements.
-3) elements that containing only text.
-4) elements that containing both other elements and text.
-
-Any of above element may or may not contain attributes as well.
-
-
-
-## XSD Data
-
+Refs: [1](https://stackoverflow.com/questions/1544200/what-is-difference-between-xml-schema-and-dtd)
 [Online XSD Validator](https://www.utilities-online.info/xsdvalidation)
 [Online XSD Generator](https://www.freeformatter.com/xsd-generator.html#ad-output)
 
-
-Refs: [1](https://stackoverflow.com/questions/1544200/what-is-difference-between-xml-schema-and-dtd)
-
-# XML Databases XQuery and XPath
+# XML Databases
 Information in the XML format could be stored in an XML database. 
 <!-- -->
 There are two major types of XML databases:
@@ -507,7 +581,7 @@ or
 ```
 
 
-#### XPath Functions
+### XPath Functions
 Last title:
 
 ```
@@ -522,7 +596,7 @@ count(/shop/book)
 [List of XPath Functions](https://developer.mozilla.org/en-US/docs/Web/XPath/Functions)
 
 
-#### XPath Operators
+### XPath Operators
 You can use operations on the Xpath. 
 
 The price of the book with the title `On the Origin of Species`:
@@ -542,7 +616,7 @@ All titles with prices:
 ```
 [List of XPath Operators](https://www.javatpoint.com/xpath-operators)
 
-#### XPath Axes
+### XPath Axes
 In Xpath you use location path to define location of a node using absolute or relative path. You can also use **axes** to identify elements by their relationship like
 **parent**, **child**, **siblings**, **ancestors** (a node's parent, parent's parent,...), **descendants** (node's children, children's children,...)
 
@@ -585,7 +659,7 @@ XQuery is similar to SQL query. You can use **FLWOR Expressions** for writing qu
 - Order by - sorts the nodes
 - Return - what to return (gets evaluated once for every node)
 
-### Examples of XQuery:
+
 consider the following XPath:
 ```
 /shop/book[title='On the Origin of Species']/price
