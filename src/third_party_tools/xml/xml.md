@@ -283,8 +283,8 @@ The file `address.dtd` contains:
 ```
 PCDATA means parse-able text data.
 
-# XML XSD (Schema Definition)
-It is also used to describe and validate the structure and the content of XML data. 
+# XML XSD
+XML XSD (Schema Definition) is also used to describe and validate the structure and the content of XML data. 
 The fundamental distinction between DTDs and XML Schema is that XML Schema uses an XML-based syntax, whereas DTDs use a unique syntax that dates back to SGML DTDs. Although DTDs are frequently chastised for requiring users to learn a new grammar, the syntax is actually extremely simple. 
 The converse is true for XML Schema, which is verbose but also uses tags and XML, making the syntax of XML Schema less scary.
 DTDs were created with the objective of maintaining SGML compatibility for programs that might desire to convert SGML DTDs to XML DTDs. However, because "conciseness in XML markup is of minimum importance," one of the aims of XML, there is no actual care about keeping the syntax short.
@@ -339,10 +339,14 @@ Here are some XML elements:
 The corresponding simple element definitions:
 
 ```
+<?xml version="1.0"?>
+
+<xs:schema>
 <xs:element name="title" type="xs:string" />
 <xs:element name="director" type="xs:string" />
 <xs:element name="year" type="xs:date"/>
 <xs:element name="length" type="xs:string" />
+</xs:schema>
 ```
 
 
@@ -402,115 +406,268 @@ Any of above element may or may not contain attributes as well.
 
 ## XSD Data
 
+[Online XSD Validator](https://www.utilities-online.info/xsdvalidation)
+[Online XSD Generator](https://www.freeformatter.com/xsd-generator.html#ad-output)
+
+
 Refs: [1](https://stackoverflow.com/questions/1544200/what-is-difference-between-xml-schema-and-dtd)
 
 # XML Databases XQuery and XPath
 Information in the XML format could be stored in an XML database. 
-<!-- 
+<!-- -->
 There are two major types of XML databases:
 
 1) XML- enabled
 2) Native XML (NXD)
--->
 
-## XQuery
-The data in the XML database can be queried, and exported in a variety of formats using **XQuery**.
-XQuery is to XML what SQL is to databases. XQuery is built on **XPath** expressions.
-
-## XPath
-XPath: is made of a path like syntax similar to directory structures.
-XQuery: is very similar to SQL query and is a superset of XPath. You need an XQuery engine to “run” the query.
-For - selects a sequence of nodes
-Let - binds a sequence to a variable
-Where - filters the nodes
-Order by - sorts the nodes
-Return - what to return (gets evaluated once for every node)
-
-
-
-Suppose we have the following XML:
+Example of XML database:
 
 ```
 <?xml version="1.0" encoding="UTF-8" ?>
-<?xml-stylesheet type="text/xsl" href="example.xsl" ?>
-<book>
-    <title>The lord of the ring </title>
-    <ISBN> 123654</ISBN>
-    <author>J. R. R. Tolkien </author>
-
-    <title>On the Origin of Species </title>
-    <ISBN>987123 </ISBN>
-    <author>Charles Darwin </author>
-
-    <title>Mumbo jumbo </title>
-    <ISBN>789654 </ISBN>
-    <author>first author </author>
-    <author>second author </author>
-
-</book>
+<?xml-stylesheet type="text/xsl" href="book.xsl" ?>
+<shop>
+	<!-- Comment: This is a list of books -->
+	<book>
+		<title lang="en">The lord of the ring</title>
+		<ISBN> 123654</ISBN>
+		<author>J. R. R. Tolkien</author>
+		<price>69.69</price>
+	</book>
+	<book>
+		<title>On the Origin of Species</title>
+		<ISBN>987123 </ISBN>
+		<author>Charles Darwin</author>
+		<price>42.0</price>
+	</book>
+	<book>
+		<title lang="fr">UML Distilled</title>
+		<ISBN>789654 </ISBN>
+		<author>Martin Fowler </author>
+		<author>Kendall Scott </author>
+		<price>19.0</price>
+	</book>
+</shop>	
 ```
-example of XPath:
-
-"/" all books
-"/book/title" all titles
-
-examples of XQuery:
-
-for $x in "/book"
-where $x/ISBN>123
-return $x/title
+## XPath
+XPath is made of a path like syntax similar to directory structures, `/, //, ., .., etc.` to select nodes or node-sets in an XML document. 
+It is a language for navigating in XML documents. 
+<!-- In XPath, there are seven kinds of nodes: element, attribute, text, namespace, processing-instruction, comment, and document nodes.
+-->
 
 
-# XML EXtensible Stylesheet Language Transformations (XSLT)
-They can be used to render the XML file as HTML doc
- It is a language for transforming XML documents into other XML documents/ formats such as HTML, plain text or XSL Formatting Objects,
-which may subsequently be converted to other formats, such as PDF, PostScript and PNG.
 
+### XPath Path Expressions
+
+All books from root:
+```
+/
+```
+
+Selects all titles in the document from the root:
+```
+/title
+```
+
+Selects all titles in the document from the current node, no matter where they are:
+```
+//title
+```
+
+Which is equal to:
+```
+/shop/book/title
+```
+
+Select the parent of title which is book
+```
+/shop/book/title/..
+```
+
+First title
+```
+/shop/book/title[1]
+```
+
+
+All books that have a language attribute:
+```
+/shop/book/title[@lang]
+```
+All book with french language: 
+```
+//title[@lang='fr']
+```
+All languages:
+```
+//@lang
+```
+or
+```
+/shop/book/title/@*
+```
+
+
+#### XPath Functions
+Last title:
 
 ```
-<?xml version="1.0" ?>
+/shop/book/title[last()]
+```
+
+Count numbers of all books:
+```
+count(/shop/book)
+```
+
+[List of XPath Functions](https://developer.mozilla.org/en-US/docs/Web/XPath/Functions)
+
+
+#### XPath Operators
+You can use operations on the Xpath. 
+
+The price of the book with the title `On the Origin of Species`:
+```
+/shop/book[title='On the Origin of Species']/price
+```
+
+
+Title of all book with the price over 40.0:
+```
+/shop/book[price>40.0]/title
+```
+All titles with prices:
+
+```
+/shop/book/title | /shop/book/price
+```
+[List of XPath Operators](https://www.javatpoint.com/xpath-operators)
+
+#### XPath Axes
+In Xpath you use location path to define location of a node using absolute or relative path. You can also use **axes** to identify elements by their relationship like
+**parent**, **child**, **siblings**, **ancestors** (a node's parent, parent's parent,...), **descendants** (node's children, children's children,...)
+
+```
+/shop/book/preceding-sibling::comment()
+```
+
+```
+/shop/book/following-sibling::node()
+```
+```
+/shop/book[3]/preceding-sibling::node()
+```
+
+```
+/shop/book[1]/following-sibling::node()
+```
+```
+/descendant::price
+```
+
+```
+/shop/child::book
+```
+
+
+[List of XPath Axes](https://www.w3schools.com/xml/xpath_axes.asp)  
+[Online Xpath and XQuery Tester](https://www.videlibri.de/cgi-bin/xidelcgi)
+
+Refs: [1](https://www.softwaretestinghelp.com/xpath-axes-tutorial/)
+
+
+## XQuery
+The data in the XML database can be queried, and exported in a variety of formats using **XQuery**. XQuery is to XML is like SQL is to databases. 
+XQuery is similar to SQL query. You can use **FLWOR Expressions** for writing queries.
+
+- For - selects a sequence of nodes
+- Let - binds a sequence to a variable
+- Where - filters the nodes
+- Order by - sorts the nodes
+- Return - what to return (gets evaluated once for every node)
+
+### Examples of XQuery:
+consider the following XPath:
+```
+/shop/book[title='On the Origin of Species']/price
+```
+This can be expressed with XQuery as followings:
+
+```
+for $x in /shop/book
+where $x/title='On the Origin of Species'
+return $x/price
+```
+
+# XSLT 
+XSLT (XML EXtensible Stylesheet Language Transformations) is a language for transforming XML documents into other XML documents/ formats such as HTML, plain text or XSL Formatting Objects, which may subsequently be converted to other formats, such as PDF, PostScript and PNG.
+XSLT utilized XPath to find information in an XML document.
+`<xsl:stylesheet>` or `<xsl:transform>` is the root element that declares the document to be an XSL style sheet. Either can be used (they are completely synonymous and can be used interchangeably). 
+
+```
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+```
+or 
+```
+<xsl:transform version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+```
 
+For our XML file from previous example
+
+```
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:template match="/">
-  <html>
-  <body>
-  <h2>The Collections</h2>
-  <table border="1">
-    <tr bgcolor="#9acd32">
-      <th>Title</th>
-      <th>Author</th>
-    </tr>
-
-    <xsl:for-each select="/book">
-    <tr>
-      <td><xsl:value-of select="title"/></td>
-      <td><xsl:value-of select="author"/></td>
-    </tr>
-    </xsl:for-each>
-
-  </table>
-  </body>
-  </html>
-</xsl:template>
-</xsl:stylesheet>
-```
-The output is:
-
-```
 <html>
 <body>
-<h2>The Collections</h2>
-<table border="1">
-<tr bgcolor="#9acd32">
-<th>Title</th>
-<th>Author</th>
-</tr>
+<table>
 <tr>
-<td>The lord of the ring </td>
-<td>J. R. R. Tolkien </td>
+	<td>title</td>
+	<td>author</td>
+	<td>ISBN</td>
 </tr>
+<xsl:for-each select="shop/book">
+<tr>
+  	<td> <xsl:value-of select="title"/> </td>
+	<td> <xsl:value-of select="author"/> </td>
+	<td> <xsl:value-of select="ISBN"/> </td>
+</tr>
+</xsl:for-each>
 </table>
 </body>
 </html>
+</xsl:template>
+</xsl:stylesheet>
 ```
+The transformed XML is:
+
+```
+<html>
+   <body>
+      <table>
+         <tr>
+            <td>title</td>
+            <td>author</td>
+            <td>ISBN</td>
+         </tr>
+         <tr>
+            <td>The lord of the ring</td>
+            <td>J. R. R. Tolkien</td>
+            <td> 123654</td>
+         </tr>
+         <tr>
+            <td>On the Origin of Species</td>
+            <td>Charles Darwin</td>
+            <td>987123 </td>
+         </tr>
+         <tr>
+            <td>UML Distilled</td>
+            <td>Martin Fowler </td>
+            <td>789654 </td>
+         </tr>
+      </table>
+   </body>
+</html>
+```
+
+[Online XSL Transformer](https://www.freeformatter.com/xsl-transformer.html#ad-output) 
 

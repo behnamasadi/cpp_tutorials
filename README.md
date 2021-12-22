@@ -134,7 +134,7 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [CSV ](src/third_party_tools/csv)
    * [YAML ](src/third_party_tools/yaml)
    * [JASON ](src/third_party_tools/jason)
-   * [XML ](src/third_party_tools/xml/tinyxml2/tinyxml2.md)
+   * [XML ](src/third_party_tools/xml/xml.md)
 ## [Code Benchmarking](src/third_party_tools/benchmark)
    * [Google Benchmark ](src/third_party_tools/benchmark)
 
