@@ -8,7 +8,6 @@
   * [CDATA](#cdata)
 - [XML DTD](#xml-dtd)
 - [XML XSD](#xml-xsd)
-    + [XSD Schema](#xsd-schema)
   * [XSD Data Types](#xsd-data-types)
     + [String](#string)
     + [Date/ Time/ DateTime/Duration Data Type](#date--time--datetime-duration-data-type)
@@ -20,11 +19,12 @@
       - [Decimal](#decimal)
       - [Integer](#integer)
     + [XSD Simple Elements](#xsd-simple-elements)
-    + [XSD Complex Type](#xsd-complex-type)
       - [Default and Fixed Values for Elements](#default-and-fixed-values-for-elements)
     + [XSD Attributes](#xsd-attributes)
       - [Default and Fixed Values for Attributes](#default-and-fixed-values-for-attributes)
       - [Optional and Required Attributes](#optional-and-required-attributes)
+    + [XSD Complex Element](#xsd-complex-element)
+    + [XSD Schema](#xsd-schema)
 - [XML Databases](#xml-databases)
   * [XPath](#xpath)
     + [XPath Path Expressions](#xpath-path-expressions)
@@ -300,37 +300,12 @@ The file `address.dtd` contains:
 PCDATA means parse-able text data.
 
 # XML XSD
-XML XSD (Schema Definition) is also used to describe and validate the structure and the content of XML data. 
-The fundamental distinction between DTDs and XML Schema is that XML Schema uses an XML-based syntax, whereas DTDs use a unique syntax that dates back to SGML DTDs. Although DTDs are frequently chastised for requiring users to learn a new grammar, the syntax is actually extremely simple. 
-The converse is true for XML Schema, which is verbose but also uses tags and XML, making the syntax of XML Schema less scary.
-DTDs were created with the objective of maintaining SGML compatibility for programs that might desire to convert SGML DTDs to XML DTDs. However, because "conciseness in XML markup is of minimum importance," one of the aims of XML, there is no actual care about keeping the syntax short.
+XML XSD (Schema Definition) is also used to describe and validate the structure and the content of XML data.
+XSD dictates what elements and attributes should appear in a document, number and order of them, data types and also default and fixed values for them. 
+The fundamental distinction between DTDs and XML Schema is that XML Schema uses an XML-based syntax, whereas DTDs use a unique syntax that dates back to SGML DTDs. Although DTDs are frequently chastised for requiring users to learn a new grammar, the syntax is actually extremely simple. The converse is true for XML Schema, which is verbose but also uses tags and XML, making the syntax of XML Schema less scary.
 
 
-### XSD Schema
-The `<schema>` element is the root element of every XML Schema:
 
-```
-<?xml version="1.0"?>
-
-<xs:schema>
-.
-.
-.
-</xs:schema>
-```
-
-Referencing a Schema in an XML Document: 
-
-```
-<?xml version="1.0"?>
-
-<movie xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://www.example.com/movie.xsd">
-    <title>The Matrix Resurrections</title>
-    <director>Lana Wachowski</director>
-    <year>2021-10-01 </year>
-    <length>2h 28m</length>
-</movie>
-```
 ## XSD Data Types
 
 The following is the list of most common XSD data types
@@ -398,23 +373,15 @@ Period of 2 years, 4 months, 7 days, and 1 hours.
 
 
 ### XSD Simple Elements
-A simple element is an XML element that can contain only text. It cannot contain any other elements or attributes.
-some of the  built-in data types are:
+An XML element that just hold text is a simple element. There can't be any additional elements or attributes in it.
 
-- xs:boolean
-- xs:decimal
-- xs:integer
-- xs:string
-- xs:date
-- xs:time
-
-Here are some XML elements:
+Here are some simple XML elements:
 
 ```
-<title>The Matrix Resurrections</title>
-<director>Lana Wachowski</director>
-<year>2021-10-01 </year>
-<length>2h 28m</length>
+<title>On the Origin of Species</title>
+<ISBN>987123 </ISBN>
+<author>Charles Darwin</author>
+<price>42.0</price>
 ```
 
 The corresponding simple element definitions:
@@ -424,23 +391,11 @@ The corresponding simple element definitions:
 
 <xs:schema>
 <xs:element name="title" type="xs:string" />
-<xs:element name="director" type="xs:string" />
-<xs:element name="year" type="xs:date"/>
-<xs:element name="length" type="xs:string" />
+<xs:element name="ISBN" type="xs:integer" />
+<xs:element name="author" type="xs:string"/>
+<xs:element name="price" type="xs:decimal" />
 </xs:schema>
 ```
-
-### XSD Complex Type
-An XML element that contains other elements and/or attributes is known as a complicated type element.
-
-There are four kinds of complex elements:
-
-1) empty elements.
-2) elements that containing only other elements.
-3) elements that containing only text.
-4) elements that containing both other elements and text.
-
-Any of above element may or may not contain attributes as well.
 
 #### Default and Fixed Values for Elements
 When no additional value is specified for an element, it is given a default value.
@@ -453,19 +408,22 @@ A fixed value is also automatically assigned to the element, and you cannot spec
 ```
 <xs:element name="year" type="xs:date" fixed="2020-01-01"/>
 ```
+
+
+
 ### XSD Attributes
 
 The syntax for defining an attribute is:
 
 ```
-<xs:attribute name = "x" type = "y"/>
+<xs:attribute name = "attributeName" type = "xxxxxx"/>
 ```
 Here is an XML element with an attribute:
 
 ```
-<name lang="EN">Smith</name>
+<title lang="en">The lord of the ring</title>
 ```
- 
+The corresponding attributes definitions:
 ```
 <xs:attribute name="lang" type="xs:string"/>
 ```
@@ -474,11 +432,68 @@ Here is an XML element with an attribute:
 Just like elements, when no additional value is specified, it is given a default value.
 ```
 <xs:attribute name="lang" type="xs:string" default="EN"/>
+<xs:attribute name="lang" type="xs:string" fixed="EN"/>
 ```
 #### Optional and Required Attributes
-Attributes are optional by default. To specify that the attribute is required, use the "use" attribute:
+By default, attributes are optional. Use the "use" to indicate that the attribute is required:
 ```
 <xs:attribute name="lang" type="xs:string" use="required"/>
+```
+
+
+### XSD Complex Element
+An XML element that contains other elements and/or attributes is known as a complicated type element.
+
+There are four kinds of complex elements:
+
+1) empty elements.
+```
+<book ISBN="458184"/>
+```
+2) elements that containing only other elements.
+```
+<book>
+<ISBN> 123654</ISBN>
+<author>J. R. R. Tolkien</author>
+<price>69.69</price>
+</book>
+```
+3) elements that containing only text.
+```
+<title lang="en">The lord of the ring</title>
+```
+4) elements that containing both other elements and text.
+```
+<event>
+occured on <date lang="en">01.01.2020</date>
+</event>
+```
+Any of above element may or may not contain attributes as well.
+
+### XSD Schema
+The `<schema>` element is the root element of every XML Schema:
+
+```
+<?xml version="1.0"?>
+
+<xs:schema>
+.
+.
+.
+</xs:schema>
+```
+
+Referencing a Schema in an XML Document: 
+
+```
+<?xml version="1.0"?>
+
+<movie xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://www.example.com/movie.xsd">
+    <title>The Matrix Resurrections</title>
+    <director>Lana Wachowski</director>
+    <year>2021-10-01 </year>
+    <length>2h 28m</length>
+</movie>
 ```
 
 
