@@ -1,4 +1,4 @@
-- [XML Tutorial](#xml-tutorial)
+- [XML Introduction](#xml-introduction)
   * [XML Syntax Rules](#xml-syntax-rules)
   * [Characters and Encoding](#characters-and-encoding)
   * [Element](#element)
@@ -24,6 +24,11 @@
       - [Default and Fixed Values for Attributes](#default-and-fixed-values-for-attributes)
       - [Optional and Required Attributes](#optional-and-required-attributes)
     + [XSD Complex Element](#xsd-complex-element)
+      - [1. Empty Elements](#1-empty-elements)
+      - [2. Elements Containing Only Other Elements.](#2-elements-containing-only-other-elements)
+      - [3. Elements Containing Only Text](#3-elements-containing-only-text)
+      - [<simple/complexType> and <simple/complexContent>](#-simple-complextype--and--simple-complexcontent-)
+      - [4. Elements Containing Other Elements and Text.](#4-elements-containing-other-elements-and-text)
     + [XSD Schema](#xsd-schema)
 - [XML Databases](#xml-databases)
   * [XPath](#xpath)
@@ -34,7 +39,7 @@
   * [XQuery](#xquery)
 - [XSLT](#xslt)
 
-# XML Tutorial
+# XML Introduction
 
 XML is the abbreviation for eXtensible Markup Language and it has been designed with the purpose of storing and transporting data. XML was created with the goal of being both human and machine readable. XML is just information wrapped in tags. XML, unlike HTML does not use predefined tags.
 ```
@@ -387,15 +392,31 @@ Here are some simple XML elements:
 The corresponding simple element definitions:
 
 ```
-<?xml version="1.0"?>
-
-<xs:schema>
 <xs:element name="title" type="xs:string" />
 <xs:element name="ISBN" type="xs:integer" />
 <xs:element name="author" type="xs:string"/>
 <xs:element name="price" type="xs:decimal" />
-</xs:schema>
 ```
+An other example:
+
+```
+<size>L</size>
+```
+
+```
+<xs:element name="size">
+	<xs:simpleType>
+			<xs:restriction base="xs:string" >
+				<xs:enumeration value="S" />
+				<xs:enumeration value="M" />
+				<xs:enumeration value="L" />
+			</xs:restriction>
+	</xs:simpleType>
+</xs:element>
+```
+
+
+
 
 #### Default and Fixed Values for Elements
 When no additional value is specified for an element, it is given a default value.
@@ -446,11 +467,33 @@ An XML element that contains other elements and/or attributes is known as a comp
 
 There are four kinds of complex elements:
 
-1) empty elements.
+#### 1. Empty Elements
 ```
-<book ISBN="458184"/>
+<product id="458184"/>
 ```
-2) elements that containing only other elements.
+Whenever you write XSD element,you can write it specifically for that particular element, or you can give it a name  and reuse it again. It is analogs to writing `define type` in C++.
+
+```
+  <xs:element name="product">
+    <xs:complexType>
+       <xs:attribute name="id" type="xs:integer" />
+    </xs:complexType>
+  </xs:element>
+```
+
+Here with `name="productType"` can be used for other elements
+
+```
+<xs:element name="product" type="productType" />
+
+<xs:complexType name="productType">
+  <xs:attribute name="id" type="xs:integer" />
+</xs:complexType>
+
+```
+
+
+#### 2. Elements Containing Only Other Elements.
 ```
 <book>
 <ISBN> 123654</ISBN>
@@ -458,11 +501,124 @@ There are four kinds of complex elements:
 <price>69.69</price>
 </book>
 ```
-3) elements that containing only text.
+
 ```
-<title lang="en">The lord of the ring</title>
+<xs:element name="book">
+<xs:complexType>
+	<xs:sequence>
+		<xs:element  name="ISBN" type="xs:integer" />
+		<xs:element  name="author" type="xs:string" />
+		<xs:element  name="price" type="xs:decimal" />				
+	</xs:sequence>
+</xs:complexType>
+</xs:element>
 ```
-4) elements that containing both other elements and text.
+
+or with a name for the bookType: `name="bookType"`:
+
+```
+<xs:element name="book" type="bookType" />
+
+<xs:complexType name="bookType">
+	<xs:sequence>
+		<xs:element  name="ISBN" type="xs:integer" />
+		<xs:element  name="author" type="xs:string" />
+		<xs:element  name="price" type="xs:decimal" />				
+	</xs:sequence>
+</xs:complexType>
+
+```
+
+You can use `extend` to extend a type. it is analogs to inheritance in OOP:
+
+```
+<EUAddress>
+    <streetName>some street name in EU</streetName>
+    <HouseNumber>12</HouseNumber>
+    <Country>somerset</Country>
+    <Postcode>781459</Postcode>
+</EUAddress>
+<USAddress>
+    <streetName>some street name in USA</streetName>
+    <HouseNumber>78</HouseNumber>
+    <State>state name</State>
+    <Zipcode>841511</Zipcode>
+</USAddress>
+```
+
+
+```
+<xs:complexType name="BaseAddressType">
+    <xs:sequence>
+        <xs:element name="streetName" type="xs:string" />
+        <xs:element name="HouseNumber" type="xs:integer" />
+    </xs:sequence>
+</xs:complexType>
+<xs:complexType name="EUAddressType">
+    <xs:complexContent>
+        <xs:extension base="BaseAddressType">
+            <xs:sequence>
+                <xs:element name="Country" type="xs:string" />
+                <xs:element name="Postcode" type="xs:integer" />
+            </xs:sequence>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:complexType name="USAddressType">
+    <xs:complexContent>
+        <xs:extension base="BaseAddressType">
+            <xs:sequence>
+                <xs:element name="State" type="xs:string" />
+                <xs:element name="Zipcode" type="xs:string" />
+            </xs:sequence>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+```
+
+
+
+
+#### 3. Elements Containing Only Text
+Text-Only elements contains text and attributes, therefore we add a `<simpleContent>` element around the content. 
+When using `<simpleContent>`, you must define an `<extension>` OR a `<restriction>` within the `<simpleContent>` element.
+You can define `restriction` to limit the text:
+
+```
+<drink cat="warm">L</drink>
+```
+
+```
+    <xs:element name="drink" type="drinkType"/>
+
+    <xs:complexType name="drinkType" mixed="true">
+        <xs:simpleContent>
+            <xs:extension base="enumStringType">
+                <xs:attribute name="cat" type="xs:string">
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:simpleType name="enumStringType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="S"></xs:enumeration>
+            <xs:enumeration value="M"></xs:enumeration>
+            <xs:enumeration value="L"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+```
+
+#### <simple/complexType> and <simple/complexContent>
+
+- `<complexType>` and `<simpleType>` both define types.  
+- `<complexType>` can have element and attributes while `<simpleType>` can't.  
+- `<complexType>` can have `<simpleContent>`  or `<complexContent>`. 
+- `<simpleContent>` can only contain characters.  
+- when using `<simpleContent>`, you must define an `<extension>` OR a `<restriction>` within the `<simpleContent>` element.
+
+
+#### 4. Elements Containing Other Elements and Text.
 ```
 <event>
 occured on <date lang="en">01.01.2020</date>
@@ -470,13 +626,19 @@ occured on <date lang="en">01.01.2020</date>
 ```
 Any of above element may or may not contain attributes as well.
 
+
+
+
+
+
+
 ### XSD Schema
 The `<schema>` element is the root element of every XML Schema:
 
 ```
 <?xml version="1.0"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-<xs:schema>
 .
 .
 .
@@ -497,9 +659,8 @@ Referencing a Schema in an XML Document:
 ```
 
 
-Refs: [1](https://stackoverflow.com/questions/1544200/what-is-difference-between-xml-schema-and-dtd)
-[Online XSD Validator](https://www.utilities-online.info/xsdvalidation)
-[Online XSD Generator](https://www.freeformatter.com/xsd-generator.html#ad-output)
+Refs: [1](https://stackoverflow.com/questions/1544200/what-is-difference-between-xml-schema-and-dtd)  
+[Online XSD Validator/ Generator](https://www.freeformatter.com/xsd-generator.html#ad-output)
 
 # XML Databases
 Information in the XML format could be stored in an XML database. 
