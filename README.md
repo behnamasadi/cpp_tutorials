@@ -1,6 +1,6 @@
 # [C++](#)
 
-[![Build Status](https://app.travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://app.travis-ci.com/behnamasadi/cpp_tutorials)
+<!---[![Build Status](https://app.travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://app.travis-ci.com/behnamasadi/cpp_tutorials)-->
 [![Build status](https://ci.appveyor.com/api/projects/status/i4omlfovqaswpj41/branch/master?svg=true)](https://ci.appveyor.com/project/behnamasadi/cpp-tutorials/branch/master)
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/cmake.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
