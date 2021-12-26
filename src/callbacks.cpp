@@ -287,6 +287,7 @@ int main()
         stdf_transform_every_int_templ<int, int &>(&a[0], 5, &woof);
 
 
+#if defined(__GNUC__) || defined(__GNUG__)
 
         print_int(a, 5);
         transform_every_int_templ(&a[0], 5, foo);
@@ -303,7 +304,7 @@ int main()
 //        transform_every_int_templ(&a[0], 5, std::bind(foo_2, _1, 3));
 //        print_int(a, 5);
         transform_every_int_templ(&a[0], 5, std::function<int(int)>{&foo});
-
+#endif
     }
 
     std::function<int(int)> fn3 = third_t();               // function object
