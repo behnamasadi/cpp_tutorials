@@ -222,8 +222,8 @@ double randomGenerator(double rangeFrom=150,double  rangeTo=200)
     std::random_device rand_dev;
     std::mt19937 generator(rand_dev());
     std::uniform_real_distribution<double> distr(rangeFrom, rangeTo);
-    std::cout<< distr(generator)<<std::endl;
-    //return distr(generator);
+    //std::cout<< distr(generator)<<std::endl;
+    return distr(generator);
 }
 
 
