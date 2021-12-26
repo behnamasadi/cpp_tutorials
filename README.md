@@ -2,6 +2,7 @@
 
 [![Build Status](https://app.travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://app.travis-ci.com/behnamasadi/cpp_tutorials)
 [![Build status](https://ci.appveyor.com/api/projects/status/i4omlfovqaswpj41/branch/master?svg=true)](https://ci.appveyor.com/project/behnamasadi/cpp-tutorials/branch/master)
+![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/cmake.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
 This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
