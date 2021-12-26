@@ -1,22 +1,15 @@
-version: '1.0.{build}'
+image:
+  - Visual Studio 2019
+clone_folder: c:\projects\source
 
-image: Visual Studio 2017
+environment:
+    PYTHON: "C:\\Python38-x64\\python.exe"
 
-platform:
-  - x64
- 
-configuration:
-  - Release
-  - Debug
-
-install:
-    - git submodule update --init --recursive
-
-before_build:
-    - cmake -G "Visual Studio 15 2017 Win64" .
-
-build:
-  project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
-
+build_script:
+- cmd: >-
+    set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\Python\Python38\Scripts
+    "%PYTHON%" -m pip install --user conan
+    cmake -S c:\projects\source -B ./build -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=Release
+    cmake --build ./build --config "Release"
 test_script:
-  - '%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\tests.exe'
+- cmd: cd build && ctest -C Debug
