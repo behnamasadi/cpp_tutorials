@@ -402,7 +402,7 @@ add_executable(virtual_copy_constructor_destructor src/class/virtual_copy_constr
 target_link_libraries(virtual_copy_constructor_destructor)
 
 add_executable(cpp_17 src/cpp_17.cpp)
-target_link_libraries(cpp_17 stdc++fs)
+target_link_libraries(cpp_17)
 
 add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
 target_link_libraries(csv_reading_example)

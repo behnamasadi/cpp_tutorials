@@ -141,7 +141,9 @@ void cTypeVariableSize()
 
 int main()
 {
+#if defined(__GNUC__) || defined(__GNUG__)
     cTypeVariableSize();
+#endif
 //    typeidExample();
 //    typeofExample();
 }
