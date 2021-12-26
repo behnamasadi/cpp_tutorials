@@ -98,7 +98,7 @@ void decltypeArrayExample()
     std::vector<arrElemType> z(std::begin(x),std::end(x));
 }
 
-
+#if defined(__GNUC__) || defined(__GNUG__)
 void cTypeVariableSize()
 {
 //Integers
@@ -137,7 +137,7 @@ void cTypeVariableSize()
     long double ld=0;
     variable_type_info(ld);
 }
-
+#endif
 
 int main()
 {

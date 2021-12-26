@@ -338,7 +338,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
-target_link_libraries(basic_IO_operation_streams stdc++fs)
+target_link_libraries(basic_IO_operation_streams )
 
 add_executable(explicit  src/explicit.cpp)
 target_link_libraries(explicit)
