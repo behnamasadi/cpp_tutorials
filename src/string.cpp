@@ -16,6 +16,7 @@
 
 #if defined WIN32
 #include <stringapiset.h>
+#include <windows.h>
 #endif
 
 void stringDataTypes()
@@ -290,7 +291,7 @@ bool findStringCaseInsensitive(const std::string& sentence, const std::string& w
 
 
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
 //this is warning free
 std::wstring StringToWideString(std::string str)
