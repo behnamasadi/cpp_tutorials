@@ -2,14 +2,10 @@
 
 #include <functional>
 #include <iostream>
-
-
 #include <type_traits>
 #include <typeinfo>
 #include <string>
 #include <memory>
-#include <cxxabi.h>
-
 
 /*
 std::invoke is a generic way to activate any callable
@@ -123,6 +119,8 @@ void stdf_transform_every_int_templ(int * v,
   }
 }
 
+#if defined(__GNUC__) || defined(__GNUG__)
+#include <cxxabi.h>
 
 template <class T>
 std::string type_name()
@@ -142,6 +140,8 @@ std::string type_name()
     r += " &&";
   return r;
 }
+#endif
+
 
 
 template<class F>

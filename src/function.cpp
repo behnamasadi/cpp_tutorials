@@ -29,7 +29,7 @@ int solver2(int a,int b)
 
 int planner( int(*fn_solver)(int,int))
 {
-    std::cout<<fn_solver(10,12)<<std::endl;
+    return fn_solver(10,12);
 
 }
 

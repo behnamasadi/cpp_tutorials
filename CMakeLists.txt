@@ -332,8 +332,10 @@ target_link_libraries(unions)
 add_executable(date_time src/date_time.cpp)
 target_link_libraries(date_time)
 
-add_executable(fork src/fork.cpp)
-target_link_libraries(fork)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_executable(fork src/fork.cpp)
+    target_link_libraries(fork)
+endif()
 
 add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
 target_link_libraries(basic_IO_operation_streams stdc++fs)

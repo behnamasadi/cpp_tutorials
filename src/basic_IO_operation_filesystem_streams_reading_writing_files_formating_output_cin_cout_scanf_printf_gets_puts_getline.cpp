@@ -6,7 +6,7 @@
 #include <complex>
 #include <map>
 #include <limits>
-#include <experimental/filesystem>
+#include <filesystem>
 /*
 
 http://www.cplusplus.com/reference/iolibrary/
@@ -696,27 +696,27 @@ which is usually unnecessary
 
 void filesystemEample()
 {
-    using namespace std::experimental;
+
     const auto FilePath {"FileToCopy"};
 
     // If any filepath exists
-    if(filesystem::exists(FilePath)) {
+    if(std::filesystem::exists(FilePath)) {
         const auto FileSize {
-             filesystem::file_size(FilePath)
+             std::filesystem::file_size(FilePath)
         };
 
-        filesystem::path tmpPath {"/tmp"};
+        std::filesystem::path tmpPath {"/tmp"};
 
         // If filepath is available or not
-        if(filesystem::space(tmpPath)
+        if(std::filesystem::space(tmpPath)
                            .available > FileSize) {
 
            // Create Directory
-           filesystem::create_directory(
+           std::filesystem::create_directory(
                      tmpPath.append("example"));
 
            // Copy File to file path
-           filesystem::copy_file(FilePath,
+           std::filesystem::copy_file(FilePath,
                                  tmpPath.append("newFile"));
         }
     }
