@@ -1,9 +1,6 @@
 #include <thread>
 #include <iostream>
 
-#include <unistd.h>// for usleep function
-
-
 int main()
 {
     unsigned int numberOfMicroseconds=1000000;
@@ -16,7 +13,8 @@ int main()
     std::this_thread::sleep_for(std::chrono::microseconds(numberOfMicroseconds));
 
     std::cout<<"Third way: Sleeping thread for: "<<numberOfMicroseconds<< " Micro Seconds"  <<std::endl;
-    usleep(numberOfMicroseconds);
+    std::this_thread::sleep_for(std::chrono::microseconds(numberOfMicroseconds));
+
 
     std::cout<<"Thread Finished" <<std::endl;
 
