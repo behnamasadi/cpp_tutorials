@@ -483,7 +483,7 @@ void normalRandomNumber(double mean, double sigma)
 }
 
 
-int call_ranndomGenerator()
+void call_ranndomGenerator()
 {
     double mean=2;
     double sigma=1;

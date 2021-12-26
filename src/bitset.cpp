@@ -1,5 +1,5 @@
 #include <iostream>
-#include <bits/stdc++.h> 
+#include <bitset>
 /*
 
 1)A bitset is an array of bool but each Boolean value is not stored separately instead bitset optimizes the space such that each bool takes 1 bit space only, so space taken by bitset bs is less than that of bool bs[N]
