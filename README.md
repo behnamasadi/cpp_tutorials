@@ -1,4 +1,8 @@
 # [C++](#)
+
+[![Build Status](https://app.travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://app.travis-ci.com/behnamasadi/cpp_tutorials)
+![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
+
 This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## [C++ Tutorials](#)
@@ -129,17 +133,17 @@ This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **op
    * [Type Erasure](src/type_erasure.cpp)
    * [Template Specialization, Tag Dispatch](src/template_specialization_tag_dispatch.cpp)
    * [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](src/VTABLE_and_VPTR.md)  
+   * [Virtual address space](src/virtual_address_space.md)  
 ## [Optimizing C++](src/optimizing_cpp)
 ## [Data File Storage Parsing](#)
    * [CSV ](src/third_party_tools/csv)
    * [YAML ](src/third_party_tools/yaml)
    * [JASON ](src/third_party_tools/jason)
-   * [XML ](src/third_party_tools/xml/xml.md)
+   * [XML ](src/third_party_tools/xml/)
 ## [Code Benchmarking](src/third_party_tools/benchmark)
    * [Google Benchmark ](src/third_party_tools/benchmark)
 
 
-[![Build Status](https://app.travis-ci.com/behnamasadi/cpp_tutorials.svg?branch=master)](https://app.travis-ci.com/behnamasadi/cpp_tutorials)
-![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
+
 
 
