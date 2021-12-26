@@ -15,8 +15,13 @@
 #include <locale.h>
 
 #if defined WIN32
-#include <stringapiset.h>
+//#include <stringapiset.h>
 #include <windows.h>
+#include <ole2.h>
+#include <windowsx.h>
+#include <commctrl.h>
+#include <strsafe.h>
+#include <uxtheme.h>
 #endif
 
 void stringDataTypes()
@@ -319,7 +324,7 @@ std::wstring StringToWideString(std::string str)
 
 
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
 std::string WidestringToString(std::wstring wstr)
 {
