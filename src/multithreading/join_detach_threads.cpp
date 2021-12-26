@@ -2,7 +2,7 @@
 #include <thread>
 #include <vector>
 #include <algorithm>
-
+#include <string>
 
 //#include <unistd.h>// for usleep function
 #include <chrono>//for  sleep_for function

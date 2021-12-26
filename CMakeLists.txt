@@ -129,8 +129,11 @@ add_executable(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
 target_link_libraries(dynamic_memory_allocation)
 
 #ADD_LIBRARY(add MODULE src/add.cpp)
-add_executable(loadeding_libraries src/loadeding_libraries.cpp )
-target_link_libraries(loadeding_libraries dl)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_executable(loadeding_libraries src/loadeding_libraries.cpp )
+    target_link_libraries(loadeding_libraries dl)
+endif()
+
 
 add_executable(template src/template.cpp )
 target_link_libraries(template)
@@ -203,8 +206,11 @@ target_link_libraries(switch_case)
 add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
 target_link_libraries(set_map_pair_tuple)
 
-add_executable(signals src/signals.cpp)
-target_link_libraries(signals)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_executable(signals src/signals.cpp)
+    target_link_libraries(signals)
+endif()
+
 
 add_executable(error_handling src/error_handling.cpp)
 target_link_libraries(error_handling)

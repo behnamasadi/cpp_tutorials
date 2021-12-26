@@ -29,7 +29,7 @@ int Something::s_nValue = 1; // initializer
 
 int StaticMemberFunctionmain()
 {
-    std::cout << Something::GetValue() << std::endl;
+    return Something::GetValue();
 }
 
 /*

@@ -326,12 +326,3 @@ int add(int lhs,int rhs)
 {
     return lhs+ rhs;
 }
-
-int main1()
-{
-//    int nSum = Sum(5, 1, 2, 3, 4, 5);
-//    LogError(_T("Failed - %s, ErrorCode - %d"), "AccessDenied", 111);
-
-//    auto bound=bind_values(add,1,2);
-
-}

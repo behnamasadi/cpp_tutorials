@@ -14,6 +14,10 @@
 #include <algorithm>
 #include <locale.h>
 
+#if defined WIN32
+#include <stringapiset.h>
+#endif
+
 void stringDataTypes()
 {
     char* name0 = "behnam";
