@@ -4,6 +4,7 @@
 #ifndef _MSC_VER
 #   include <cxxabi.h>
 #endif
+
 #include <memory>
 #include <cstdlib>
 #include <vector>
@@ -35,7 +36,7 @@ template <class T> std::string type_name()
 
 
 
-
+#if defined(__GNUC__) || defined(__GNUG__)
 template <typename T>
 void variable_type_info(T var_type)
 {
@@ -44,6 +45,7 @@ void variable_type_info(T var_type)
                 <<"and the value range is "<< std::numeric_limits<__typeof__(var_type) >::min()
                <<","<<   std::numeric_limits<__typeof__(var_type) >::max() << std::endl;
 }
+#endif
 
 
 void typeidExample()
@@ -63,6 +65,8 @@ How to create a variable nased on the type of an other variable:
 There is no typeof operator in c++, it has always been a compiler specific language extension
 and it's pretty much obsolete. One should use decltype instead.
 */
+#if defined(__GNUC__) || defined(__GNUG__)
+
 int typeofExample()
 {
     int a=10;
@@ -71,6 +75,7 @@ int typeofExample()
     std::cout<<b<<std::endl;
     return 0;
 }
+#endif
 
 void decltypeExample()
 {
