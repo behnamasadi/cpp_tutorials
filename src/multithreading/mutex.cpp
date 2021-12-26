@@ -3,6 +3,7 @@
 #include <mutex>
 #include <fstream>
 #include <queue>
+#include <string>
 
 /*
 Timed mutex

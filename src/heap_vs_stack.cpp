@@ -1,10 +1,14 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-#include <sys/resource.h>
-
-
 #include <iostream>
+
+#if defined(__GNUC__) || defined(__GNUG__)
+#include <sys/resource.h>
+#endif
+
+
+
 
 /*================== Segmentation fault Example  ==================*/
 
@@ -135,6 +139,8 @@ void stackBufferOverflow()
 
 }
 
+#if defined(__GNUC__) || defined(__GNUG__)
+
 void stackSize()
 {
     //https://www.quora.com/How-can-I-estimate-stack-size-by-writing-a-program
@@ -152,7 +158,7 @@ The output of "lim.rlim_cur" is 8388608 which is 8192*1024
     std::cout<<"The hard limit: "<<lim.rlim_max <<std::endl;
 
 }
-
+#endif
 
 /*
 stack frame size:
