@@ -121,7 +121,6 @@ void stdf_transform_every_int_templ(int * v,
 
 #if defined(__GNUC__) || defined(__GNUG__)
 #include <cxxabi.h>
-
 template <class T>
 std::string type_name()
 {
@@ -143,7 +142,7 @@ std::string type_name()
 #endif
 
 
-
+#if defined(__GNUC__) || defined(__GNUG__)
 template<class F>
 void transform_every_int_templ(int * v,
   unsigned const n, F f)
@@ -155,6 +154,7 @@ void transform_every_int_templ(int * v,
     v[i] = f(v[i]);
   }
 }
+#endif
 
 int foo (int x) { return 2+x; }
 int muh (int const &x) { return 3+x; }
