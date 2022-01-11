@@ -11,10 +11,13 @@ When you see std::move, it indicates that the value of the object should not be 
 but you can still assign a new value and continue using it.
 
 
+https://stackoverflow.com/questions/3582001/what-are-the-main-purposes-of-using-stdforward-and-which-problems-it-solves
+https://www.youtube.com/watch?v=0xcCNnWEMgs&t=40s
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2002/n1385.htm
 */
 
 
-//https://www.youtube.com/watch?v=0xcCNnWEMgs&t=40s
+
 struct S
 {
 

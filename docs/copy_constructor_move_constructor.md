@@ -15,32 +15,51 @@ struct S
 ```
 
 ## Copy Constructor 
-it happens at  `S s2 = s1;` or  `S s3(s2);`
+it happens at:
+
+`S s2 = s1;` 
+
+or
+
+`S s3(s2);`
 ```cpp
 
-    S(const S& rhs){std::cout<<"copy constructor" <<std::endl;}
+S(const S& rhs){std::cout<<"copy constructor" <<std::endl;}
 ```
 
-## Assignment Operator
+## Copy Assignment Operator
 it happens at  `s2 = s1;`
 
 ```cpp
-    
-    // Use *this from within a function of a class to get a reference to the current object
-    S& operator = (const S& rhs){std::cout<<"copy assignment operator" <<std::endl;}
-
-
-    /* it happens at: S s2(std :: move(s1));    or   S s2 = std :: move(s1) */
-    S(S&& rhs){std::cout<<"move constructor" <<std::endl;}
-
-    /* it happens at: s1 = std :: move(s2); */
-    S& operator = (S&& rhs){std::cout<<"move assignment operator" <<std::endl;}
-
-
-
+S& operator = (const S& rhs){std::cout<<"copy assignment operator" <<std::endl;}
 };
-
 ```
+
+# Move Constructor
+It happens at: 
+`S s2(std :: move(s1));`
+    
+or
+`S s2 = std :: move(s1);`
+
+```cpp 
+S(S&& rhs)
+{
+	std::cout<<"move constructor" <<std::endl;
+}
+```
+
+# Move Assignment Operator
+
+it happens at: 
+
+`s1 = std :: move(s2);`
+
+```cpp
+S& operator = (S&& rhs){std::cout<<"move assignment operator" <<std::endl;}
+```
+
+
 
 # All The Assignment Operators
 ```cpp

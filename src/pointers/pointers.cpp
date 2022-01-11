@@ -283,32 +283,30 @@ void Weak_ptrLockVsExpiered()
 
 void pointerVSReference()
 {
-/*
-basically pointers can be reassigned to different location in memory but references can only
-stick to one variable.
-
-reference is like an alias for an existing variable. is shares the same address as the original variable.
-also a refferece can not be null.
-
-pointer is a variable that store the address of an other avriable.
-*/
-
-
     int foo=2;
     int &ref=foo;
     int *ptr=&foo;
+    foo++;
 
-    std::cout<<"ref is: " << ref <<" &ref is: " << &ref<<" &foo is :"  <<&foo<< " *ptr is: "<<*ptr  <<std::endl;
+    std::cout<<" ref is: " << ref <<  "\n foo is: "<<foo  <<"\n &ref is: " << &ref<<  "\n &foo is: "  <<&foo<<  "\n ptr is: "<<ptr  << "\n *ptr is: "<<*ptr  <<std::endl;
 
-    int var=10;
-    ref=var;
-    // since we updated ref and rf is a ref to foo, foo will also change into 10
-    std::cout<<"ref is: " << ref <<" var is: " << var<< " foo is "<< foo<<std::endl;
 
-    //this will not effect foo
-    int new_foo=20;
-    ptr=&new_foo;
-    *ptr=30;
+    int x=5;
+    ref=x;
+    x++;
+
+    std::cout<<" ref is: " << ref <<  "\n foo is: "<<foo  <<"\n &ref is: " << &ref<<  "\n &foo is: "  <<&foo<<  "\n ptr is: "<<ptr  << "\n *ptr is: "<<*ptr <<
+            "\n x is: "<<x<<std::endl;
+
+/*
+The followings  will rise an error:
+
+    int & r3 = 200;
+
+    or
+
+    & ref = x;
+*/
 }
 
 void addressofExample()

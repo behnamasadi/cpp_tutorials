@@ -72,11 +72,8 @@ void vecTocStyleArrayExample()
 void stringToCharVec()
 {
     std::string str("ali baba");
-    str.begin();
     std::vector<char> charVec(str.begin(),str.end() );
-
     printVector(charVec);
-
 }
 
 void  reinterpretVector()
@@ -366,7 +363,7 @@ copy each, not removed element only once to its final location, while the
 vector::erase approach would move all of the elements from the position to the end multiple times.
 
 */
-void ereaseVSremove()
+void eraseVSremove()
 {
 /*
     Using erase, If you went over the vector removing elements one by one,

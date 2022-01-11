@@ -40,9 +40,11 @@ for(auto i:src)
 ```
 
 
+# std::copy
 
+# erase VS remove
 
-# std::vector::front()/back() vs std::vector::begin()/end()
+# front()/back() vs begin()/end()
 
 # Copying Vectors
 

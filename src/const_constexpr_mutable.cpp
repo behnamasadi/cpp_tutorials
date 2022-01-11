@@ -99,24 +99,7 @@ to make it easy to read remove the variable type,  then read it like:
     int * const p ==>  * const p ==> p is fixed which is an address;
 */
 
-void constPointersExample()
-{
-    char const* p2 = "Mary";
-    // not allowed.
-    //*p2 = 'C';
-    
-    // allowed
-    p2 = "Margareth";  
 
-    char * const p1 = "John";
-    
-    // allowed
-    *p1 = 'C'; 
-    
-    //not allowed
-    //p1 = "Margarth";
-
-}
 
 /*
 //////////////////////////////////// (7)Const cast ////////////////////////////////////
