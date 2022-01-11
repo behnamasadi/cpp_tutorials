@@ -5,7 +5,7 @@
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/cmake.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
-This repository contains my C++ tutorials code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
+This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## [C++ Tutorials](#)
    * [{} Operator, Aggregate Initialization, Uniform initialization, std::initializer_list, C++ Initialization()](src/{}_aggregate_Initialization.cpp)  
