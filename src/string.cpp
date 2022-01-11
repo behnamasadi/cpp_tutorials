@@ -26,7 +26,7 @@
 
 void stringDataTypes()
 {
-    char* name0 = "behnam";
+    const char* name0 = "behnam";
     char name1[6] = { 'b','e', 'h', 'n', 'a','m' };
 
     //this will print lots of strange character until it hit the null termination  character 0
@@ -118,7 +118,7 @@ Since C-style strings are arrays, you can use the [] operator to change individu
 	char name0[10] = { 'b','e','h','n','a','m','\0' }; //stack variable, compiler output: char name0[10] = {'b', 'e', 'h', 'n', 'a', 'm', '\0', '\0', '\0', '\0'};
 	char name1[] = { 'b','e','h','n','a','m','\0' };//stack variable, compiler output: char name1[7] = {'b', 'e', 'h', 'n', 'a', 'm', '\0'};
 	char name2[] = "behnam";//stack variable, compiler output: char name2[7] = "behnam";
-	char* name3 = "behnam";// heap variable
+    const char* name3 = "behnam";// heap variable
 
 	char name4[6] = { 'b','e', 'h', 'n', 'a','m' };
 	//this will print lots of strange character until it hit the null termination  character 0
@@ -138,11 +138,11 @@ Since C-style strings are arrays, you can use the [] operator to change individu
 
 	char const* p2 = "Mary";
 	// not allowed.
-	//*p2 = 'C';
+    //*p2[0] = 'C';
 	p2 = "Margarethe";  // allowed
 
-	char* const p1 = "John";
-	*p1 = 'C'; // allowed
+    char* const p1 = "John";
+    p1[0] = 'C'; // allowed, but will cause segmentation fault
 	// not allowed
 	//p1 = "Margarethe";
 
@@ -177,10 +177,10 @@ Since C-style strings are arrays, you can use the [] operator to change individu
 	}
 	   	  
 
-	char* sentence = "- This, a sample string.";
-    char* delimiter = " ,.-";
+    const char* sentence = "- This, a sample string.";
+    const char* delimiter = " ,.-";
 	char* p;
-    p = strtok(sentence, delimiter);
+    p = strtok(strdup(sentence), delimiter);
 	while (p != NULL)
 	{
 		std::cout << p << std::endl;
@@ -367,8 +367,6 @@ int main()
 
     //stringNumberConversion();
     //splitingByDelimiter();
-
-	return 0;
 }
 
 

@@ -1,3 +1,23 @@
+- [Raw pointer](#raw-pointer)
+  * [Dereference a Pointer](#dereference-a-pointer)
+  * [Null pointers](#null-pointers)
+  * [Wild pointer](#wild-pointer)
+  * [Dangling pointer](#dangling-pointer)
+- [Memory safety and Pointers](#memory-safety-and-pointers)
+- [shared_ptr](#shared-ptr)
+- [unique_ptr](#unique-ptr)
+- [weak_pointer](#weak-pointer)
+  * [Avoiding cyclic references when using shared pointers](#avoiding-cyclic-references-when-using-shared-pointers)
+- [Pointer casting](#pointer-casting)
+- [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
+  * [Pass by value to lend the ownership](#pass-by-value-to-lend-the-ownership)
+  * [Passing by reference to manipulate the ownership](#passing-by-reference-to-manipulate-the-ownership)
+  * [Passing simple raw pointers/references](#passing-simple-raw-pointers-references)
+- [Return smart pointers from functions](#return-smart-pointers-from-functions)
+- [reference_wrapper](#reference_wrapper)
+- [Pointer vs Reference](#pointer-vs-reference)
+
+
 ## Raw pointer
 
  The size of a pointer is dependent upon the architecture of the computer — a 32-bit computer uses 32-bit memory addresses — consequently, 
@@ -309,12 +329,25 @@ std::unique_ptr<Object> getUnique()
 ```
 
 ## reference_wrapper
-List elements cannot be references, because references have to be initialized and cannot be reassigned, so the following won't compile:
+std::vector and std::list elements cannot be references, because:
+1. references have to be initialized.
+2. they cannot be reassigned, so the following won't compile:
 
 ```cpp
-std::vector<const person&> m_people{};
+std::vector<person&> m_people{};
 ```
-Essentially, std::reference_wrapper is a class that acts like a reference, but also allows assignment and copying, so it’s compatible with lists like std::vector.
+
+or 
+```cpp
+std::vector<<std::unique_ptr<person>>> people;
+```
+or 
+```cpp
+std::vector<<const person> people;
+```
+
+
+Essentially, std::reference_wrapper is a class that acts like a reference, but also allows assignment and copying, so it’s compatible with std::lists and std::vector.
 
 ```cpp
 std::vector<std::reference_wrapper<std::unique_ptr<person>>> people;
@@ -323,40 +356,64 @@ people.push_back(empolyee1 );
 ```
 ## Pointer vs Reference
 
-basically pointers can be reassigned to different location in memory but references can only
-stick to one variable.
+Basically pointers can be reassigned to different location in memory but references can only
+stick to one variable. reference is like an alias for an existing variable, it shares the same address as the original variable.
+also a reference can not be null.
 
-reference is like an alias for an existing variable. is shares the same address as the original variable.
-also a refferece can not be null.
-
-pointer is a variable that store the address of an other avriable.
-
-```
+```cpp
 int foo=2;
 int &ref=foo;
 int *ptr=&foo;
-
-std::cout<<"ref is: " << ref <<" &ref is: " << &ref<<" &foo is :"  <<&foo<< " *ptr is: "<<*ptr  <<std::endl;
-
-int var=10;
-ref=var;
-// since we updated ref and rf is a ref to foo, foo will also change into 10
-std::cout<<"ref is: " << ref <<" var is: " << var<< " foo is "<< foo<<std::endl;
-
-//this will not effect foo
-int new_foo=20;
-ptr=&new_foo;
-*ptr=30;
+foo++;
 ```
-In the following `int & r3 = 200;` will rise an error:
+so the output is:
 
 ```
-const int & r1 = 100;
-int v = 200;
-int &r2 = v;
+ref is: 3
+foo is: 3
+&ref is: 0x7ffee0953bdc
+&foo is: 0x7ffee0953bdc
+ptr is: 0x7ffee0953bdc
+*ptr is: 3
+```
+`&foo` and  `&foo` are the same, because reference is just like an alias for variable.
+
+This is valid:
+
+```cpp
+int x=5;
+ref=x;
+x++;
+```
+and the output is:
+```
+ref is: 5
+foo is: 5
+&ref is: 0x7ffee0953bdc
+&foo is: 0x7ffee0953bdc
+ptr is: 0x7ffee0953bdc
+*ptr is: 5
+x is: 6
+```
+
+Pointer is a variable that store the address of an other variable, so it can be changed but reference can not be changed. 
+The followings  will rise an error:
+
+```cpp
 int & r3 = 200;
-return 0;
 ```
+
+or
+
+```cpp
+& ref = x;
+```
+or 
+
+```cpp
+int &ref_2;                 // uninitialized reference
+```
+
 Refs: 
         [1](https://www.internalpointers.com/post/move-smart-pointers-and-out-functions-modern-c),
         [2](https://www.acodersjourney.com/top-10-dumb-mistakes-avoid-c-11-smart-pointers/),

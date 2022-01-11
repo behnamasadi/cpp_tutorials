@@ -1,8 +1,9 @@
-#include <stdio.h>
 #include <iostream>
+#include <string.h>
+
 int main(int argc, char**argv)
 {
-    char* n_argv[] = { "sandbox", "-w", "7", "-h","5" ,"stereo_data/stereo_calib.xml"};
+    char* n_argv[] = { (char*)"sandbox", strdup("-w"), strdup("7"), strdup("-h"),strdup("5") ,strdup("stereo_data/stereo_calib.xml")};
 
     int length = sizeof(n_argv)/sizeof(n_argv[0]);
 
@@ -13,6 +14,5 @@ int main(int argc, char**argv)
     {
         std::cout<<argv[i] <<std::endl;
     }
-
 
 }

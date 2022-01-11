@@ -1,52 +1,46 @@
-#include <iostream>
-
-/*
-
-memory is loaded into the CPU cache in chunks called "cache lines". This takes time,
+# Align
+memory is loaded into the CPU cache in chunks called `cache lines`. This takes time,
 and generally speaking the more cache lines loaded for your object, the longer it takes.
 Otherwise, you might get away with sometimes only having part of your object in cache,
 and the rest in main memory.
 
 
 For primitive data type of size x, the address must be multiple of x.
-size of int is 4. That means it can only be stored at addresses like 0, 4, 8, 12,...
-1) In the case of foo1 we have the followings:
+size of int is 4. That means it can only be stored at addresses like `0, 4, 8, 12,...`
 
-               +--+--+--+--+--+--+--+--+
-               |c1|  |  |  |i1|i1|i1|i1|
-               +--+--+--+--+--+--+--+--+
-memory address  #0 #1 #2 #3 #4 #5 #6 #7
-
-
-2) In the case of foo2 we have the followings:
+```cpp
+size of char: 1
+size of int: 4
+```
 
 
-               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-               |c1|  |  |  |i2|i2|i2|i2|c2|  |  |  |i2|i2|i2|i2|
-               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-memory address  #0 #1 #2 #3 #4 #5 #6 #7 #8 #9 #a #b #c #d #e #f
 
+1) In the case of `foo1` we have the followings:
 
-2) In the case of foo3 we have the followings:
-
-
-               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-               |c1|c2|  |  |i1|i1|i1|i1|i2|i2|i2|i2|  |  |  |  |
-               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-memory address  #0 #1 #2 #3 #4 #5 #6 #7 #8 #9 #a #b #c #d #e #f
-
-
-The starting address of struct or class is aligned to the maximum alignment requirement of it's member, so for
-class foo3 it is 4.
-So it's better to put the larger members first.
-*/
-
+```cpp
 class foo1
 {
     char c1;
     int i1;
 };
 
+size of foo1: 8
+
+```
+
+
+```
+               +--+--+--+--+--+--+--+--+
+               |c1|  |  |  |i1|i1|i1|i1|
+               +--+--+--+--+--+--+--+--+
+memory address  #0 #1 #2 #3 #4 #5 #6 #7
+```
+
+
+
+2) In the case of `foo2` we have the followings:
+
+```cpp
 class foo2
 {
     char c1;
@@ -55,6 +49,19 @@ class foo2
     int i2;
 };
 
+size of foo2: 16
+```
+
+```
+               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+               |c1|  |  |  |i2|i2|i2|i2|c2|  |  |  |i2|i2|i2|i2|
+               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+memory address  #0 #1 #2 #3 #4 #5 #6 #7 #8 #9 #a #b #c #d #e #f
+```
+
+3) In the case of `foo3` we have the followings:
+
+```cpp
 class foo3
 {
     char c1;
@@ -62,6 +69,20 @@ class foo3
     int i1;
     int i2;
 };
+size of foo3: 12
+```
+
+```
+               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+               |c1|c2|  |  |i1|i1|i1|i1|i2|i2|i2|i2|  |  |  |  |
+               +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+memory address  #0 #1 #2 #3 #4 #5 #6 #7 #8 #9 #a #b #c #d #e #f
+```
+
+The starting address of struct or class is aligned to the maximum alignment requirement of it's member, so for
+class foo3 it is 4.
+So it's better to put the larger members first.
+
 
 class alignas(8) foo4
 {
@@ -73,10 +94,24 @@ class alignas(8) foo4
 
 
 
-void perfomanceBenchmarking()
-{
+```cpp
+align of char: 1
+align of int: 4
+align of foo1: 4
+align of foo2: 4
+align of foo3: 4
+```
 
-/*
+
+
+Refs: [1](https://www.youtube.com/watch?v=ZvYsXQe-kSY)
+
+
+
+
+# Performance Benchmarking
+
+```
     row major
     ------------------>
    ➘[][][][][][][][][][]
@@ -103,13 +138,12 @@ void perfomanceBenchmarking()
     []| []| []| []| []
       ▼   ▼   ▼   ▼
 
-
+```
 */
 
     int m,n;
     m=10;
     n=10;
-    //int myarray[m][n];
     
     
     int **myarray;
@@ -148,7 +182,7 @@ the reason is cpu fetch data from memory( our array) on the chunk size of cache_
 
 }
 
-
+Refs: [1](https://www.youtube.com/watch?v=BP6NxVxDQIs)
 int main(int argc, char *argv[])
 {
     std::cout<<"size of char: " <<sizeof(char)  <<std::endl;

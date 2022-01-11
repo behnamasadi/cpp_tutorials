@@ -88,7 +88,7 @@ void labmdaExample()
     auto cmp = [](int x, int y) { return (x<y);};
     std::sort(v1.begin(),v1.end(),cmp  );
 
-    //otside as a function
+    //outside as a function
     v1.clear();
     for(int n : {1,8,5,6,3,4,0,9,7,2})
         v1.push_back(n);

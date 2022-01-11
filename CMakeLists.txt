@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 set(CMAKE_BUILD_TYPE DEBUG)
-#set(CMAKE_BUILD_TYPE RELEASE)
+
 
 
 #option(USE_CLANG "build application with clang" ON) # OFF is the default
@@ -59,40 +59,10 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 
-
-
-
 #Finding Memory leaking, Stack and Heap overflow
 #set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 #set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 
-
-
-
-
-######################### How to cpack create deb file#########################
- 
-#set(CPACK_GENERATOR "DEB")
-#set(CPACK_DEBIAN_PACKAGE_MAINTAINER "David Doria") #required
- 
-#INCLUDE(CPack)
- 
-# To use this:
-# make package
-# sudo dpkg -i DistanceBetweenPoints-0.1.1-Linux.deb
- 
-# This will result in the file:
-#/usr/distance/DistanceBetweenPoints
-
-
-# To use this:
-# make package
-# sudo dpkg -i DistanceBetweenPoints-0.1.1-Linux.deb
- 
-# This will result in the file:
-#/usr/distance/DistanceBetweenPoints
-
-#https://cmake.org/Wiki/CMake:Packaging_With_CPack
 
 add_executable(pointers  src/pointers/pointers.cpp )
 target_link_libraries( pointers)
@@ -434,9 +404,19 @@ target_link_libraries(nested_namespaces)
 add_executable(type_dispatch_integral_constant_true_false_type  src/type_dispatch_integral_constant_true_false_type.cpp)
 target_link_libraries(type_dispatch_integral_constant_true_false_type)
 
-set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
-MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
+add_executable(set_argv_argc  src/set_argv_argc.cpp)
+target_link_libraries(set_argv_argc)
+
+
 find_package(PkgConfig)
+
+if(EXISTS "$ENV{HOME}/usr/lib/pkgconfig")
+	set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
+endif()
+MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
+
+
+message("\n########################################## tinyxml2 ##########################################\n")
 pkg_check_modules(TINYXML2 tinyxml2)
 if(${TINYXML2_FOUND})
     MESSAGE("TINYXML2_FOUND:" ${TINYXML2_FOUND})
@@ -448,7 +428,12 @@ if(${TINYXML2_FOUND})
     LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
     add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
     target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
+else()
+	message("tinyxml2 not found")
 endif()
+
+
+message("\n########################################## yaml-cpp ##########################################\n")
 
 set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
 FIND_PACKAGE(yaml-cpp)
@@ -458,7 +443,6 @@ IF(${yaml-cpp_FOUND})
     add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
     target_link_libraries(yaml-cpp_example yaml-cpp)
 ENDIF()
-
 
 pkg_check_modules(BENCHMARK benchmark)
 if(${BENCHMARK_FOUND})
@@ -479,9 +463,12 @@ IF(testing_enabled)
 	ADD_SUBDIRECTORY(tests)
 ENDIF()
 
-IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
-	ADD_SUBDIRECTORY(src/sandbox)
-ENDIF()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox.cpp")
+        add_executable(sandbox  src/sandbox.cpp)
+        target_link_libraries(sandbox)
+endif()
+
 
 
 
