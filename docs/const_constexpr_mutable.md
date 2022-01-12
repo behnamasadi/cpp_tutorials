@@ -9,7 +9,7 @@ Here, a `str` object is passed by reference into `func`. For safety's sake, cons
 void func(const std::string& str);
 ```
 
-# const Functions
+# const Functions in classes
 It only work for the methods in a class, 
 It is recommended practice to make as many functions const as possible so that accidental changes to objects are avoided.
 ```cpp
@@ -18,6 +18,8 @@ It is recommended practice to make as many functions const as possible so that a
    
 }
 ```
+
+Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU)
 
 # const iterators
 They make sure that you can not change the variable in the loop,
@@ -96,6 +98,8 @@ int mutableExample()
     };
     return 0;
 }
+
+Refs: [1](https://www.youtube.com/watch?v=bP9z3H3cVMY)
 
 # constexpr 
 

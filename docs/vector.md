@@ -38,7 +38,7 @@ dst.resize(src.size());
 for(auto i:src)
 	dst.push_back(i);
 ```
-
+Refs: [1](https://www.youtube.com/watch?v=jKS9dSHkAZY)
 
 # std::copy
 
@@ -62,4 +62,4 @@ std::vector<char> charVec(str.begin(),str.end() );
 # Vector Accessing Elements
 we can access vector element both by `[i]` operator and by `.at(i)` . `at(i)` is a function call while `[]` is a direct access so it is cheaper and more efficient
 
-
+[source code](../src/vector.cpp)

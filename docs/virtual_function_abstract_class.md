@@ -47,7 +47,7 @@ if that class is not abstract.
 Refs: [1](https://www.geeksforgeeks.org/virtual-function-cpp/), [2](https://stackoverflow.com/questions/39932391/should-i-use-virtual-override-or-both-keywords)
 
 
-[source code](virtual_function_abstract_class.md)
+[source code](../src/class/virtual_function_abstract_class.cpp)
 
 
 

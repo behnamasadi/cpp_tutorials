@@ -116,4 +116,3 @@ Refs: [1](https://stackoverflow.com/questions/3106110/what-is-move-semantics)
 
 # How to make class non-copyable, non-moveable
 Refs: [1](https://ariya.io/2015/01/c-class-and-preventing-object-copy)
-
