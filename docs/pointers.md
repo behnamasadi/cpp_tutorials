@@ -419,3 +419,6 @@ Refs:
         [2](https://www.acodersjourney.com/top-10-dumb-mistakes-avoid-c-11-smart-pointers/),
         [3](https://www.learncpp.com/cpp-tutorial/103-aggregation/),
         [4](https://www.nextptr.com/tutorial/ta1441164581/stdref-and-stdreference_wrapper-common-use-cases)
+        
+        
+[source code](../src/pointers/pointers.cpp)        

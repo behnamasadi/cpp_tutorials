@@ -717,3 +717,4 @@ int main()
 {
 	
 }
+[source code](../src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)

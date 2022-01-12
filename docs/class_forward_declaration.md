@@ -42,3 +42,5 @@ class B
     void mymethod(A par) ;   
 };
 ```
+
+[source code](../src/class/class_forward_declaration.cpp)

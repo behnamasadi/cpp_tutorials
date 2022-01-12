@@ -97,4 +97,4 @@ If we make constructor virtual, compiler flags an error. In fact
 except inline, no other keyword is allowed in the declaration of constructor.
 
 
-[source code](virtual_copy_constructor_destructor.cpp)
+[source code](../src/class/virtual_copy_constructor_destructor.cpp)
