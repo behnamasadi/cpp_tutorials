@@ -167,17 +167,22 @@ set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 
 # Stack overflow 
 If the call stack pointer exceeds the stack bound, because of:
-Infinite recursion:
+
+1. Infinite recursion:
+
 int infiniteRecursion()
 {
      return infiniteRecursion();
 }
-Very large stack variables
+
+2. Very large stack variables:
+ 
 int largeStackVariables()
 {
      double x[1000000000];
 }
 # Memory segmentation
+
  Memory segmentation is dividing main memory into segments. using segmentation, a reference to a memory location
  includes a value that identifies a segment and an offset (memory location) within that segment.
  Segmentation was originally invented as a method by which system software could isolate different processes and data
