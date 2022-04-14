@@ -464,10 +464,10 @@ IF(testing_enabled)
 ENDIF()
 
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox.cpp")
-        add_executable(sandbox  src/sandbox.cpp)
-        target_link_libraries(sandbox)
-endif()
+MESSAGE(${CMAKE_CURRENT_SOURCE_DIR})
+IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
+        ADD_SUBDIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
+ENDIF()
 
 
 
