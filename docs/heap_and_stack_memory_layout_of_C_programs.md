@@ -33,12 +33,15 @@ p1 = "Margarethe";
 2) Data:
 
 global/static initialized data
+
 3) BSS:
 
 global/static uninitialized data
 
 4) Heap
-5) Stack
+
+6) Stack
+
 It is a dynamic data structure maintained by OS to control the way procedure calling each other and parameter they pass.
 Call stack maintained for each thread. The actual implementation of a stack depends on the microprocessor architecture.
 It can grow up or down in memory and can move either before or after the push/pop operations
