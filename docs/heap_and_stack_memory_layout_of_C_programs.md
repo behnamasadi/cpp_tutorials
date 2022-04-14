@@ -1,11 +1,42 @@
 # Memory Layout of C Programs 
-1) Text
-code and data (variable, functions parameters,...) are stored in separate memory. All codes in the functions
-go into the code (Text) region.
-2) Data
+1) Text:
+
+All codes in the functions variable like `char name[] = "behnam";` go into the code (Text) region which **read only**.
+ 
+consider the following variable:
+```cpp
+char* p1 = "John";
+```
+
+This will complies:
+```cpp
+p1[0] = 'C';
+```
+but it will cause `segmentation fault` as the variable is on the `code section` and code section is read only
+(`"John"`  is a string literal and `p1` holds the starting address of that.)
+
+
+This is allowed (Value of `p1` can be changed):
+```cpp
+p1 = "Margarethe";
+```
+However is we define it as follows:
+```cpp
+char* const p1 = "John";
+```
+since `p1` is fixed we can not change it and it is not valid:
+```cpp
+p1 = "Margarethe";
+```
+
+ 
+2) Data:
+
 global/static initialized data
-3) BSS
+3) BSS:
+
 global/static uninitialized data
+
 4) Heap
 5) Stack
 It is a dynamic data structure maintained by OS to control the way procedure calling each other and parameter they pass.
