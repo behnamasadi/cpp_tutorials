@@ -19,27 +19,38 @@ public:
     }
 };
 
-class point 
+class intArray
 {
-    
 public:
-    int x, y;
-    point(const std::initializer_list<int> &l) 
-    {
-        x = *(l.begin());
-        y = *(l.begin()+1);
-        std::cout << "initializer_list called" << std::endl;
-    }
+	int size;
+	int * data;
 
-    point(int x, int y) :x(x), y(y)
-    {
-        std::cout << "constructor called" << std::endl;
-    }
+	intArray(int size)
+	{
+		size = size; 
+		data = new int[size];
+	}
 
-    void operator()(int x, int y)
-    {
-        std::cout<<"x: "<<x <<" y: "<<y <<std::endl;
-    }
+	~intArray() 
+	{
+		delete[] data;
+	}
+
+	intArray(std::initializer_list<int> list)
+	{
+		size = list.size();
+		data = new int[list.size()];
+
+		//std::initializer_list doesn't provide a subscript operator
+
+		int count{ 0 };
+		for (auto element : list)
+		{
+			data[count] = element;
+			++count;
+		}
+
+	}
 };
 
 int main() 
@@ -73,8 +84,24 @@ It means the use of brace-enclosed initializer lists to initialize all members o
     entity entity2 = { 2011,"name"};
 
 
-    //Calling initializer_list
-    point point1{2,3};
-    point point2={2,3};
-    point point3(2,3) ;
+    /*
+	initializer_list
+	so far the only way to use our array is like this:
+	*/
+
+	intArray array1(4);
+	array1.data[0] =7 ;
+	array1.data[1] = 3;
+	array1.data[2] = 5;
+	array1.data[3] = 6;
+
+	/*
+	with initializer_list, we can send an array directly:
+	*/
+
+
+	intArray array2({ 1,2,3,4,5,6,7,8 });
+	std::cout << array2.data[0] << std::endl;
+	std::cout << array2.data[1] << std::endl;
+	std::cout << array2.data[2] << std::endl;
 }
