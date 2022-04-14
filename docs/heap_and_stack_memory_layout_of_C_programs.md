@@ -183,38 +183,42 @@ int largeStackVariables()
 }
 # Memory segmentation
 
- Memory segmentation is dividing main memory into segments. using segmentation, a reference to a memory location
- includes a value that identifies a segment and an offset (memory location) within that segment.
- Segmentation was originally invented as a method by which system software could isolate different processes and data
- they are using. It was intended to increase reliability of the systems running multiple processes simultaneously.
- The size of a memory segment is generally not fixed.
- In a x86-64 architecture it is considered legacy and most x86-64-based modern system software don't use memory segmentation.
- Instead they handle programs and their data by utilizing memory-paging which also serves as a way of memory protection.
- However most x86-64 implementations still support it for backward compatibility reasons
+ Memory segmentation is dividing main memory into segments. using segmentation, a reference to a memory location includes a value that identifies a segment and an offset (memory location) within that segment.
+ Segmentation was originally invented as a method by which system software could isolate different processes and data  they are using. It was intended to increase reliability of the systems running multiple processes simultaneously.
+ 
+ The size of a memory segment is generally not fixed. In a x86-64 architecture it is considered legacy and most x86-64-based modern system software don't use memory segmentation.
+ 
+ Instead they handle programs and their data by utilizing memory-paging which also serves as a way of memory protection. However most x86-64 implementations still support it for backward compatibility reasons
  Each segment has a length and set of permissions (for example, read, write, execute) associated with it.
- A process is only allowed to make a reference into a segment if the type of reference is allowed by the permissions,
- and if the offset within the segment is within the range specified by the length of the segment.
+ 
+ A process is only allowed to make a reference into a segment if the type of reference is allowed by the permissions, and if the offset within the segment is within the range specified by the length of the segment.
  Otherwise, a hardware exception such as a segmentation fault is raised.
  Segmentation has been implemented in several different ways on different hardware, with or without paging.
+ 
  1)Segmentation without paging
+ 
  2)Segmentation with paging
+ 
 # Paging (x86-64 architecture)
 Process
 A process is just a running  program. The execution of a process must progress in a sequential fashion.
-Process Life Cycle
-Start
+## Process Life Cycle
+1. Start
 This is the initial state when a process is first started/created.
-Ready
+
+2. Ready
 The process is waiting to be assigned to a processor. Ready processes are waiting to have the processor
 allocated to them by the operating system so that they can run. Process may come into this state after
 Start state or while running it by but interrupted by the scheduler to assign CPU to some other process.
-Running
-Once the process has been assigned to a processor by the OS scheduler, the process state is set to running and the
-processor executes its instructions.
-Waiting
+
+3. Running
+Once the process has been assigned to a processor by the OS scheduler, the process state is set to running and the processor executes its instructions.
+
+4. Waiting
 Process moves into the waiting state if it needs to wait for a resource, such as waiting for user input,
 or waiting for a file to become available.
-Terminated or Exit
+
+5. Terminated or Exit
 Once the process finishes its execution, or it is terminated by the operating system, it is moved to the
 terminated state where it waits to be removed from main memory.
 
