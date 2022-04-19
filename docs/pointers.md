@@ -4,9 +4,10 @@
   * [Wild pointer](#wild-pointer)
   * [Dangling pointer](#dangling-pointer)
 - [Memory safety and Pointers](#memory-safety-and-pointers)
-- [shared_ptr](#shared-ptr)
-- [unique_ptr](#unique-ptr)
-- [weak_pointer](#weak-pointer)
+- [Smart pointers](#smart-pointers)
+  * [unique_ptr](#unique-ptr)
+  * [shared_ptr](#shared-ptr)
+  * [weak_pointer](#weak-pointer)
   * [Avoiding cyclic references when using shared pointers](#avoiding-cyclic-references-when-using-shared-pointers)
 - [Pointer casting](#pointer-casting)
 - [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
@@ -51,6 +52,23 @@ p[1] == 'b'; // p[1] actually dereferences a pointer created by adding  p and 1 
 In **C**, `NULL` and `0` - and additionally in **C++** `nullptr` - can be used to indicate that a pointer doesn't currently hold the memory address of a variable, and shouldn't be dereferenced
 
 ### Wild pointer
+
+wild pointer is an uninitialized pointers. It points to some random address in the memory and may cause a program to crash or behave badly.
+
+```cpp
+    // wild pointer, uninitialized, pointing to some unknown memory location 
+    int *ptr;  
+    //   This will cause the program to crash or behave badly. 
+    *ptr = 10; 
+```  
+to avoid this, allway define the pointer as following:
+
+
+```cpp
+      int *ptr=nullptr; 
+```  
+
+
 ### Dangling pointer
 A dangling pointer is a (non-NULL) pointer which points to unallocated (already freed) memory area.
 ```cpp
@@ -93,9 +111,79 @@ set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 ```
 
+# Smart Pointers
+Smart pointers represent a way to express ownership over a resource. They prevent memory leaksing by making the memory deallocation automatic and making object destruction automatic. An object controlled by a smart pointer is automatically destroyed when the last (or only) owner of an object is destroyed.
+An object can solely own another object (unique_ptr), or it can share the ownership of an object with others (shared_ptr), or it does not own but only refers to an object(weak_pointer). 
+
+
+## unique_ptr
+Sole ownership: 
+Usecases of sole ownership include having to move around an expensive to copy resource, a resource that is owned by a single subroutine but needs to be dynamically allocated, passing a resource between threads, various implementations of singletons or pimpl and compatibility with C libraries which use pointers.
+
+Raw pointers do not establish the unique ownership themselves. A class that uses raw pointers for unique ownership must explicitly implement the move-construction/assignment and disallow copy-construction/assignment. 
+
+unique pointer, has less overhead relative to share_ptr, so **use a unique pointer instead of a 
+shared pointer** where it suffices. A unique pointer has no copy constructor can not be copied, and can only be moved. Also possible to transfer the exclusive ownership by moving. The underlying resource is destructed when it exists the scope.
+
+
+
+There are different ways to create a unique pointer:
+
+First way:
+```cpp
+std::unique_ptr<person> entity=std::unique_ptr<person>(new person);
+```
+
+Second way(recommended) for exception safety
+```cpp
+std::unique_ptr<person> entity=std::make_unique<person>();
+```
+
+This will fail because it is a unique pointer, it can not be copied:
+```cpp
+std::unique_ptr<person> secondentity=entity;
+```
+
+This will work because because we have move constructor
+```cpp
+std::unique_ptr<person> secondentity=std::move(entity);
+```
 
 
 ## shared_ptr
+Shared ownership: shared pointer, It is  mainly meant for multi-threaded resource sharing and gives the guarantee that the object won’t be freed by another thread. The managed object is deleted when the last owning shared_ptr is destroyed. In a typical implementation, a shared_ptr contains only two pointers: 
+1. A raw pointer to the managed object (can be returned by calling get()) 
+2. A pointer to the control block.
+
+Several shared_ptr instances can share the management of an object's lifetime through a common **control block**. 
+
+
+```
+|----------------------------|                                                |----------------------------|
+|   shared_ptr<>Ptr1         |                                                |   shared_ptr<>Ptr1         |
+|----------------------------|                   |------------|               |----------------------------|
+|Pointer to the Object       |------------------>|   Object   |<--------------|Pointer to the Object       |
+|                            |                   |------------|               |                            |   
+|Pointer to the control block|----|                                       |---|Pointer to the control block|
+|----------------------------|    |                                       |   |----------------------------|
+                                  |                                       |
+                                  |                                       |
+                                  |                                       |   
+                                  |    |-----------------------------|    |
+                                  |    |       control block         |    |
+                                  |--->|raw pointer to object        |<---| 
+                                       |Shared reference counter     |
+                                       |Weak reference counter       |
+                                       |Pointer to allocator, deleter|
+                                       |-----------------------------|
+```
+
+
+Refs: [1](https://www.nextptr.com/tutorial/ta1358374985/shared_ptr-basics-and-internals-with-examples)
+
+
+
+
 There are several ways to create a shared pointer:
 
 Single line with new:
@@ -124,29 +212,7 @@ function to free the space.
 The destructor for `std::vector<T>` ensures that the destructor for T is called for every element stored in the vector.
 
 
-## unique_ptr
-unique pointer, they have less overhead.A unique pointer has no copy constructor can not be copied, can be moved. Use a unique pointer instead of a 
-shared pointer where an unique pointer suffices.
 
-First way:
-```cpp
-std::unique_ptr<person> entity=std::unique_ptr<person>(new person);
-```
-
-Second way(recommended) for exception safety
-```cpp
-std::unique_ptr<person> entity=std::make_unique<person>();
-```
-
-This will fail because it is a unique pointer, it can not be copied:
-```cpp
-std::unique_ptr<person> secondentity=entity;
-```
-
-This will work because because we have move constructor
-```cpp
-std::unique_ptr<person> secondentity=std::move(entity);
-```
 
 ## weak_pointer
 std::weak_ptr is a very good way to solve the **dangling pointer** problem. By just using raw pointers it is impossible to know if the referenced 
