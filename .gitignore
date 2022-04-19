@@ -1,5 +1,5 @@
 build/*
 *.user
 *.kdev4
-src/sandbox.cpp
+src/sandbox/*
 CMakeLists.txt.user
