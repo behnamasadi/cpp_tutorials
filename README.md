@@ -32,7 +32,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Extern Variables](src/extern/variable/main.cpp)  
    * [Forking](src/fork.cpp)  
    * [Forward](src/forward.cpp)  
-   * [Functions](src/function.cpp)  
+   * [Functions](docs/functions.md)  
    * [Function Objects](src/function_objects.cpp)  
    * [Function Pointer](src/function_pointer.cpp)
    * [Hash](src/hash.cpp)    
