@@ -188,8 +188,8 @@ target_link_libraries(error_handling)
 add_executable(bitwise_operations src/bitwise_operations.cpp)
 target_link_libraries(bitwise_operations)
 
-add_executable(bitset src/bitset.cpp)
-target_link_libraries(bitset)
+add_executable(bitset_bit_field src/bitset_bit_field.cpp)
+target_link_libraries(bitset_bit_field)
 
 add_executable(inheritance src/class/inheritance.cpp)
 target_link_libraries(inheritance)
