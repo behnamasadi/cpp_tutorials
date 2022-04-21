@@ -16,7 +16,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Assert](src/assert.cpp)  
    * [Basic IO Operation, filesystem, Streams, Reading/Writing Files, Formating Output, cin,scanf,gets,getline,printf](docs/basic_IO_operation.md)  
    * [Bindinng](src/bind.cpp)  
-   * [Bitset](src/bitset.cpp)  
+   * [Bitset, Bit field](src/bitset_bit_field.cpp)  
    * [Bitwise Operations](src/bitwise_operations.cpp)  
    * [Callbacks, Callable Objects](docs/callbacks.md)  
    * [Conditional Compilation](src/conditional_compilation.cpp)  
