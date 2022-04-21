@@ -87,6 +87,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Static Member Function, Static Initialization Order Fiasco](src/class/static_member_function.cpp)  
    * [Virtual Function Abstract Class](docs/virtual_function_abstract_class.md)  
    * [Virtual Destructor, Virtual Constructor, Copy Constructor](src/class/virtual_copy_constructor_destructor.cpp)
+   * [Zero Initialization, Value Initialization and Default Initialization](docs/zero_value_default_initialization.md)
    
 - [Multithreading](src/multithreading/)
    * [Creating (Thread Callable Objects), Terminating Threads](src/multithreading/README.md#creation_and_termination)  
