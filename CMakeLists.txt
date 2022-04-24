@@ -7,25 +7,25 @@ set(CMAKE_BUILD_TYPE DEBUG)
 option(USE_CLANG "build application with clang" OFF)
 
 if(USE_CLANG)
-	set (CMAKE_C_COMPILER             "/usr/bin/clang")
-	#set (CMAKE_C_FLAGS                "-Wall -std=c99")
-	set (CMAKE_C_FLAGS_DEBUG          "-g")
-	set (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-	set (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
-	set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+        set (CMAKE_C_COMPILER             "/usr/bin/clang")
+        #set (CMAKE_C_FLAGS                "-Wall -std=c99")
+        set (CMAKE_C_FLAGS_DEBUG          "-g")
+        set (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+        set (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
+        set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-	set (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
-	set (CMAKE_CXX_FLAGS                "-Wall")
-	set (CMAKE_CXX_FLAGS_DEBUG          "-g")
-	set (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-	set (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
-	set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+        set (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
+        set (CMAKE_CXX_FLAGS                "-Wall")
+        set (CMAKE_CXX_FLAGS_DEBUG          "-g")
+        set (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+        set (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
+        set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-	set (CMAKE_AR      "/usr/bin/llvm-ar")
-	set (CMAKE_LINKER  "/usr/bin/llvm-ld")
-	set (CMAKE_NM      "/usr/bin/llvm-nm")
-	set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-	set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+        set (CMAKE_AR      "/usr/bin/llvm-ar")
+        set (CMAKE_LINKER  "/usr/bin/llvm-ld")
+        set (CMAKE_NM      "/usr/bin/llvm-nm")
+        set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+        set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
 endif()
 
 
@@ -53,7 +53,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   message("using Visual Studio C++") 
   #set warning level into errors 
     if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-	    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+            string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     endif()
     
 endif()
@@ -316,8 +316,8 @@ endif()
 add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
 target_link_libraries(basic_IO_operation_streams )
 
-add_executable(explicit  src/explicit.cpp)
-target_link_libraries(explicit)
+add_executable(explicit_constructor  src/class/explicit_constructor.cpp)
+target_link_libraries(explicit_constructor)
 
 add_executable(volatile  src/volatile.cpp)
 target_link_libraries(volatile)
@@ -352,10 +352,6 @@ target_link_libraries(most_vexing_parse)
 add_executable(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
 target_link_libraries(VTABLE_and_VPTR)
 
-
-add_executable(aggregate_Initialization  src/{}_aggregate_Initialization.cpp )
-target_link_libraries( aggregate_Initialization)
-
 add_executable(allocator src/allocator.cpp)
 target_link_libraries(allocator)
 
@@ -374,8 +370,8 @@ target_link_libraries(copy_move)
 add_executable(forward src/forward.cpp)
 target_link_libraries(forward)
 
-add_executable(virtual_copy_constructor_destructor src/class/virtual_copy_constructor_destructor.cpp)
-target_link_libraries(virtual_copy_constructor_destructor)
+add_executable(virtual_destructor_virtual_constructor src/class/virtual_destructor_virtual_constructor.cpp)
+target_link_libraries(virtual_destructor_virtual_constructor)
 
 add_executable(cpp_17 src/cpp_17.cpp)
 target_link_libraries(cpp_17)
@@ -395,9 +391,6 @@ target_link_libraries(optimizing_cpp)
 add_executable(track_memory_allocations src/track_memory_allocations.cpp)
 target_link_libraries(track_memory_allocations)
 
-add_executable(copy_initialization src/copy_initialization.cpp)
-target_link_libraries(copy_initialization)
-
 add_executable(nested_namespaces src/nested_namespaces.cpp)
 target_link_libraries(nested_namespaces)
 
@@ -408,10 +401,22 @@ add_executable(set_argv_argc  src/set_argv_argc.cpp)
 target_link_libraries(set_argv_argc)
 
 
+add_executable(aggregate-copy-default-direct-value-zero src/{}-operator-aggregate-copy-default-direct-value-zero.cpp)
+target_link_libraries(aggregate-copy-default-direct-value-zero)
+
+add_executable(aggregate_initialization src/aggregate_initialization.cpp)
+target_link_libraries(aggregate_initialization)
+
+add_executable(default-initialized src/default-initialized.cpp)
+target_link_libraries(default-initialized)
+
+
+
+
 find_package(PkgConfig)
 
 if(EXISTS "$ENV{HOME}/usr/lib/pkgconfig")
-	set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
+        set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 endif()
 MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
@@ -460,7 +465,7 @@ endif()
 
 OPTION(TESTING "Enable testing" OFF)
 IF(testing_enabled)
-	ADD_SUBDIRECTORY(tests)
+        ADD_SUBDIRECTORY(tests)
 ENDIF()
 
 
