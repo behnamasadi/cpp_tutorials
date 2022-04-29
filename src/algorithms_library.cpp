@@ -11,6 +11,7 @@
 #include <random>
 #include <map>
 #include <iomanip>
+#include <cctype>
 
 
 /*
