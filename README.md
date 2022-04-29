@@ -118,7 +118,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
 ## [Advance C++ Concepts/ Idiom](#)
 
    * [Buffer overflow](src/buffer_overflow.cpp)  
-   * [Buffer overflow](src/buffer_overflow.cpp)  
+   * [Copy and Swap.md](docs/copy-and-swap_idiom.md)  
    * [Static Cassting, Dynamic Casting](src/cast.cpp)  
    * [Run-Time Type Information(RTTI)](src/RTTI.cpp)  
    * [Curiously Recurring Template Pattern (CRTP)](src/CRTP.cpp)  
