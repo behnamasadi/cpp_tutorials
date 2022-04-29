@@ -13,6 +13,7 @@
 #include <string_view>
 #include <algorithm>
 #include <locale.h>
+#include <cctype>
 
 #if defined WIN32
 //#include <stringapiset.h>
