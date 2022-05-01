@@ -98,7 +98,8 @@ Example:
 
 class Foo
 {
-    public: int i;
+public: 
+    int i;
 };
 
 
@@ -146,7 +147,8 @@ Consider the followings:
 
 class Foo
 {
-    public: int i;
+public: 
+    int i;
 };
 
 
@@ -169,12 +171,20 @@ This is value initialization. **Value initialization** for fundamental types mea
 
 
 
+## Difference between "=default" and "{}"  
 
 
 
+Refs [1](https://stackoverflow.com/questions/13576055/how-is-default-different-from-for-default-constructor-and-destructor)
+
+
+# Value Initializing
+
+Refs: [1](https://en.cppreference.com/w/cpp/language/value_initialization), [2](https://stackoverflow.com/questions/8860780/what-does-value-initializing-something-mean)
 
 
 
+# Explicit/ non-explicit constructor 
 
 
 
