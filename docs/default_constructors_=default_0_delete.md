@@ -124,3 +124,8 @@ struct noncopyable
 
 ## =delete
 Deleted functions enale you to prevent problematic type promotions from occurring.
+
+
+## = default vs empty user defined function {}
+
+Refs: [1](https://stackoverflow.com/questions/20828907/the-new-syntax-default-in-c11#:~:text=If%20you%20want%20your%20class,you%20need%20to%20use%20%3D%20default%20.), [2](https://stackoverflow.com/questions/6502828/what-does-default-mean-after-a-class-function-declaration)
