@@ -1,4 +1,4 @@
-# Default constructors
+# Default Constructors
 A default constructor is a constructor that 
 1. Has no parameters:
 
@@ -91,10 +91,36 @@ int main()
 //  I i; // compile error
 }
 ```
-
-
-
 Refs: [1](https://www.ibm.com/docs/en/zos/2.2.0?topic=only-default-constructors-c), [2](https://en.cppreference.com/w/cpp/language/default_constructor)
-
-
 [code](../src/class/default_0_delete_meaning.cpp)
+
+
+# Explicitly Defaulted and Deleted
+
+C++ compiler automatically generates the **default constructor**, **copy constructor**, **copy-assignment** operator, and **destructor**  if it does not declared. These functions are known as the **special member functions**. That's enable you to create, copy, and destroy objects without any additional code. 
+C++11 introduced **move semantics** to the language and added the **move constructor** and **move-assignment** operator to the list of special member functions that the compiler can automatically generate.
+
+
+
+
+You can make any of class  member functions to use the default implementation (automatic generation).
+
+Because of the performance benefits of trivial special member functions, we recommend that you prefer automatically generated special member functions over empty function bodies when you want the default behavior. 
+
+Refs: [1](https://docs.microsoft.com/en-us/cpp/cpp/explicitly-defaulted-and-deleted-functions?view=msvc-170)
+
+
+## =default
+
+```cpp
+struct noncopyable
+{
+  noncopyable() =default;
+  noncopyable(const noncopyable&) =delete;
+  noncopyable& operator=(const noncopyable&) =delete;
+};
+```
+
+
+## =delete
+Deleted functions enale you to prevent problematic type promotions from occurring.
