@@ -95,7 +95,7 @@ Refs: [1](https://www.ibm.com/docs/en/zos/2.2.0?topic=only-default-constructors-
 [code](../src/class/default_0_delete_meaning.cpp)
 
 
-# Explicitly Defaulted and Deleted
+# Explicitly Defaulted and Deleted Special Member Functions
 
 C++ compiler automatically generates the **default constructor**, **copy constructor**, **copy-assignment** operator, and **destructor**  if it does not declared. These functions are known as the **special member functions**. That's enable you to create, copy, and destroy objects without any additional code. 
 C++11 introduced **move semantics** to the language and added the **move constructor** and **move-assignment** operator to the list of special member functions that the compiler can automatically generate.
@@ -111,6 +111,9 @@ Refs: [1](https://docs.microsoft.com/en-us/cpp/cpp/explicitly-defaulted-and-dele
 
 
 ## =default
+
+In `Foo`,  For the type to qualify as trivial the presence of the `Foo(int a, int b)` constructor requires that you provide a default constructor., you must explicitly default that constructor.
+
 
 ```cpp
 struct noncopyable
