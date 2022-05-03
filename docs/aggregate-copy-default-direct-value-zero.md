@@ -57,7 +57,7 @@ intArray array2({ 1,2,3,4,5,6,7,8 });
 [code](../src/aggregate_initialization.cpp)
 
 
-# Copy initialization
+# Copy Initialization
 Initializes an object from another object.
 
 
@@ -111,35 +111,6 @@ std::cout<<inst2->i <<std::endl;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Consider the followings:
 
 
@@ -168,30 +139,14 @@ Foo inst4 = Foo();
 This is value initialization. **Value initialization** for fundamental types means zero-initialization, (variables are initialized to zero).
 
 
-
-
-
-## Difference between "=default" and "{}"  
-
-
-
-Refs [1](https://stackoverflow.com/questions/13576055/how-is-default-different-from-for-default-constructor-and-destructor)
-
-
 # Value Initializing
 
 Refs: [1](https://en.cppreference.com/w/cpp/language/value_initialization), [2](https://stackoverflow.com/questions/8860780/what-does-value-initializing-something-mean)
 
 
+# Uniform Initialization
 
-# Explicit/ non-explicit constructor 
-
-
-
-
-//https://www.modernescpp.com/index.php/initialization
-// uniformInitialization.cpp
-
+```cpp
 #include <map>
 #include <vector>
 #include <string>
@@ -245,70 +200,12 @@ int main1(){
   MyClass2 myClass3= {2011,3.14};   
 
 }
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[code](../src/class/constructor_initializationlist.cpp)
 
 
 [code](../src/{}-operator-aggregate-copy-default-direct-value-zero.cpp)
 
-Refs: [1](https://stackoverflow.com/questions/8860780/what-does-value-initializing-something-mean)
+Refs: [1](https://stackoverflow.com/questions/8860780/what-does-value-initializing-something-mean), [2](https://www.modernescpp.com/index.php/initialization)
