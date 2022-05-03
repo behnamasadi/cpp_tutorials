@@ -40,6 +40,87 @@ private:
    int j;   
 };  
 ```  
+
   
+## Standard layout types  
+When a class or struct does not contain certain C++ language features such as virtual functions which are not found in the C language, and all members have the same access control, it is a standard-layout type.  It is memcopy-able and the layout is sufficiently defined that it can be consumed by C programs. Standard-layout types can have user-defined [special member functions](class_special_member_functions.md).
+  
+In the following example all members have same access and we have user-defined constructor (`std::is_standard_layout<Foo>` is true).
+```cpp
+struct Foo
+{
+   
+   int i;
+   int j;
+   Foo(int a, int b) : i(a), j(b) {} 
+};  
+```  
+## POD types
+  
+When a class or struct is both trivial and standard-layout, it is a POD (Plain Old Data) type. The memory layout of POD types is therefore contiguous and each member has a higher address than the member that was declared before it, so that byte for byte copies and binary I/O can be performed on these types.  
+  
+  
+  
+```cpp
+#include <type_traits>
+#include <iostream>
+
+using namespace std;
+
+struct B
+{
+protected:
+   virtual void Foo() {}
+};
+
+// Neither trivial nor standard-layout
+struct A : B
+{
+   int a;
+   int b;
+   void Foo() override {} // Virtual function
+};
+
+// Trivial but not standard-layout
+struct C
+{
+   int a;
+private:
+   int b;   // Different access control
+};
+
+// Standard-layout but not trivial
+struct D
+{
+   int a;
+   int b;
+   D() {} //User-defined constructor
+};
+
+struct POD
+{
+   int a;
+   int b;
+};
+
+int main()
+{
+   cout << boolalpha;
+   cout << "A is trivial is " << is_trivial<A>() << endl; // false
+   cout << "A is standard-layout is " << is_standard_layout<A>() << endl;  // false
+
+   cout << "C is trivial is " << is_trivial<C>() << endl; // true
+   cout << "C is standard-layout is " << is_standard_layout<C>() << endl;  // false
+
+   cout << "D is trivial is " << is_trivial<D>() << endl;  // false
+   cout << "D is standard-layout is " << is_standard_layout<D>() << endl; // true
+
+   cout << "POD is trivial is " << is_trivial<POD>() << endl; // true
+   cout << "POD is standard-layout is " << is_standard_layout<POD>() << endl; // true
+
+   return 0;
+}  
+  
+```  
   
 Refs: [1](https://docs.microsoft.com/en-us/cpp/cpp/trivial-standard-layout-and-pod-types?view=msvc-170)
