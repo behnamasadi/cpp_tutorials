@@ -373,9 +373,6 @@ target_link_libraries(forward)
 add_executable(virtual_destructor_virtual_constructor src/class/virtual_destructor_virtual_constructor.cpp)
 target_link_libraries(virtual_destructor_virtual_constructor)
 
-add_executable(cpp_17 src/cpp_17.cpp)
-target_link_libraries(cpp_17)
-
 add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
 target_link_libraries(csv_reading_example)
 
