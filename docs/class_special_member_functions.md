@@ -1,1 +1,4 @@
 
+# Special Member Functions
+C++ compiler automatically generates the **default constructor**, **copy constructor**, **copy-assignment** operator, and **destructor**  if it does not declared. These functions are known as the **special member functions**. That's enable you to create, copy, and destroy objects without any additional code. 
+C++11 introduced **move semantics** to the language and added the **move constructor** and **move-assignment** operator to the list of special member functions that the compiler can automatically generate.
