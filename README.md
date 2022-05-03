@@ -114,9 +114,6 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Future, Promise and async](src/multithreading/README.md#async_future_promise)  
    * [Packaged Task](src/multithreading/README.md#packaged_task)  
    * [Printing Process Tree](src/multithreading/README.md#printing_process_tree)  
-## [Modern C++ 11, 14, 17 and 20](#)
-   * [C++ 17](src/cpp_17.cpp)  
-   * [C++ 20](src/cpp_20.cpp)  
 
 ## [Advance C++ Concepts/ Idiom](#)
 
