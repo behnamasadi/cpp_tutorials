@@ -92,6 +92,8 @@ int main()
 }
 ```
 Refs: [1](https://www.ibm.com/docs/en/zos/2.2.0?topic=only-default-constructors-c), [2](https://en.cppreference.com/w/cpp/language/default_constructor)
+
+
 [code](../src/class/default_0_delete_meaning.cpp)
 
 
@@ -131,4 +133,6 @@ Deleted functions enale you to prevent problematic type promotions from occurrin
 
 ## = default vs empty user defined function {}
 
-Refs: [1](https://stackoverflow.com/questions/20828907/the-new-syntax-default-in-c11#:~:text=If%20you%20want%20your%20class,you%20need%20to%20use%20%3D%20default%20.), [2](https://stackoverflow.com/questions/6502828/what-does-default-mean-after-a-class-function-declaration)
+Refs: [1](https://stackoverflow.com/questions/20828907/the-new-syntax-default-in-c11#:~:text=If%20you%20want%20your%20class,you%20need%20to%20use%20%3D%20default%20.), [2](https://stackoverflow.com/questions/6502828/what-does-default-mean-after-a-class-function-declaration), [3](https://stackoverflow.com/questions/13576055/how-is-default-different-from-for-default-constructor-and-destructor)
+
+
