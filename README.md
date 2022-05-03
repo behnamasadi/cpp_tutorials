@@ -85,6 +85,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Protected Friend Class Function](src/class/protected_friend_class_function.cpp)  
    * [Shadowing](src/class/shadowing.cpp)  
    * [Static Member Function, Static Initialization Order Fiasco](src/class/static_member_function.cpp)  
+   * [Special Member Functions](docs/class_special_member_functions.md)  
    * [Virtual Function Abstract Class](docs/virtual_function_abstract_class.md)  
    * [Virtual Destructor, Virtual Constructor](docs/virtual_destructor_virtual_constructor.md)  
 - [Multithreading](src/multithreading/)
