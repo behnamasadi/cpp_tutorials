@@ -1,20 +1,18 @@
 # C++ Standard Exceptions
 
-1)std::bad_alloc
-2)std::bad_cast
-3)std::bad_exception
-4)std::bad_typeid
-5)std::logic_error
-    5-1)std::domain_error: exception thrown when a mathematically invalid domain is used.
-    5-2)std::invalid_argument
-    5-3)std::length_error
-    5-4)std::out_of_range
-6)std::runtime_error: An exception that theoretically cannot be detected by reading the code.
-    6-1)std::overflow_error :
-        The only standard library components that
-        throw std::overflow_error are std::bitset::to_ulong and std::bitset::to_ullong.
-    6-2)std::underflow_error
-    6-3)std::range_error
+1) std::bad_alloc  
+2) std::bad_cast  
+3) std::bad_exception  
+4) std::bad_typeid  
+5) std::logic_error  
+    5-1) std::domain_error: exception thrown when a mathematically invalid domain is used.  
+    5-2) std::invalid_argument  
+    5-3) std::length_error  
+    5-4) std::out_of_range  
+6) std::runtime_error: An exception that theoretically cannot be detected by reading the code.  
+    6-1) std::overflow_error: The only standard library components that throw std::overflow_error are std::bitset::to_ulong and std::bitset::to_ullong.  
+    6-2) std::underflow_error  
+    6-3) std::range_error  
     
 
 ## std::bad_alloc
