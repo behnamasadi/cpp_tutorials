@@ -31,7 +31,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Dynamic Memory Allocation (C Style)](src/dynamic_memory_allocation.cpp)  
    * [Enum](src/enum.cpp)  
    * [Error Handling](src/error_handling.cpp)  
-   * [Exception Handling](src/exception_handling.cpp)  
+   * [Exception Handling](docs/exception_handling.md)  
    * [Extern Variables](src/extern/variable/main.cpp)  
    * [Forking](src/fork.cpp)  
    * [Forward](src/forward.cpp)  
