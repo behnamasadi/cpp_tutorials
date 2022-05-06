@@ -1,13 +1,4 @@
 #include <iostream>
-/*
-
-http://www.cplusplus.com/articles/2LywvCM9/
-
-Calling a function has lot of overhead, calling, copying arguments, push/pop on the stack, and return.
-Inline function will be added to your code so there is no call and return.
-Use inline function over macros.
-
-*/
 
 class foo
 {
