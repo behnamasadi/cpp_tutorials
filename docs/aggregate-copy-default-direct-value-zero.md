@@ -1,3 +1,48 @@
+# Initialization Lists
+Using Initialization lists to initialize Fields
+
+```cpp
+class Foo
+{
+private:
+	int b;
+	double c;
+public:
+	Foo(int i, double j):b(i), c(j){}
+
+	Foo();
+	void Print()
+	{
+		std::cout<< "b is:"<<b<<" and c is: "<< c <<std::endl;
+	}
+};
+```
+The object:
+
+```cpp
+Foo obj_Foo(10,12.3);
+obj_Foo.Print();
+```
+Initializing super class:
+
+```cpp
+class Bar : public Foo
+{
+        public:
+        Bar(int z, int y) : Foo( z,y ) 
+        { 
+            std::cout << "Bar's constructor" << std::endl;
+        }
+};
+```
+
+The object:
+```cpp
+Bar obj_Bar(2,3);
+```
+
+ [code](../src/class/constructor_initialization_list.cpp)
+
 # Aggregate Initialization
 
 

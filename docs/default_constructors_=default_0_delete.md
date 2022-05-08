@@ -99,7 +99,7 @@ Refs: [1](https://www.ibm.com/docs/en/zos/2.2.0?topic=only-default-constructors-
 
 # Explicitly Defaulted and Deleted Special Member Functions
 
-C++ compiler automatically generates the **default constructor**, **copy constructor**, **copy-assignment** operator, and **destructor**  if it does not declared. These functions are known as the **special member functions**. That's enable you to create, copy, and destroy objects without any additional code. 
+C++ compiler automatically generates the **default constructor**, **copy constructor**, **copy-assignment** operator, and **destructor**  if it does not declared. These functions are known as the [**special member functions**](class_special_member_functions.md). That's enable you to create, copy, and destroy objects without any additional code. 
 C++11 introduced **move semantics** to the language and added the **move constructor** and **move-assignment** operator to the list of special member functions that the compiler can automatically generate.
 
 
@@ -128,10 +128,43 @@ struct noncopyable
 
 
 ## =delete
-Deleted functions enale you to prevent problematic type promotions from occurring.
+Deleted functions enable you to prevent problematic type promotions from occurring.
 
 
 ## = default vs empty user defined function {}
+
+When a class or `struct` in C++ has compiler-provided or **explicitly defaulted special member functions**, then it is a trivial type. It occupies a contiguous memory area. 
+In `Foo`, the presence of the `Foo(int a, int b)` constructor requires that you provide a **default constructor**. For the type to qualify as trivial, you must explicitly default that constructor. Please note that the member variables have different access control (public and private mixed)
+
+  
+```cpp
+struct Foo
+{
+   int i;
+   Foo(int a, int b) : i(a), j(b) {}
+   Foo() = default;
+private:
+   int j;   
+};  
+```  
+
+It could be verified:
+
+```cpp
+    std::cout << "Foo is trivial is " << std::is_trivial<Foo>() << std::endl;
+```
+
+changing 
+```cpp
+   Foo() = default;
+```
+to this 
+
+```cpp
+   Foo(){};
+```
+
+will make it non-trivial constructor.
 
 Refs: [1](https://stackoverflow.com/questions/20828907/the-new-syntax-default-in-c11#:~:text=If%20you%20want%20your%20class,you%20need%20to%20use%20%3D%20default%20.), [2](https://stackoverflow.com/questions/6502828/what-does-default-mean-after-a-class-function-declaration), [3](https://stackoverflow.com/questions/13576055/how-is-default-different-from-for-default-constructor-and-destructor)
 

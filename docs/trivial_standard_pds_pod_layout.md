@@ -23,7 +23,7 @@ To determine whether a given type belongs to a given category the Standard Libra
 
 ## Trivial types
   
-When a class or struct in C++ has compiler-provided or **explicitly defaulted special member functions**, then it is a trivial type. It occupies a contiguous memory area. It can have members with different access specifiers. In C++, the compiler is free to choose how to order members in this situation. Therefore, you can memcopy such objects but you cannot reliably consume them from a C program. A trivial type `T` can be copied into an array of char or unsigned char, and safely copied back into a `T` variable.  
+When a class or `struct` in C++ has compiler-provided or **explicitly defaulted special member functions**, then it is a trivial type. It occupies a contiguous memory area. It can have members with different access specifiers. In C++, the compiler is free to choose how to order members in this situation. Therefore, you can `memcopy` such objects but you cannot reliably consume them from a C program. A trivial type `T` can be copied into an array of char or unsigned char, and safely copied back into a `T` variable.  
   
 Trivial types have a trivial default constructor, trivial copy constructor, trivial copy assignment operator and trivial destructor. In each case, trivial means the **constructor/operator/destructor** is NOT user-provided and belongs to a class that has  
   
