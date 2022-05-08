@@ -170,6 +170,12 @@ target_link_libraries(circular_dependency)
 add_executable(static_member_function  src/class/static_member_function.cpp)
 target_link_libraries(static_member_function)
 
+add_executable(constructor_initialization_list src/class/constructor_initialization_list.cpp)
+target_link_libraries(constructor_initialization_list)
+
+add_executable(inheritance src/class/inheritance.cpp)
+target_link_libraries(inheritance)
+
 add_executable(switch_case src/switch_case.cpp)
 target_link_libraries(switch_case)
 
@@ -190,9 +196,6 @@ target_link_libraries(bitwise_operations)
 
 add_executable(bitset_bit_field src/bitset_bit_field.cpp)
 target_link_libraries(bitset_bit_field)
-
-add_executable(inheritance src/class/inheritance.cpp)
-target_link_libraries(inheritance)
 
 add_executable(hash src/hash.cpp)
 target_link_libraries(hash)
