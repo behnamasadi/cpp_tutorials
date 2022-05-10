@@ -261,52 +261,26 @@ try
 //Other errors
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [code](../src/exception_handling.cpp)
+
+
+# noexcept 
+
+
+## noexcept specifier:
+This means if a function specified with noexcept it shouldn't throw exeption.
+In the case of excpetion std::sterminate will be called
+## noexcept operator
+It tests if a function noexcept specification evalute to true or false at complie time.
+noexcept(some compile time expression) and this returns a boolan
+
+### when should we use it?
+1. When using c++ functions in c
+2. when c++ standard requires us.
+
+
+Refs: [1](https://akrzemi1.wordpress.com/2014/04/24/noexcept-what-for/), [2](https://stackoverflow.com/questions/10787766/when-should-i-really-use-noexcept)
+
+[code](../src/noexcept_operator_specifier.cpp) 
+
+
