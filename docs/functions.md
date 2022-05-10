@@ -1,5 +1,3 @@
-
-
 # std::function
 Class template std::function is a general-purpose polymorphic function wrapper. Instances of std::function can store, copy, and invoke any Callable target:
 1. functions
@@ -42,6 +40,10 @@ printfunctor=print;
 std::function<void(int)>f(printfunctor);
 f(3);
 ```
+
+# std::bind
+
+Refs: [1](https://stackoverflow.com/questions/6610046/stdfunction-and-stdbind-what-are-they-and-when-should-they-be-used), [2](https://en.wikipedia.org/wiki/Partial_application)
 
 # Sending a function as parameter to an other function
 Here in this case planner might use various solver for planning:
