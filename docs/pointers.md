@@ -362,7 +362,7 @@ std::unique_ptr<Object> pu = std::make_unique<Object>();
 function(*pu.get());  // Usage of (6)
 function(pu.get());   // Usage of (7)
 ```
-A std::weak_ptr must be converted to a std::shared_ptr first in order to take the stored pointer.
+A `std::weak_ptr` must be converted to a `std::shared_ptr` first in order to take the stored pointer.
 
 ## Return smart pointers from functions
 return smart pointers if the caller wants to manipulate the smart pointer itself, return raw pointers/references if the caller just needs a handle to 
@@ -488,3 +488,11 @@ Refs:
         
         
 [source code](../src/pointers/pointers.cpp)        
+
+
+
+## lvalues references and rvalues references
+
+
+Refs: [1](https://www.geeksforgeeks.org/lvalues-references-and-rvalues-references-in-c-with-examples)
+
