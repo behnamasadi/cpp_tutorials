@@ -67,7 +67,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Typedef, Type alias (using keyword))](src/typedef.cpp)
    * [type_dispatch, integral_constant, true/false type](src/type_dispatch_integral_constant_true_false_type.cpp)    
    * [Unions](src/unions.cpp)  
-   * [Value Categories: rvalue, lvalue, prvalue, xvalue, glvalue](src/rvalue_lvalue.cpp)     
+   * [Value Categories: rvalue, lvalue, prvalue, xvalue, glvalue](docs/rvalue_lvalue_prvalue_xvalue_glvalue_move_semantic.md)     
    * [Variadic Templates Function](src/variadic_templates.cpp)     
    * [Volatile Keyword](src/volatile.cpp)  
 - [C++ Classes](class/)

@@ -1,4 +1,4 @@
-
+# Standard Input/ Output Library
 
 ```
 
@@ -26,42 +26,46 @@ ios_base      istream
 
 Refs: [1](http://www.cplusplus.com/reference/iolibrary/)
 
-Stream:
+## Stream
 A stream is an abstraction that represents a device (keyboard, files, network, ...) on which input and ouput operations are performed. 
 A stream can basically be represented as a source or destination of characters of indefinite length.
 
-Streambuf:
+## Streambuf
 I/O is an expensive operation, so to reduce the number of I/O operations the system store the information in a temporary 
 memory location, and delay the I/O operation to a moment when it has a good amount of data. This way you've a much smaller 
 number of I/O operations, what means, a faster application.
 
 A stream buffer is an object in charge of performing the reading and writing operations of the stream object.
-It is responsible for communicating with external devices. When you read or write from cin or cout, you are actually 
-reading/ writing from cin/cout streambuff which is controlled by operating system. Operating system puts the data there and
+It is responsible for communicating with external devices. When you read or write from `cin` or `cout`, you are actually 
+reading/ writing from `cin/cout streambuff` which is controlled by operating system. Operating system puts the data there and
 your application can read or write from there.
-ref: https://stackoverflow.com/questions/29176636/can-someone-please-explain-how-stdio-buffering-works
 
-Predefined Stream Objects
-1) cin
+Refs: [1](https://stackoverflow.com/questions/29176636/can-someone-please-explain-how-stdio-buffering-works)
+
+## Predefined Stream Objects
+1. cin
+```cpp
 typedef std::istream	std::basic_istream<char>;
 extern std::istream cin;
-
-2) cerr  
-
+```
+2. cerr  
+```cpp
 typedef std::ostream	std::basic_ostream<char>;
 extern std::ostream cerr;
-
-3) clog
+```
+3. clog
+```cpp
 extern ostream clog;
-
-4) cout
+```
+4. cout
+```cpp
 extern ostream cout;
+```
 
 
 
 
-
-Formatted vs Unformatted I/O Function
+# Formatted vs Unformatted I/O Function
 
 Formatted: These functions allow to supply input or display output in user desired format, i.e. printf() and scanf()
 Unformatted: they do not allow to supply input or display output in user desired format, i.e. getch(), getche(), getchar(), gets(), puts(),
@@ -69,14 +73,14 @@ putchar()
 
 
 
-//////////////////////////////////////  Manipulators //////////////////////////////////////
+## Manipulators
 
 Manipulators are helping functions that can modify the input/output stream.
 It does not mean that we change the value of a variable, it only modifies the I/O stream using
-insertion (<<) and extraction (>>) operators.
+insertion `<<` and extraction `>>` operators.
 
 Types of Manipulators:
-1) Manipulators without arguments: The most important manipulators defined by the IOStream library are provided below.
+### Manipulators without arguments: The most important manipulators defined by the IOStream library are provided below.
     I) endl: It is defined in ostream. It is used to enter a new line and after entering a new line it flushes
         (i.e. it forces all the output written on the screen or in the file) the output stream.
 
@@ -86,38 +90,38 @@ Types of Manipulators:
     IV) flush: It is also defined in ostream and it flushes the output stream i.e. it forces all the output written
         on the screen or in the file. Without flush, the output would be the same but may not appear in real-time.
 
-2) Manipulators with Arguments:
+### Manipulators with Arguments:
 
-    I) Some important manipulators in <iomanip> are:
-        a)setw (val): It is used to sets the field width in output operations.
-        b)setfill (c): It is used to fill the character ‘c’ on output stream.
-        c)setprecision (val): It sets val as the new value for the precision of floating-point values.
-        d)setbase(val): It is used to set the numeric base value for numeric values.
-        e)setiosflags(flag): It is used to sets the format flags specified by parameter mask.
-        f)resetiosflags(m): It is used to resets the format flags specified by parameter mask.
-    II)Some important manipulators in <ios> are:
-        a)showpos: It forces to show a positive sign on positive numbers.
-        b)noshowpos: It forces not to write a positive sign on positive numbers.
-        c)showbase: It indicates numeric base of numeric values.
-        d)uppercase: It forces uppercase letters for numeric values.
-        e)nouppercase: It forces lowercase letters for numeric values.
-        f)fixed: It uses decimal notation for ?oating-point values.
-        g)scientific: It use scientific floating-point notation.
-        h)hex: Read and write hexadecimal values for integers and it works same as the setbase(16).
-        i)dec: Read and write decimal values for integers i.e. setbase(10).
-        j)oct: Read and write octal values for integers i.e. setbase(10).
-        k)left: It adjust output to the left.
-        l)right: It adjust output to the right.
+I) Some important manipulators in <iomanip> are:
+	a)setw (val): It is used to sets the field width in output operations.
+	b)setfill (c): It is used to fill the character ‘c’ on output stream.
+	c)setprecision (val): It sets val as the new value for the precision of floating-point values.
+	d)setbase(val): It is used to set the numeric base value for numeric values.
+	e)setiosflags(flag): It is used to sets the format flags specified by parameter mask.
+	f)resetiosflags(m): It is used to resets the format flags specified by parameter mask.
+	
+II)Some important manipulators in <ios> are:
+	a)showpos: It forces to show a positive sign on positive numbers.
+	b)noshowpos: It forces not to write a positive sign on positive numbers.
+	c)showbase: It indicates numeric base of numeric values.
+	d)uppercase: It forces uppercase letters for numeric values.
+	e)nouppercase: It forces lowercase letters for numeric values.
+	f)fixed: It uses decimal notation for ?oating-point values.
+	g)scientific: It use scientific floating-point notation.
+	h)hex: Read and write hexadecimal values for integers and it works same as the setbase(16).
+	i)dec: Read and write decimal values for integers i.e. setbase(10).
+	j)oct: Read and write octal values for integers i.e. setbase(10).
+	k)left: It adjust output to the left.
+	l)right: It adjust output to the right.
 
-*/
 
-////////////////////////////////////// Reading, Writting Files //////////////////////////////////////
 
-void readingWrittingFilesExample()
-{
-/*
+# Reading, Writing Files
+
+
 Available Modes for Opening a File:
 
+```
 Flag          Application          Meaning
 ___________________________________________________________________________
 ios::app         out               Always append output to the end of the file
@@ -140,11 +144,12 @@ ios::trunc       out               Truncate file to zero length if it already ex
                                    (default if file exists and app or ate is not specified)
 ___________________________________________________________________________
 
-modes are bitset. For instance, ios::app might equal 00000001, ios::ate might equal 00000010,
-ios::out might equal 00000100, etc. So each mode corresponds to one bit which can be 0 or 1.
+```
+modes are `bitset`. For instance, `ios::app` might equal 00000001, `ios::ate` might equal 00000010,
+`ios::out` might equal 00000100, etc. So each mode corresponds to one bit which can be 0 or 1.
 This means that more than one mode's value can be set at the same time using the arithmetic OR.
 
-*/
+simple file reader from disk:
     {
         std::ifstream inputfile("inputfile.txt");
         std::ofstream outputfile("outputfile.txt");
@@ -156,28 +161,30 @@ This means that more than one mode's value can be set at the same time using the
         inputfile.close();
         outputfile.close();
     }
-    //simple writting
-    {
+
+simple writing to file
+```cpp
         std::ofstream myfile;
         myfile.open ("ReadingWritingIntoFile.txt",std::ofstream::ate | std::ofstream::app);
         myfile << "Writing this to a file.\n";
         myfile<<std::bitset<8>(14); // it will write 00001110
         myfile<<std::complex<double>(2,3);
         myfile.close();
-    }
+```
 
-    //advance writing
-    {
-        std::ofstream myfile("ReadingWritingIntoFile.txt",std::ofstream::in | std::ofstream::out);
-        myfile.seekp( 10,std::ios::beg);// Move the output pointer 10 char from begining
-        myfile<<"something at the begining";
+advance writing
 
-        myfile.seekp( -5,std::ios::end);// Move the output pointer 5 char before end
-        myfile<<"something at the end";
-    }
+```cpp
+std::ofstream myfile("ReadingWritingIntoFile.txt",std::ofstream::in | std::ofstream::out);
+myfile.seekp( 10,std::ios::beg);// Move the output pointer 10 char from begining
+myfile<<"something at the begining";
 
-    //reading chars
-    {
+myfile.seekp( -5,std::ios::end);// Move the output pointer 5 char before end
+myfile<<"something at the end";
+```
+
+reading chars
+```cpp
         std::ifstream myfile("ReadingWritingIntoFile.txt");
         int i;
         myfile>>i;
@@ -188,9 +195,10 @@ This means that more than one mode's value can be set at the same time using the
         {
             std::cout<<"Reading failed "<<std::endl;
         }
-    }
+```
 
-    //reading file at once
+reading file at once
+```cpp
     {
         std::string path_to_file;
         std::ifstream in(path_to_file.c_str());
@@ -199,9 +207,9 @@ This means that more than one mode's value can be set at the same time using the
         std::string contents(buffer.str());
         std::cout<<contents <<std::endl;
     }
-
-    //reading line by line
-    {
+```
+reading line by line
+```cpp
         std::string line;
         std::ifstream myfile ("src/ReadWriteFile/example.txt");
         if (myfile.is_open())
@@ -217,14 +225,10 @@ This means that more than one mode's value can be set at the same time using the
         {
             std::cout << "Unable to open file...";
         }
-    }
-}
+```
+# stringstream
 
-////////////////////////////////////// stringstream //////////////////////////////////////
-
-void stringstreamExample()
-{
-/*
+```cpp
 typedef basic_stringstream<char> stringstream;
 
 ios_base      istream
@@ -237,7 +241,7 @@ ios_base      istream
            \     |
             \    |
              ↘ ostream
-
+```
 
 Objects of this class use a "string buffer" that contains a sequence of characters. This sequence of characters
 can be accessed directly as a string object, using member str().
