@@ -10,16 +10,51 @@ void func(const std::string& str);
 ```
 
 # const Functions in classes
-It only work for the methods in a class, 
-It is recommended practice to make as many functions const as possible so that accidental changes to objects are avoided.
+It only work for the methods in a class, when `const` is declared on a non-static class method, tells the compiler that the method doesn't modify the internal state of the object. It is recommended practice to make as many functions const as possible so that accidental changes to objects are avoided.
 ```cpp
 <return-value> <class>::<member-function>(<args>) const
 {
    
 }
 ```
+Example:
 
-Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU)
+```cpp
+class Foo
+{
+public:
+    void non-const-method();
+    void const-method() const;
+private:
+    int a;
+};
+```
+Now in your application:
+```cpp
+const Foo const_foo;
+Foo non-const_foo;
+```
+
+allowed:
+`const_foo.const-method();`  
+
+not allowed, A const object can't call non-const method:
+`const_foo.non-const-method();`
+
+allowed, can call const method on a non-const object
+non-const_.const-method();`  
+
+allowed
+`non-const_.non-const-method();`
+
+As it also menthod a const method doesn't modify the internal state of the object, so the following is not allowed
+```cpp
+void Foo::const_method() const
+{
+    a = 0;   
+}
+```
+Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU), [2](https://stackoverflow.com/questions/2157458/using-const-in-classs-functions)
 
 # const iterators
 They make sure that you can not change the variable in the loop,
@@ -56,16 +91,32 @@ to make it easy to read remove the variable type,  then read it like:
 
 
 # const cast
+let say you have the following function:
+```cpp
+void foo(char* message){}
+```
+Now if you call it like this:
+```cpp
+std::string msg = "Hello";
+foo(msg.c_str());
+```
+It won't compile because `msg.c_str()` returns a `const char*` and you can't  call non-const method on a constant pointer The solution is to change the call
+```cpp
+foo(msg.begin());
+```  
+or 
+
+```cpp
+foo(const_cast<char*>(msg.c_str()));
+```
+
 
 
 # mutable
- 
+The mutable specifier allows modification of the class member declared mutable even if the containing object is declared const. 
+If we don`t put mutable before debugCounter, we can't have debugCounter++ in `getName()` as it is a const function and can't change state of the object.
 
-If we don`t put mutable before debugCounter, we can't have debugCounter++ in getName() as it is a const function and can't change anything
-
-
-
-
+```cpp
 class student 
 {
     std::string name;
@@ -82,30 +133,29 @@ public:
         return name;
     }
 };
+```
+Now in your main:
+```cpp
+student stdObject("jumbo");
+```  
+Also Since c++11 `mutable` can be used on a lambda to denote that things captured by value are modifiable (they aren't by default):
+ 
+ 
+compile error: a by-value capture cannot be modified in a non-mutable lambda 
+```cpp
+int x = 0;
+auto f2 = [=]() {x = 42;};  
+```
 
-int mutableExample()
-{
-    //first example
-    student stdObject("jumbo");
-    
-    
-    //second example
-    int x=0;
-    auto f=[=]() mutable
-    {
-        x++;
-        std::cout<<x <<std::endl;
-    };
-    return 0;
-}
+problem solved:
+```cpp
+auto f1 = [=]() mutable {x = 42;};  
+```
 
-Refs: [1](https://www.youtube.com/watch?v=bP9z3H3cVMY)
+ 
+Refs: [1](https://www.youtube.com/watch?v=bP9z3H3cVMY), [2](https://stackoverflow.com/questions/105014/does-the-mutable-keyword-have-any-purpose-other-than-allowing-the-variable-to)
 
 # constexpr 
-
-
-Refs: [1](https://www.geeksforgeeks.org/understanding-constexper-specifier-in-c/),[2](https://www.youtube.com/watch?v=4Vnd2I91s2c&)
-
 constexpr specifies that the value of an object or a function can be evaluated at compile time
  and the expression can be used in other constant expressions.
 For example, in below code product() is evaluated at compile time.
@@ -145,4 +195,5 @@ constexpr long int fib(int n)
     return (n <= 1)? n : fib(n-1) + fib(n-2);
 }
 
+Refs: [1](https://www.geeksforgeeks.org/understanding-constexper-specifier-in-c/),[2](https://www.youtube.com/watch?v=4Vnd2I91s2c&)
 
