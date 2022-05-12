@@ -40,7 +40,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
      * [Extern Function](src/extern/function/main.cpp)  
      * [Function Objects](docs/function_objects.md)  
      * [Function Pointer](docs/function_pointer.md)
-     * [Inline Functions](docs/inline_functions.cpp)  
+     * [Inline Functions](docs/inline_functions.md)  
    * [Hash](src/hash.cpp)    
    * [Heap And Stack, Memory Layout of C Programs](docs/heap_and_stack_memory_layout_of_C_programs.md)  
    * [Iterator, for_each loop, range-for loop, Loop optimization](docs/iterator_loop.md)  
