@@ -627,100 +627,99 @@ void coutWriteExample()
 	std::cout.write(message.c_str(), message.size());
 }
 
-void coutformating()
-{
-    /*
-
-    std::cout.setf(arg1, arg2);
-
-                                arg1                   arg2
-    left justified output       std::ios::left         std::ios::adjustfield
-    right justified output      std::ios::right        std::ios::adjustfield
-    Scientific notation         std::ios::scientific   std::ios::floatfield
-    Fixed point notation        std::ios::fixed        std::ios::floatfield
-    Decimal base                std::ios::dec          std::ios::basefield
-    Octal base                  std::ios::oct          std::ios::basefield
-    Hexdecimal base             std::ios::hex          std::ios::basefield
-    */
 
 
-    std::cout.setf(std::ios::oct,std::ios::basefield);
-    std::cout<<34<<std::endl; //will show 42
-    std::cout.setf(std::ios::dec,std::ios::basefield);
-    std::cout<<34<<std::endl; //will show 42
-    std::cout.width(10);
+# Formating  cout
+
+It can be set with 
+`std::cout.setf(arg1, arg2);`
+
+where `arg1` and `arg2` are:
+
+```cpp
+                            arg1                   arg2
+left justified output       std::ios::left         std::ios::adjustfield
+right justified output      std::ios::right        std::ios::adjustfield
+Scientific notation         std::ios::scientific   std::ios::floatfield
+Fixed point notation        std::ios::fixed        std::ios::floatfield
+Decimal base                std::ios::dec          std::ios::basefield
+Octal base                  std::ios::oct          std::ios::basefield
+Hexdecimal base             std::ios::hex          std::ios::basefield
+```
+
+```cpp
+std::cout.setf(std::ios::oct,std::ios::basefield);
+std::cout<<34<<std::endl; //will show 42
+std::cout.setf(std::ios::dec,std::ios::basefield);
+std::cout<<34<<std::endl; //will show 42
+std::cout.width(10);
 
 
-    std::cout.setf(std::ios::scientific,std::ios::floatfield);
-    std::cout<<3.14<<std::endl;//3.140000e+00
-    std::cout.setf(std::ios::fixed,std::ios::floatfield);
-    std::cout<<3.14<<std::endl;//3.140000
-    std::cout.precision(1);
-    std::cout<<3.14<<std::endl;//3.1
-    std::cout<<std::cout.flags() <<std::endl;//3.1
+std::cout.setf(std::ios::scientific,std::ios::floatfield);
+std::cout<<3.14<<std::endl;//3.140000e+00
+std::cout.setf(std::ios::fixed,std::ios::floatfield);
+std::cout<<3.14<<std::endl;//3.140000
+std::cout.precision(1);
+std::cout<<3.14<<std::endl;//3.1
+std::cout<<std::cout.flags() <<std::endl;//3.1
 
 
-    std::cout.width(6);
-    std::cout.fill('*');
-    std::cout.unsetf(std::ios::showbase);
+std::cout.width(6);
+std::cout.fill('*');
+std::cout.unsetf(std::ios::showbase);
+```
 
-}
 
-void fastIO()
-{
-/*
-It is often recommended to use scanf/printf instead of cin/cout for a fast input and output.
-However, you can still use cin/cout and achieve the same speed as scanf/printf by including the following two
+
+
+
+# Fast IO Operation
+
+It is often recommended to use `scanf/printf` instead of `cin/cout` for a fast input and output.
+However, you can still use `cin/cout` and achieve the same speed as `scanf/printf` by including the following two
 lines in your main() function:
-*/
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
-/*
+
+```cpp
+std::ios_base::sync_with_stdio(false);
+std::cin.tie(NULL);
+```
+
 It toggles on or off the synchronization of all the C++ standard streams with their corresponding standard C streams if
 it is called before the program performs its first input or output operation.
-Adding ios_base::sync_with_stdio (false); (which is true by default) before any I/O operation avoids this synchronization.
+Adding `ios_base::sync_with_stdio (false);` (which is true by default) before any I/O operation avoids this synchronization.
 It is a static member of function of std::ios_base.
 
-tie() is a method which simply guarantees the flushing of std::cout before std::cin accepts an input.
+`tie()` is a method which simply guarantees the flushing of `std::cout` before `std::cin accepts` an input.
 This is useful for interactive console programs which require the console to be updated constantly but also slows
 down the program for large I/O. The NULL part just returns a NULL pointer.
 
-It is recommended to use cout << “\n”; instead of cout << endl;. endl is slower because it forces a flushing stream,
+It is recommended to use `cout << “\n”;` instead of `cout << endl;`. `endl` is slower because it forces a flushing stream,
 which is usually unnecessary
-*/
-}
 
 
-void filesystemEample()
+# filesystem
+```cpp
+const auto FilePath {"FileToCopy"};
+
+// If any filepath exists
+if(std::filesystem::exists(FilePath)) 
 {
+    const auto FileSize { std::filesystem::file_size(FilePath) };
 
-    const auto FilePath {"FileToCopy"};
+    std::filesystem::path tmpPath {"/tmp"};
 
-    // If any filepath exists
-    if(std::filesystem::exists(FilePath)) {
-        const auto FileSize {
-             std::filesystem::file_size(FilePath)
-        };
+    // If filepath is available or not
+    if(std::filesystem::space(tmpPath).available > FileSize) 
+    {
 
-        std::filesystem::path tmpPath {"/tmp"};
+       // Create Directory
+       std::filesystem::create_directory(tmpPath.append("example"));
 
-        // If filepath is available or not
-        if(std::filesystem::space(tmpPath)
-                           .available > FileSize) {
-
-           // Create Directory
-           std::filesystem::create_directory(
-                     tmpPath.append("example"));
-
-           // Copy File to file path
-           std::filesystem::copy_file(FilePath,
-                                 tmpPath.append("newFile"));
-        }
+       // Copy File to file path
+       std::filesystem::copy_file(FilePath, tmpPath.append("newFile"));
     }
-}
+}  
+```
 
-int main()
-{
-	
-}
+
 [source code](../src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
