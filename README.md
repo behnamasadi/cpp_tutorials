@@ -45,7 +45,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Heap And Stack, Memory Layout of C Programs](docs/heap_and_stack_memory_layout_of_C_programs.md)  
    * [Iterator, for_each loop, range-for loop, Loop optimization](docs/iterator_loop.md)  
    * [Lambda](docs/lambda.md)     
-   * [Literals](src/literals.cpp)  
+   * [Literals](docs/literals.md)  
    * [Loading Libraries](src/loadeding_libraries.cpp)  
    * [Macro](src/macro.cpp)  
    * [Memory Leaking Detection With Valgrind](src/memory_leaking_valgrind.cpp)  
