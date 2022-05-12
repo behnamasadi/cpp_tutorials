@@ -43,21 +43,21 @@ your application can read or write from there.
 Refs: [1](https://stackoverflow.com/questions/29176636/can-someone-please-explain-how-stdio-buffering-works)
 
 ## Predefined Stream Objects
-1. cin
+1. `cin`
 ```cpp
 typedef std::istream	std::basic_istream<char>;
 extern std::istream cin;
 ```
-2. cerr  
+2. `cerr`  
 ```cpp
 typedef std::ostream	std::basic_ostream<char>;
 extern std::ostream cerr;
 ```
-3. clog
+3. `clog`
 ```cpp
 extern ostream clog;
 ```
-4. cout
+4. `cout`
 ```cpp
 extern ostream cout;
 ```
@@ -67,9 +67,8 @@ extern ostream cout;
 
 # Formatted vs Unformatted I/O Function
 
-Formatted: These functions allow to supply input or display output in user desired format, i.e. printf() and scanf()
-Unformatted: they do not allow to supply input or display output in user desired format, i.e. getch(), getche(), getchar(), gets(), puts(),
-putchar()
+1. Formatted: These functions allow to supply input or display output in user desired format, i.e. `printf()` and `scanf()`
+2. Unformatted: they do not allow to supply input or display output in user desired format, i.e. `getch()`, `getche()`, `getchar()`, `gets()`, `puts()`, `putchar()`
 
 
 
@@ -80,39 +79,41 @@ It does not mean that we change the value of a variable, it only modifies the I/
 insertion `<<` and extraction `>>` operators.
 
 Types of Manipulators:
-### Manipulators without arguments: The most important manipulators defined by the IOStream library are provided below.
-    I) endl: It is defined in ostream. It is used to enter a new line and after entering a new line it flushes
-        (i.e. it forces all the output written on the screen or in the file) the output stream.
 
-    II) ws: It is defined in istream and is used to ignore the whitespaces in the string sequence.
-    III) ends: It is also defined in ostream and it inserts a null character into the output stream. It typically works with
-        std::ostrstream, when the associated output buffer needs to be null-terminated to be processed as a C string.
-    IV) flush: It is also defined in ostream and it flushes the output stream i.e. it forces all the output written
-        on the screen or in the file. Without flush, the output would be the same but may not appear in real-time.
+### Manipulators Without Arguments 
+The most important manipulators defined by the IOStream library are provided below.
+1. endl: It is defined in ostream. It is used to enter a new line and after entering a new line it flushes
+(i.e. it forces all the output written on the screen or in the file) the output stream.
+
+2.  ws: It is defined in istream and is used to ignore the whitespaces in the string sequence.
+3.  ends: It is also defined in ostream and it inserts a null character into the output stream. It typically works with
+std::ostrstream, when the associated output buffer needs to be null-terminated to be processed as a C string.
+4.  flush: It is also defined in ostream and it flushes the output stream i.e. it forces all the output written
+on the screen or in the file. Without flush, the output would be the same but may not appear in real-time.
 
 ### Manipulators with Arguments:
 
-I) Some important manipulators in <iomanip> are:
-	a)setw (val): It is used to sets the field width in output operations.
-	b)setfill (c): It is used to fill the character ‘c’ on output stream.
-	c)setprecision (val): It sets val as the new value for the precision of floating-point values.
-	d)setbase(val): It is used to set the numeric base value for numeric values.
-	e)setiosflags(flag): It is used to sets the format flags specified by parameter mask.
-	f)resetiosflags(m): It is used to resets the format flags specified by parameter mask.
+Some important manipulators in <iomanip> are:
+1. `setw (val)`: It is used to sets the field width in output operations.
+2. `setfill (c)`: It is used to fill the character ‘c’ on output stream.
+3. `setprecision (val)`: It sets val as the new value for the precision of floating-point values.
+4. `setbase(val)`: It is used to set the numeric base value for numeric values.
+5. `setiosflags(flag)`: It is used to sets the format flags specified by parameter mask.
+6. `resetiosflags(m)`: It is used to resets the format flags specified by parameter mask.
 	
-II)Some important manipulators in <ios> are:
-	a)showpos: It forces to show a positive sign on positive numbers.
-	b)noshowpos: It forces not to write a positive sign on positive numbers.
-	c)showbase: It indicates numeric base of numeric values.
-	d)uppercase: It forces uppercase letters for numeric values.
-	e)nouppercase: It forces lowercase letters for numeric values.
-	f)fixed: It uses decimal notation for ?oating-point values.
-	g)scientific: It use scientific floating-point notation.
-	h)hex: Read and write hexadecimal values for integers and it works same as the setbase(16).
-	i)dec: Read and write decimal values for integers i.e. setbase(10).
-	j)oct: Read and write octal values for integers i.e. setbase(10).
-	k)left: It adjust output to the left.
-	l)right: It adjust output to the right.
+Some important manipulators in <ios> are:
+1. `showpos`: It forces to show a positive sign on positive numbers.
+2. `noshowpos`: It forces not to write a positive sign on positive numbers.
+3. `showbase`: It indicates numeric base of numeric values.
+4. `uppercase`: It forces uppercase letters for numeric values.
+5. `nouppercase`: It forces lowercase letters for numeric values.
+6. `fixed`: It uses decimal notation for floating-point values.
+7. `scientific`: It use scientific floating-point notation.
+8. `hex`: Read and write hexadecimal values for integers and it works same as the setbase(16).
+9. `dec`: Read and write decimal values for integers i.e. setbase(10).
+10. `oct`: Read and write octal values for integers i.e. setbase(10).
+11. `left`: It adjust output to the left.
+12. `right`: It adjust output to the right.
 
 
 
@@ -149,30 +150,34 @@ modes are `bitset`. For instance, `ios::app` might equal 00000001, `ios::ate` mi
 `ios::out` might equal 00000100, etc. So each mode corresponds to one bit which can be 0 or 1.
 This means that more than one mode's value can be set at the same time using the arithmetic OR.
 
-simple file reader from disk:
-    {
-        std::ifstream inputfile("inputfile.txt");
-        std::ofstream outputfile("outputfile.txt");
-        float f;
-        while(inputfile>>f)//detects end-of-file and exits loop
-        {
-            outputfile << "f = " << f << std::endl;
-        }
-        inputfile.close();
-        outputfile.close();
-    }
+simple file reader/writer from disk:
+```cpp
+
+std::ifstream inputfile("inputfile.txt");
+std::ofstream outputfile("outputfile.txt");
+float f;
+while(inputfile>>f)//detects end-of-file and exits loop
+{
+    outputfile << "f = " << f << std::endl;
+}
+inputfile.close();
+outputfile.close();
+
+```     
+
 
 simple writing to file
+
 ```cpp
-        std::ofstream myfile;
-        myfile.open ("ReadingWritingIntoFile.txt",std::ofstream::ate | std::ofstream::app);
-        myfile << "Writing this to a file.\n";
-        myfile<<std::bitset<8>(14); // it will write 00001110
-        myfile<<std::complex<double>(2,3);
-        myfile.close();
+std::ofstream myfile;
+myfile.open ("ReadingWritingIntoFile.txt",std::ofstream::ate | std::ofstream::app);
+myfile << "Writing this to a file.\n";
+myfile<<std::bitset<8>(14); // it will write 00001110
+myfile<<std::complex<double>(2,3);
+myfile.close();
 ```
 
-advance writing
+Advance writing
 
 ```cpp
 std::ofstream myfile("ReadingWritingIntoFile.txt",std::ofstream::in | std::ofstream::out);
@@ -183,50 +188,48 @@ myfile.seekp( -5,std::ios::end);// Move the output pointer 5 char before end
 myfile<<"something at the end";
 ```
 
-reading chars
+Reading chars
 ```cpp
-        std::ifstream myfile("ReadingWritingIntoFile.txt");
-        int i;
-        myfile>>i;
-        if(myfile.good())
-        {
-            std::cout<<"Reading successd "<<std::endl;
-        }else
-        {
-            std::cout<<"Reading failed "<<std::endl;
-        }
+std::ifstream myfile("ReadingWritingIntoFile.txt");
+int i;
+myfile>>i;
+if(myfile.good())
+{
+    std::cout<<"Reading successd "<<std::endl;
+}else
+{
+    std::cout<<"Reading failed "<<std::endl;
+}
 ```
 
-reading file at once
+Reading file at once
 ```cpp
+std::string path_to_file;
+std::ifstream in(path_to_file.c_str());
+std::stringstream buffer;
+buffer << in.rdbuf();
+std::string contents(buffer.str());
+std::cout<<contents <<std::endl;
+```
+Reading line by line
+```cpp
+std::string line;
+std::ifstream myfile ("src/ReadWriteFile/example.txt");
+if (myfile.is_open())
+{
+    while ( getline (myfile,line) )
     {
-        std::string path_to_file;
-        std::ifstream in(path_to_file.c_str());
-        std::stringstream buffer;
-        buffer << in.rdbuf();
-        std::string contents(buffer.str());
-        std::cout<<contents <<std::endl;
+    //getline (myfile,line);
+    std::cout <<"..." <<line << "..."<<std::endl;
     }
+    myfile.close();
+}
+else
+{
+    std::cout << "Unable to open file...";
+}
 ```
-reading line by line
-```cpp
-        std::string line;
-        std::ifstream myfile ("src/ReadWriteFile/example.txt");
-        if (myfile.is_open())
-        {
-            while ( getline (myfile,line) )
-            {
-            //getline (myfile,line);
-            std::cout <<"..." <<line << "..."<<std::endl;
-            }
-            myfile.close();
-        }
-        else
-        {
-            std::cout << "Unable to open file...";
-        }
-```
-# stringstream
+# Stringstream
 
 ```cpp
 typedef basic_stringstream<char> stringstream;
@@ -244,17 +247,16 @@ ios_base      istream
 ```
 
 Objects of this class use a "string buffer" that contains a sequence of characters. This sequence of characters
-can be accessed directly as a string object, using member str().
-You can read from the string as if it were a stream (like cin).
+can be accessed directly as a string object, using member `str()`.
+You can read from the string as if it were a stream (like `cin`).
 
 
 Important methods are:
-clear() — to clear the stream
-str() — to get and set string object whose content is present in stream.
-insertion (<<) operator  — add a string to the stringstream object. This operator has been overloaded with
-various data types, so you can do  stringstream<<int or stringstream<<double etc.
-
-extraction (>>) operator — read something from the stringstream object until it encouter a white space.
+1. `clear()` : to clear the stream
+2. `str()` : to get and set string object whose content is present in stream.
+3. insertion `<<` operator  : add a string to the stringstream object. This operator has been overloaded with
+various data types, so you can do  `stringstream<<int or stringstream<<double` etc.
+4 .extraction `>>` operator : read something from the stringstream object until it encounter a white space.
 
 */
     std::stringstream ss;

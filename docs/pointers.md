@@ -348,7 +348,7 @@ void f(std::weak_ptr<Object> wp)
 ### Passing by reference to manipulate the ownership
 
 Pass by reference when the function is supposed to modify the ownership of existing smart pointers. More specifically:
-1) pass a non-const reference to std::unique_ptr if the function might modify it, e.g. delete it, make it refer to a different object and so on.
+1) pass a non-const reference to `std::unique_ptr` if the function might modify it, e.g. delete it, make it refer to a different object and so on.
 
 2) the same applies to std::shared_ptr, but you can pass a const reference if the function will only read from it (e.g. get the number of references) 
 or it will make a local copy out of it and share ownership.
@@ -382,7 +382,7 @@ There are at least three good reasons for this:
 
 2) modern compilers play the Return Value Optimization (RVO) trick. They are able to detect that you are returning an object by value, and they apply a sort of return shortcut to avoid useless copies. Starting from C++17, this is guaranteed by the standard. So even the smart pointer itself will be optimized out.
 
-3) returning std::shared_ptr by reference doesn't properly increment the reference count, which opens up the risk of deleting something at the wrong time.
+3) returning `std::shared_ptr` by reference doesn't properly increment the reference count, which opens up the risk of deleting something at the wrong time.
 
 Thanks to point 2. you don't need move anything when returning a std::unique_ptr:
 ```cpp
@@ -420,10 +420,10 @@ std::vector<std::reference_wrapper<std::unique_ptr<person>>> people;
 std::unique_ptr empolyee1= std::make_unique<person>();
 people.push_back(empolyee1 );
 ```
-## Pointer vs Reference
+## Reference
 
-Basically pointers can be reassigned to different location in memory but references can only
-stick to one variable. reference is like an alias for an existing variable, it shares the same address as the original variable.
+Basically pointers can be reassigned to different location in memory but references can only stick to one variable. 
+reference is like an alias for an existing variable, it shares the same address as the original variable.
 also a reference can not be null.
 
 ```cpp
@@ -492,6 +492,16 @@ Refs:
 
 
 ## lvalues references and rvalues references
+
+lvalue is an object that occupies some identifiable address in memory (heap, stack) and not in CPU register. lvalues can be written on the left of assignment operator `=`. rvalue is, the simple explanation is that it doesn't have a memory address. i.e. the number 4. 
+Reference in C++ is an alias for an existing variable, to the already existing variable. They are declared using the `&` before the name of the variable.
+
+lvalue reference:
+```cpp
+int x= 1;
+int& y = x;
+```
+
 
 
 Refs: [1](https://www.geeksforgeeks.org/lvalues-references-and-rvalues-references-in-c-with-examples)
