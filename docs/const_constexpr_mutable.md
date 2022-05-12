@@ -1,4 +1,4 @@
-# const Variables
+# const variables
 
 When declaring a `const` variable, it is possible to put `const` either before or after the type: 
 that is, both `int const MAX_FILE_SIZE = 5;` and `const int MAX_FILE_SIZE = 4;` result in `MAX_FILE_SIZE` being a constant integer.
@@ -9,7 +9,7 @@ Here, a `str` object is passed by reference into `func`. For safety's sake, cons
 void func(const std::string& str);
 ```
 
-# const Functions in classes
+# const methods in classes
 It only work for the methods in a class, when `const` is declared on a non-static class method, tells the compiler that the method doesn't modify the internal state of the object. It is recommended practice to make as many functions const as possible so that accidental changes to objects are avoided.
 ```cpp
 <return-value> <class>::<member-function>(<args>) const
@@ -59,12 +59,12 @@ Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU), [2](https://stackoverflo
 # const iterators
 They make sure that you can not change the variable in the loop,
 ```cpp
-    std::vector<int> vec;
-    vec.push_back( 3 );
-    vec.push_back( 4 );
-    vec.push_back( 8 );
+ std::vector<int> vec;
+ vec.push_back( 3 );
+ vec.push_back( 4 );
+ vec.push_back( 8 );
 
-    for ( std::vector<int>::const_iterator itr = vec.cbegin(), end = vec.cend(); itr != vec.cend(); ++itr ) { }
+ for ( std::vector<int>::const_iterator itr = vec.cbegin(), end = vec.cend(); itr != vec.cend(); ++itr ) { }
 ```
 # const Pointers
 Declares a pointer whose data cannot be changed through the pointer:
@@ -84,6 +84,7 @@ int * const p = &someInt;
 to make it easy to read remove the variable type,  then read it like:
 
 `const int *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.
+
 `int const *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.
 
 `int * const p` ==>  `* const p` ==> `p` is fixed which is an address.
@@ -156,44 +157,63 @@ auto f1 = [=]() mutable {x = 42;};
 Refs: [1](https://www.youtube.com/watch?v=bP9z3H3cVMY), [2](https://stackoverflow.com/questions/105014/does-the-mutable-keyword-have-any-purpose-other-than-allowing-the-variable-to)
 
 # constexpr 
-constexpr specifies that the value of an object or a function can be evaluated at compile time
- and the expression can be used in other constant expressions.
-For example, in below code product() is evaluated at compile time.
-*/
+`constexpr` specifies that the value of an **object** or a **function** can be evaluated at **compile** time However that does NOT necessarily guarantee it will be evaluated at compile time and  it **may** be used for such. The purpose of using `constexpr` is performance improvement by doing computations at compile. For example, in below code `sum()` we suggest to compiler to evaluate it at compile time because we are calling it like `const int x = sum(2, 3);`.
 
-//First example
-// constexpr function for product of two numbers.
-// By specifying constexpr, we suggest compiler to
-// to evaluate value at compiler time
-// you can call this function like:  const int x = product(10, 20);
-
-constexpr int product(int x, int y)
+```cpp
+constexpr int sum(int x, int y)
 {
-    return (x * y);
+    return (x + y);
 }
+```
 
+`constexpr` can be used in places that require compile-time evaluation, for instance, template parameters and array-size specifiers:
+```cpp
+template<int N>
+struct fixed_size_array{ };
+```
 
-//Second example
-/*
+`N` must be an integer constant expression:
+```cpp
+fixed_size_array<N> my_array;   
+int numbers[N];  
+```
+An object may be fit for use in constant expressions without being declared constexpr. For instance, in the following `N` is constant expression,
+because `N` is constant and initialized at declaration time with a literal which satisfies the criteria for a constant expression, even if it isn't declared `constexpr`.
 
-you can call it like:
-const long int res = fib(30);
+```cpp
+const int N = 5;
+int numbers[N] = {1, 2, 3, 4, 5};  
+```
 
-if you remove the constexpr and check the run time you will see the difference
-$time ./a.out
+For a function it must be explicitly declared constexpr to be fit for use in constant expressions. consider the following function:
 
-*/
-
-//Third example
-/*
-This only works because of constexpr
- int a[fib(3)];
-
-*/
+```cpp
 constexpr long int fib(int n)
 {
     return (n <= 1)? n : fib(n-1) + fib(n-2);
 }
+```  
+if  call it like:
+```cpp
+const long int res = fib(30);
+```
+and messure the running time of the application:
+`$time ./a.out`
+
+and remove the `constexpr` and  messure the running time again, you can see the differnce/
+
+Also the following only works because of `constexpr`, because the size of the array should be specified at compile time:
+```cpp
+int a[fib(3)];
+```
+
+
+## constexpr vs inline functions
+Both are used performance improvements.  The [inline functions](inline_functions.md) is keyword that hints to the compiler to expand a function code (to save the overhead time of function call), however expressions are always evaluated at run time. `constexpr`  are evaluated at compile time. Inline functions suggest the compiler to expand at compile time and
+
+# constexpr vs const 
+`constexpr` is mainly used for optimization. `const` are used to make sure that there are no accidental changes by the method. 
+
 
 Refs: [1](https://www.geeksforgeeks.org/understanding-constexper-specifier-in-c/),[2](https://www.youtube.com/watch?v=4Vnd2I91s2c&)
 
