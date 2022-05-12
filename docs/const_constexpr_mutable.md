@@ -1,3 +1,16 @@
+- [const variables](#const-variables)
+- [const parameter](#const-parameter)
+- [const methods in classes](#const-methods-in-classes)
+- [const iterators](#const-iterators)
+- [const pointers](#const-pointers)
+- [const cast](#const-cast)
+- [mutable](#mutable)
+- [constexpr](#constexpr)
+  * [constexpr vs inline functions](#constexpr-vs-inline-functions)
+  * [constexpr vs const](#constexpr-vs-const)
+
+
+
 # const variables
 
 When declaring a `const` variable, it is possible to put `const` either before or after the type: 
@@ -66,7 +79,7 @@ They make sure that you can not change the variable in the loop,
 
  for ( std::vector<int>::const_iterator itr = vec.cbegin(), end = vec.cend(); itr != vec.cend(); ++itr ) { }
 ```
-# const Pointers
+# const pointers
 Declares a pointer whose data cannot be changed through the pointer:
 ```cpp
 const int *p = &someInt;
@@ -211,7 +224,7 @@ int a[fib(3)];
 ## constexpr vs inline functions
 Both are used performance improvements.  The [inline functions](inline_functions.md) is keyword that hints to the compiler to expand a function code (to save the overhead time of function call), however expressions are always evaluated at run time. `constexpr`  are evaluated at compile time. Inline functions suggest the compiler to expand at compile time and
 
-# constexpr vs const 
+## constexpr vs const 
 `constexpr` is mainly used for optimization. `const` are used to make sure that there are no accidental changes by the method. 
 
 
