@@ -16,7 +16,6 @@ catch (...)
 }
 ```
 
-The `...` will catch **any** exception.
 
 
 
@@ -263,6 +262,9 @@ try
 ```
 [code](../src/exception_handling.cpp)
 
+
+# catching all exceptions with ...
+.`...` is a parameter pack and refers to zero or more template parameters. The `...` will catch **all** exception.
 
 # noexcept 
 
