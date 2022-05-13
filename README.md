@@ -49,6 +49,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Macro](src/macro.cpp)  
    * [Memory Leaking Detection With Valgrind](src/memory_leaking_valgrind.cpp)  
    * [Nested Namespaces, Unnamed/Anonymous Namespaces](docs/nested_unnamed_anonymous_namespaces.md)     
+   * [Parameter Pack Expansion ...](docs/parameter_pack_expansion_(...).md)  
    * [Register Keyword](src/register.cpp)  
    * [Raw Pointers,  Reference, Smart (Shared, Unique, Weak) Pointers, addressof, reference_wrapper](docs/pointers.md)  
    * [Return, Abort, Exit](src/return_abort_exit.cpp)  
