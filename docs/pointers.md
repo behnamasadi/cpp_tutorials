@@ -432,7 +432,7 @@ int &ref=foo;
 int *ptr=&foo;
 foo++;
 ```
-so the output is:
+so the values are:
 
 ```
 ref is: 3
@@ -442,7 +442,7 @@ foo is: 3
 ptr is: 0x7ffee0953bdc
 *ptr is: 3
 ```
-`&foo` and  `&foo` are the same, because reference is just like an alias for variable.
+`&foo` and  `&ref` are the same, because reference is just like an alias for variable.
 
 This is valid:
 
