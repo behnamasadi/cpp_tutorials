@@ -442,42 +442,21 @@ foo is: 3
 ptr is: 0x7ffee0953bdc
 *ptr is: 3
 ```
-`&foo` and  `&ref` are the same, because reference is just like an alias for variable.
-
-This is valid:
-
-```cpp
-int x=5;
-ref=x;
-x++;
-```
-and the output is:
-```
-ref is: 5
-foo is: 5
-&ref is: 0x7ffee0953bdc
-&foo is: 0x7ffee0953bdc
-ptr is: 0x7ffee0953bdc
-*ptr is: 5
-x is: 6
-```
-
-Pointer is a variable that store the address of an other variable, so it can be changed but reference can not be changed. 
-The followings  will rise an error:
+`&foo` and  `&ref` are the same, because reference is just like an alias for variable. Pointer is a variable that store the address of an other variable, so it can be changed but reference can not be changed. The followings  will rise an error (we need rvalue ref):
 
 ```cpp
 int & r3 = 200;
 ```
 
-or
+uninitialized reference:  
 
 ```cpp
 & ref = x;
 ```
-or 
+uninitialized reference:  
 
 ```cpp
-int &ref_2;                 // uninitialized reference
+int &ref_2;                 
 ```
 
 Refs: 
