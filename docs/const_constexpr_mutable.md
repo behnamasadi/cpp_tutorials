@@ -33,41 +33,102 @@ It only work for the methods in a class, when `const` is declared on a non-stati
 Example:
 
 ```cpp
-class Foo
+struct Foo
 {
-public:
-    void non-const-method();
-    void const-method() const;
-private:
-    int a;
+	int i;
+	int non_const_func() 
+	{
+		return i;
+	}
+
+	int const_func() const
+	{
+		return i;
+	}
 };
 ```
-Now in your application:
+const method and const objects can call only const methods:
+
 ```cpp
-const Foo const_foo;
-Foo non-const_foo;
+	const Foo const_foo_obj;
+	const_foo_obj.const_func();
 ```
-
-allowed:
-`const_foo.const-method();`  
-
-not allowed, A const object can't call non-const method:
-`const_foo.non-const-method();`
-
-allowed, can call const method on a non-const object
-non-const_.const-method();`  
-
-allowed
-`non-const_.non-const-method();`
-
-As it also menthod a const method doesn't modify the internal state of the object, so the following is not allowed
+const methods can not call non=const method, so if we change the code to the following:
 ```cpp
-void Foo::const_method() const
+struct Foo
 {
-    a = 0;   
-}
+	int i;
+	int non_const_func() 
+	{
+		return i;
+	}
+
+	int const_func() const
+	{
+		return non_const_func();
+	}
+};
 ```
+we will get the following error:
+```
+cannot convert 'this' pointer from 'const Foo' to 'Foo &'
+```
+
+non-const object and non-const method can call const methods:
+
+```cpp
+ Foo non_const_foo_obj;
+	non_const_foo_obj.const_func();
+	non_const_foo_obj.non_const_func();
+``` 
+so the rule is, if you have something const, whatever it calls should be const as well.
+
 Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU), [2](https://stackoverflow.com/questions/2157458/using-const-in-classs-functions)
+
+## const and non-const getter methods
+
+If you have methods that differs only by `const` qualifier they should be overloaded (duplicated code).
+
+```cpp
+struct Bar {};
+
+class Foo
+{
+	Bar m_Bar;
+public:
+	Bar& GetBar()
+	{
+		return m_Bar;
+	}
+
+	const Bar& GetBar() const
+	{
+		return m_Bar;
+	}
+};
+```
+So we have duplicated code. To avoid it, we should call one getter from another. However, we can not call non-const method from the const one. But we can call const method from non-const one. That will require as to use 'const_cast' to remove the const qualifier.
+
+```cpp
+class Foo
+{
+	Bar m_Bar;
+public:
+	Bar& GetBar()
+	{
+		return const_cast<Bar&>(const_cast<const Foo*>(this)->GetBar());
+	}
+
+	const Bar& GetBar() const
+	{
+		return m_Bar;
+	}
+};
+```
+
+
+
+Refs: [1](https://riptutorial.com/cplusplus/example/16974/avoiding-duplication-of-code-in-const-and-non-const-getter-methods-)
 
 # const iterators
 They make sure that you can not change the variable in the loop,
