@@ -182,6 +182,39 @@ to make it easy to read remove the variable type,  then read it like:
 # const cast
 `const_cast` is one of the type casting operators. It can be used in order **remove** or **add** constness to an object
 
+
+
+## casting const to non const
+One good example would be passing const objects to non-const method.
+```cpp
+void foo(char* message){}
+```
+Now if you call it like this:
+```cpp
+std::string msg = "Hello";
+foo(msg.c_str());
+```
+It won't compile because `msg.c_str()` returns a `const char*` and you can't  call non-const method on a constant pointer The solution is to change the call
+```cpp
+foo(msg.begin());
+```  
+or 
+
+```cpp
+foo(const_cast<char*>(msg.c_str()));
+```
+
+## casting non const to const
+
+```cpp
+Func( const_cast<const decltype(variable)>(variable) );
+```
+C++ 17  provides `std::as_const` for exactly this purpose:
+```cpp
+Func( as_const(variable) );
+```
+
+
 ## calling a specific overload
 
 ```cpp
@@ -206,27 +239,6 @@ public:
 ```
 
 The type of the `this` pointer inside a non-const member function is just `Foo*` (and it is an rvalue) and inside of const method is const.
-
-
-## passing const objects to non-const method
-```cpp
-void foo(char* message){}
-```
-Now if you call it like this:
-```cpp
-std::string msg = "Hello";
-foo(msg.c_str());
-```
-It won't compile because `msg.c_str()` returns a `const char*` and you can't  call non-const method on a constant pointer The solution is to change the call
-```cpp
-foo(msg.begin());
-```  
-or 
-
-```cpp
-foo(const_cast<char*>(msg.c_str()));
-```
-
 
 
 # mutable
