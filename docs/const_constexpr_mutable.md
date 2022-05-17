@@ -5,12 +5,12 @@
 - [const iterators](#const-iterators)
 - [const pointers](#const-pointers)
 - [const cast](#const-cast)
+  * [calling a specific overload](#calling-a-specific-overload)
+  * [passing const objects to non-const method](#passing-const-objects-to-non-const-method)
 - [mutable](#mutable)
 - [constexpr](#constexpr)
   * [constexpr vs inline functions](#constexpr-vs-inline-functions)
   * [constexpr vs const](#constexpr-vs-const)
-
-
 
 # const variables
 
@@ -180,7 +180,35 @@ to make it easy to read remove the variable type,  then read it like:
 
 
 # const cast
-`const_cast` is one of the type casting operators. It is used to change the constant value of any object or we can say it is used to remove the constant nature of any object. let say you have the following function:
+`const_cast` is one of the type casting operators. It can be used in order **remove** or **add** constness to an object
+
+## calling a specific overload
+
+```cpp
+class foo 
+{
+    int i;
+public:
+    foo(int i) : i(i) { }
+
+    int bar() const 
+    {
+        return i;    
+    }
+    
+// not const
+    int bar() 
+    { 
+        i++;
+        return const_cast<const foo*>(this)->bar(); 
+    }
+};
+```
+
+The type of the `this` pointer inside a non-const member function is just `Foo*` (and it is an rvalue) and inside of const method is const.
+
+
+## passing const objects to non-const method
 ```cpp
 void foo(char* message){}
 ```
