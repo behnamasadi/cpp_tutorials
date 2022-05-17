@@ -1,6 +1,7 @@
 - [const variables](#const-variables)
 - [const parameter](#const-parameter)
 - [const methods in classes](#const-methods-in-classes)
+  * [const and non-const getter methods](#const-and-non-const-getter-methods)
 - [const iterators](#const-iterators)
 - [const pointers](#const-pointers)
 - [const cast](#const-cast)
@@ -50,8 +51,8 @@ struct Foo
 const method and const objects can call only const methods:
 
 ```cpp
-	const Foo const_foo_obj;
-	const_foo_obj.const_func();
+const Foo const_foo_obj;
+const_foo_obj.const_func();
 ```
 const methods can not call non=const method, so if we change the code to the following:
 ```cpp
@@ -77,9 +78,9 @@ cannot convert 'this' pointer from 'const Foo' to 'Foo &'
 non-const object and non-const method can call const methods:
 
 ```cpp
- Foo non_const_foo_obj;
-	non_const_foo_obj.const_func();
-	non_const_foo_obj.non_const_func();
+Foo non_const_foo_obj;
+non_const_foo_obj.const_func();
+non_const_foo_obj.non_const_func();
 ``` 
 so the rule is, if you have something const, whatever it calls should be const as well.
 
@@ -125,6 +126,12 @@ public:
 	}
 };
 ```
+Here we call const getter of `Foo` by casting this to `const Foo*`:
+
+```cpp
+<const Foo*>(this)->GetBar()
+```
+Since we call const method from non-const, the object itself is non-const, and casting away the const is allowed.
 
 
 
@@ -166,7 +173,7 @@ to make it easy to read remove the variable type,  then read it like:
 
 
 # const cast
-let say you have the following function:
+`const_cast` is one of the type casting operators. It is used to change the constant value of any object or we can say it is used to remove the constant nature of any object. let say you have the following function:
 ```cpp
 void foo(char* message){}
 ```
