@@ -54,7 +54,7 @@ const method and const objects can call only const methods:
 const Foo const_foo_obj;
 const_foo_obj.const_func();
 ```
-const methods can not call non=const method, so if we change the code to the following:
+const methods can not call non-const method, so if we change the code to the following:
 ```cpp
 struct Foo
 {
@@ -126,11 +126,18 @@ public:
 	}
 };
 ```
-Here we call const getter of `Foo` by casting this to `const Foo*`:
+Here we call const getter of `Foo` by casting `this` to `const Foo*`:
 
 ```cpp
-<const Foo*>(this)->GetBar()
+const_cast<const Foo*>(this)->GetBar()
 ```
+
+Now that we called the const getter, we cast it to non-const value 
+
+```cpp
+const_cast<Bar&>(/**/)
+```
+
 Since we call const method from non-const, the object itself is non-const, and casting away the const is allowed.
 
 
