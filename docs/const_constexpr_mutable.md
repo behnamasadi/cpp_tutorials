@@ -1,6 +1,9 @@
 - [const variables](#const-variables)
 - [const parameter](#const-parameter)
 - [const methods in classes](#const-methods-in-classes)
+- [const variables](#const-variables)
+- [const parameter](#const-parameter)
+- [const methods in classes](#const-methods-in-classes)
   * [const and non-const getter methods](#const-and-non-const-getter-methods)
 - [const iterators](#const-iterators)
 - [const pointers](#const-pointers)
@@ -12,6 +15,8 @@
 - [constexpr](#constexpr)
   * [constexpr vs inline functions](#constexpr-vs-inline-functions)
   * [constexpr vs const](#constexpr-vs-const)
+- [checking if type or value is const](#checking-if-type-or-value-is-const)
+
 
 # const variables
 
@@ -214,7 +219,9 @@ C++ 17  provides `std::as_const` for exactly this purpose:
 ```cpp
 Func( as_const(variable) );
 ```
+`as_const` is a function rather than a trait, we can use it to "add const" to actual values rather than to types.
 
+Refs: [1](https://stackoverflow.com/questions/53450366/what-do-we-need-stdas-const-for)
 
 ## calling a specific overload
 
@@ -348,7 +355,7 @@ Refs: [1](https://www.geeksforgeeks.org/understanding-constexper-specifier-in-c/
 
 
 
-# check if type is const
+# checking if type or value is const
 You can use `std::is_const`
 
 ```cpp
