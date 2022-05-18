@@ -346,3 +346,48 @@ Both are used performance improvements.  The [inline functions](inline_functions
 
 Refs: [1](https://www.geeksforgeeks.org/understanding-constexper-specifier-in-c/),[2](https://www.youtube.com/watch?v=4Vnd2I91s2c&)
 
+
+
+# check if type is const
+You can use `std::is_const`
+
+```cpp
+const Foo foo_obj(10);
+std::cout << std::boolalpha;
+std::cout << std::is_const<decltype(foo_obj)>::value << '\n';
+```
+
+output is true:
+
+```cpp
+std::cout<< std::is_const_v<const int> << 
+```
+
+If `T` is a reference type then `is_const<T>::value` is always false. The proper way to check a potentially-reference type for const-ness is to remove the reference: `is_const<typename remove_reference<T>::type>`.
+
+output is true:
+```cpp
+std::cout << std::is_const_v<std::remove_reference_t<const int&> > << '\n'; 
+```
+
+Output is false:
+```cpp
+std::cout << std::is_const_v<const int&>  << '\n'; 
+```
+
+Output is false:
+
+```cpp
+std::cout<< std::is_const_v<const int*> << '\n'; 
+```	
+
+Because the pointer itself can be changed but not the int pointed at, the output is true:
+```cpp
+std::cout<< std::is_const_v<int* const> << '\n'
+```	
+	
+The output is **false**:
+```cpp
+std::is_const_v< std::remove_pointer<int* const> > << '\n';
+```
+
