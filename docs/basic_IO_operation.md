@@ -1,3 +1,43 @@
+- [Standard Input/ Output Library](#standard-input--output-library)
+  * [Stream](#stream)
+  * [Streambuf](#streambuf)
+    + [1. istream](#1-istream)
+    + [2. ostream](#2-ostream)
+    + [3. iostream](#3-iostream)
+  * [Predefined Stream Objects](#predefined-stream-objects)
+    + [1. cin](#1-cin)
+    + [2. cerr](#2-cerr)
+    + [3. clog](#3-clog)
+    + [4. cout](#4-cout)
+- [Formatted vs Unformatted I/O Function](#formatted-vs-unformatted-i-o-function)
+- [Manipulators](#manipulators)
+  * [Manipulators Without Arguments](#manipulators-without-arguments)
+    + [1. endl](#1-endl)
+    + [2.  ws](#2--ws)
+    + [3.  ends](#3--ends)
+    + [4.  flush](#4--flush)
+  * [Manipulators with Arguments:](#manipulators-with-arguments-)
+- [Reading and Writing Files](#reading-and-writing-files)
+  * [Simple file reader/writer from disk](#simple-file-reader-writer-from-disk)
+  * [Simple writing to file](#simple-writing-to-file)
+  * [Advance writing](#advance-writing)
+  * [Reading chars](#reading-chars)
+  * [Reading file at once](#reading-file-at-once)
+  * [Reading line by line](#reading-line-by-line)
+- [Stringstream](#stringstream)
+- [Formatting cout](#formatting-cout)
+- [Fast IO Operation](#fast-io-operation)
+- [cin, cout examples](#cin--cout-examples)
+  * [cin extract operator >>](#cin-extract-operator---)
+  * [cin ignore](#cin-ignore)
+  * [cin peek](#cin-peek)
+  * [cin putback](#cin-putback)
+  * [cin get](#cin-get)
+  * [cout put](#cout-put)
+  * [cout write](#cout-write)
+- [filesystem](#filesystem)
+  * [std::getline](#std--getline)
+
 # Standard Input/ Output Library
 
 ```
@@ -40,24 +80,88 @@ It is responsible for communicating with external devices. When you read or writ
 reading/ writing from `cin/cout streambuff` which is controlled by operating system. Operating system puts the data there and
 your application can read or write from there.
 
+
+Streams Objects in C++ are mainly of three types :
+
+### 1. istream
+Stream object of this type can only perform input operations from the stream
+### 2. ostream
+These objects can only be used for output operations.
+### 3. iostream 
+Can be used for both input and output operations
+
+All stream objects also have an associated data member of class streambuf. Simply put streambuf 
+object is the buffer for the stream. When we read data from a stream, we don’t read it directly 
+from the source, but instead, we read it from the buffer which is linked to the source. Similarly, 
+output operations are first performed on the buffer, and then the buffer is flushed (written to the physical device) 
+when needed.
+
+C++ allows us to set the stream buffer for any stream. So the task of redirecting the stream simply reduces to 
+changing the stream buffer associated with the stream. Thus the to redirect a Stream A to Stream B we need to do
+
+1)Get the stream buffer of A and store it somewhere
+2)Set the stream buffer of A to the stream buffer of B
+3)If needed reset the stream buffer of A to its previous stream buffer
+
+We can use the function `ios::rdbuf()` to perform two operations.
+1) `stream_object.rdbuf()`: Returns pointer to the stream buffer of stream_object
+2) `stream_object.rdbuf(streambuf * p)`: sets the stream buffer to the object pointed by p
+
+
+Backup streambuffers of  cout:
+
+```cpp
+std::streambuf* stream_buffer_cout = std::cout.rdbuf();
+std::streambuf* stream_buffer_cin = std::cin.rdbuf();
+
+std::streambuf* inbuf = std::cin.rdbuf();
+std::istream my_cin(inbuf);
+int x;
+my_cin >> x;
+
+std::streambuf* outbuf = std::cout.rdbuf();
+std::ostream my_cout(outbuf);
+my_cout << x<<"\n";
+
+std::fstream file("myfile.txt", std::ios::out);
+```
+
+Get the streambuffer of the file:
+
+```cpp
+std::streambuf* stream_buffer_file = file.rdbuf();
+```
+
+Redirect `cout` to file 
+```cpp
+std::cout.rdbuf(stream_buffer_file);
+std::cout << "This line will be written to the file" << std::endl;
+```
+
+Redirect `cout` back to screen 
+
+```cpp
+std::cout.rdbuf(stream_buffer_cout);
+std::cout << "This line is written to screen" << std::endl;
+```
 Refs: [1](https://stackoverflow.com/questions/29176636/can-someone-please-explain-how-stdio-buffering-works)
 
 ## Predefined Stream Objects
-1. `cin`
+### 1. cin
 ```cpp
 typedef std::istream	std::basic_istream<char>;
 extern std::istream cin;
 ```
-2. `cerr`  
+### 2. cerr  
 ```cpp
 typedef std::ostream	std::basic_ostream<char>;
 extern std::ostream cerr;
 ```
-3. `clog`
+### 3. clog
 ```cpp
 extern ostream clog;
 ```
-4. `cout`
+### 4. cout
 ```cpp
 extern ostream cout;
 ```
@@ -72,7 +176,7 @@ extern ostream cout;
 
 
 
-## Manipulators
+# Manipulators
 
 Manipulators are helping functions that can modify the input/output stream.
 It does not mean that we change the value of a variable, it only modifies the I/O stream using
@@ -80,24 +184,155 @@ insertion `<<` and extraction `>>` operators.
 
 Types of Manipulators:
 
-### Manipulators Without Arguments 
+## Manipulators Without Arguments 
 The most important manipulators defined by the IOStream library are provided below.
-1. endl: It is defined in ostream. It is used to enter a new line and after entering a new line it flushes
+
+### 1. endl
+It is defined in `ostream`. It is used to enter a new line and after entering a new line it flushes
 (i.e. it forces all the output written on the screen or in the file) the output stream.
 
-2.  ws: It is defined in istream and is used to ignore the whitespaces in the string sequence.
-3.  ends: It is also defined in ostream and it inserts a null character into the output stream. It typically works with
-std::ostrstream, when the associated output buffer needs to be null-terminated to be processed as a C string.
-4.  flush: It is also defined in ostream and it flushes the output stream i.e. it forces all the output written
+### 2.  ws
+It is defined in `istream` and is used to ignore the white-spaces in the string sequence.
+
+Discards leading white-space from an input stream
+formatted input, i.e., the usual input operators using `in >> value, skip leading whitespace and stop whenever the format is filled
+unformatted input, e.g., `std::getline(in, value)` does not skip leading white-space
+
+```cpp
+
+int age;
+std::string fullname;
+
+if (std::cin >> age && std::getline(std::cin, fullname)) 
+{ 
+    // BEWARE: this is NOT a Good Idea!
+     std::cout << "age=" << age << "  fullname='" << fullname << "'\n";
+}
+```
+for the following example:
+```
+47
+Dietmar Kühl
+```
+
+It would print something like this
+```cpp
+age=47 fullname=''
+```
+The use of `std::cin >> std::ws `skips the white-space, in particular the newline, and carries on reading where the actual content is entered.
+The following statement read the data correctly:
+
+```cpp
+if (std::cin >> age && std::getline(std::cin >> std::ws, fullname)) 
+{
+    ...
+}
+```
+
+
+```cpp
+int age(0);
+std::string fullname;
+std::stringstream ss1("     47 \n \n mumbo jumbo");
+
+if (ss1 >> age && std::getline(ss1 , fullname))
+{
+    std::cout << age << std::endl;
+    std::cout << fullname << std::endl;
+}
+
+std::stringstream ss2("     47 \n \n mumbo jumbo");
+if (ss2 >> age && std::getline(ss2 >> std::ws, fullname))
+{
+    std::cout << age << std::endl;
+    std::cout << fullname << std::endl;
+}
+```
+
+
+	
+
+
+
+
+
+### 3.  ends
+It is also defined in `ostream` and it inserts a null character into the output stream. It typically works with
+`std::ostrstream`, when the associated output buffer needs to be null-terminated to be processed as a C string.
+### 4.  flush
+It is also defined in `ostream` and it flushes the output stream i.e. it forces all the output written
 on the screen or in the file. Without flush, the output would be the same but may not appear in real-time.
 
-### Manipulators with Arguments:
+By default, `std::cout` is buffered, and the actual output is only printed once the buffer is full or some other flushing situation occurs
+(e.g. a newline in the stream). Sometimes you want to make sure that the printing happens immediately, and you need to flush manually.
+For example, suppose you want to report a progress report by printing a single dot:
+In the following example if you comment `std::flush(std::cout)` you won't see that for a long time, until the buffer became full
+
+```cpp
+for (;;)
+{
+
+	// performing some expensive operation
+	std::size_t j;
+	for (std::size_t i = 0; i < 10000000; i++)
+	{
+		j = 2 * i;
+	}
+
+	std::cout << '.';
+	//std::flush(std::cout);
+}
+```
+
+
+
+## Manipulators with Arguments:
 
 Some important manipulators in <iomanip> are:
 1. `setw (val)`: It is used to sets the field width in output operations.
+
+```cpp
+std::cout << std::setw(10) << 77 << std::setw(8) << 15 << std::endl;
+```
+The `std::setw` manipulator sets the width of a column, while `std::left` and `std::right` set the alignment of the written value
+within that column. For example, on line 6, we write the name “John Smith” to a column of width 12 and align it to the left of the column.
+```cpp
+std::cout << std::left << std::setw(15) << "John Smith" << std::right << std::setw(7) << 23 << '\n';
+std::cout << std::left << std::setw(15) << "Sam Brown" << std::right << std::setw(7) << 8 << '\n';
+```
+
 2. `setfill (c)`: It is used to fill the character ‘c’ on output stream.
+
+Sets c as the stream's fill character.
+```cpp
+std::cout << std::setfill('x') << std::setw(10) << 77 << std::setw(10) << 12 << std::endl;
+```
+
 3. `setprecision (val)`: It sets val as the new value for the precision of floating-point values.
+
+```cpp
+double number = 3.1914534559;
+
+std::cout <<"default precision: " <<std::cout.precision()<< "\n";
+
+std::cout << number << "\n";
+std::cout << std::setprecision(1)<< number <<"\n" ;
+std::cout << std::fixed;
+std::cout << std::setprecision(7) << number << "\n";
+```
+
+
 4. `setbase(val)`: It is used to set the numeric base value for numeric values.
+
+```cpp
+std::cout << std::setbase(16) << 110<<std::endl;
+std::cout << std::hex << 110 << std::endl;
+std::cout << std::hex << std::showbase << 110 << '\n';
+
+std::cout << std::dec << 0xc1 << std::endl;
+std::cout << std::setbase(10) << 0xc1 << std::endl;
+```
+
 5. `setiosflags(flag)`: It is used to sets the format flags specified by parameter mask.
 6. `resetiosflags(m)`: It is used to resets the format flags specified by parameter mask.
 	
@@ -109,15 +344,15 @@ Some important manipulators in <ios> are:
 5. `nouppercase`: It forces lowercase letters for numeric values.
 6. `fixed`: It uses decimal notation for floating-point values.
 7. `scientific`: It use scientific floating-point notation.
-8. `hex`: Read and write hexadecimal values for integers and it works same as the setbase(16).
-9. `dec`: Read and write decimal values for integers i.e. setbase(10).
-10. `oct`: Read and write octal values for integers i.e. setbase(10).
+8. `hex`: Read and write hexadecimal values for integers and it works same as the `setbase(16)`.
+9. `dec`: Read and write decimal values for integers i.e. `setbase(10)`.
+10. `oct`: Read and write octal values for integers i.e. `setbase(10)`.
 11. `left`: It adjust output to the left.
 12. `right`: It adjust output to the right.
 
 
 
-# Reading, Writing Files
+# Reading and Writing Files
 
 
 Available Modes for Opening a File:
@@ -150,7 +385,8 @@ modes are `bitset`. For instance, `ios::app` might equal 00000001, `ios::ate` mi
 `ios::out` might equal 00000100, etc. So each mode corresponds to one bit which can be 0 or 1.
 This means that more than one mode's value can be set at the same time using the arithmetic OR.
 
-simple file reader/writer from disk:
+## Simple file reader/writer from disk
+
 ```cpp
 
 std::ifstream inputfile("inputfile.txt");
@@ -162,11 +398,10 @@ while(inputfile>>f)//detects end-of-file and exits loop
 }
 inputfile.close();
 outputfile.close();
+```
 
-```     
 
-
-simple writing to file
+## Simple writing to file
 
 ```cpp
 std::ofstream myfile;
@@ -177,7 +412,7 @@ myfile<<std::complex<double>(2,3);
 myfile.close();
 ```
 
-Advance writing
+## Advance writing
 
 ```cpp
 std::ofstream myfile("ReadingWritingIntoFile.txt",std::ofstream::in | std::ofstream::out);
@@ -188,7 +423,7 @@ myfile.seekp( -5,std::ios::end);// Move the output pointer 5 char before end
 myfile<<"something at the end";
 ```
 
-Reading chars
+## Reading chars
 ```cpp
 std::ifstream myfile("ReadingWritingIntoFile.txt");
 int i;
@@ -202,7 +437,7 @@ if(myfile.good())
 }
 ```
 
-Reading file at once
+## Reading file at once
 ```cpp
 std::string path_to_file;
 std::ifstream in(path_to_file.c_str());
@@ -211,7 +446,7 @@ buffer << in.rdbuf();
 std::string contents(buffer.str());
 std::cout<<contents <<std::endl;
 ```
-Reading line by line
+## Reading line by line
 ```cpp
 std::string line;
 std::ifstream myfile ("src/ReadWriteFile/example.txt");
@@ -255,381 +490,72 @@ Important methods are:
 1. `clear()` : to clear the stream
 2. `str()` : to get and set string object whose content is present in stream.
 3. insertion `<<` operator  : add a string to the stringstream object. This operator has been overloaded with
-various data types, so you can do  `stringstream<<int or stringstream<<double` etc.
-4 .extraction `>>` operator : read something from the stringstream object until it encounter a white space.
-
-*/
-    std::stringstream ss;
-
-    std::string name="behnam";
-    int age=33;
-    ss<<"name: "<<name;
-    ss<<" age: "<<age;
-
-    std::cout<< "Accessing data stored in stringstream via .str() call:"<<std::endl;
-
-    std::cout<< ss.str() <<std::endl;
-
-    std::string word;
-
-    std::cout<< "Accessing data stored in stringstream via extraction (>>) operator:"<<std::endl;
-
-    ss<<"23 4 5.0";
-
-    while(ss>>word)
-    {
-        std::cout<<word <<std::endl;
-    }
-
-    std::cout<<"//////////////////////// Counting Words Frquency ////////////////////////////"<<std::endl;
-
-
-    std::stringstream wordsFrquencyStream("a b bb c a dd d");
-
-
-    std::map<std::string,int> wordsFrquency;
-    while(wordsFrquencyStream>>word)
-    {
-        wordsFrquency[word]++;
-    }
-    std::cout<<"Frequecy of words in "<<wordsFrquencyStream.str() <<std::endl;
-
-    for(auto i:wordsFrquency)
-        std::cout<<i.first<<":" <<i.second <<std::endl;
-
-
-    std::cout<<"///////////////////////////// Hex Decimal /////////////////////////////////"<<std::endl;
-
-
-    std::stringstream hexDecimalStream;
-    hexDecimalStream<<std::hex<<12;
-    std::cout<<"0x" << hexDecimalStream.str() <<std::endl;
-
-    unsigned int x;
-    hexDecimalStream>>x;
-    std::cout<< x<<std::endl;
-
-
-    std::cout<<"the hexadecimal value of 12 is:"<<std::endl;
-    std::cout<<"0x"<<std::setbase(16)<<12<<std::endl;
-}
-
-////////////////////////////////////// streambuf //////////////////////////////////////
+various data types, so you can do  `stringstream<<int or stringstream<<double` etc. 
+4. extraction `>>` operator : read something from the stringstream object until it encounter a white space.
 
 
 
-void streambuf()
+
+Accessing data stored in `stringstream` via `.str()` call:
+```cpp
+std::stringstream ss;
+
+std::string name="behnam";
+int age=33;
+ss<<"name: "<<name;
+ss<<" age: "<<age;
+std::cout<< ss.str() <<std::endl;
+```
+
+
+Accessing data stored in `stringstream` via extraction `>>` operator:
+
+```cpp
+std::string word;
+ss<<"23 4 5.0";
+while(ss>>word)
 {
-/*
-	Streams Objects in C++ are mainly of three types :
-
-	istream : Stream object of this type can only perform input operations from the stream
-	ostream : These objects can only be used for output operations.
-	iostream : Can be used for both input and output operations
-
-	All stream objects also have an associated data member of class streambuf. Simply put streambuf 
-	object is the buffer for the stream. When we read data from a stream, we don’t read it directly 
-	from the source, but instead, we read it from the buffer which is linked to the source. Similarly, 
-	output operations are first performed on the buffer, and then the buffer is flushed (written to the physical device) 
-	when needed.
-
-	C++ allows us to set the stream buffer for any stream. So the task of redirecting the stream simply reduces to 
-	changing the stream buffer associated with the stream. Thus the to redirect a Stream A to Stream B we need to do
-
-	1)Get the stream buffer of A and store it somewhere
-	2)Set the stream buffer of A to the stream buffer of B
-	3)If needed reset the stream buffer of A to its previous stream buffer
-
-	We can use the function ios::rdbuf() to perform two opeations.
-	1) stream_object.rdbuf(): Returns pointer to the stream buffer of stream_object
-	2) stream_object.rdbuf(streambuf * p): Sets the stream buffer to the object pointed by p
-
-
-
-*/
-// Backup streambuffers of  cout 
-	std::streambuf* stream_buffer_cout = std::cout.rdbuf();
-	std::streambuf* stream_buffer_cin = std::cin.rdbuf();
-
-
-	std::streambuf* inbuf = std::cin.rdbuf();
-	std::istream my_cin(inbuf);
-	int x;
-	my_cin >> x;
-
-	std::streambuf* outbuf = std::cout.rdbuf();
-	std::ostream my_cout(outbuf);
-	my_cout << x<<"\n";
-
-
-
-	std::fstream file("myfile.txt", std::ios::out);
-
-	// Get the streambuffer of the file 
-	std::streambuf* stream_buffer_file = file.rdbuf();
-
-	// Redirect cout to file 
-	std::cout.rdbuf(stream_buffer_file);
-
-	std::cout << "This line will be written to the file" << std::endl;
-
-	// Redirect cout back to screen 
-	std::cout.rdbuf(stream_buffer_cout);
-	std::cout << "This line is written to screen" << std::endl;
+	std::cout<<word <<std::endl;
 }
+```
+Counting Words Frequency
 
-
-void flushExample() 
+```cpp
+std::stringstream wordsFrquencyStream("a b bb c a dd d");
+std::map<std::string,int> wordsFrquency;
+while(wordsFrquencyStream>>word)
 {
-/*
-	By default, std::cout is buffered, and the actual output is only printed once the buffer is full or some other flushing situation occurs
-	(e.g. a newline in the stream). Sometimes you want to make sure that the printing happens immediately, and you need to flush manually.
-	For example, suppose you want to report a progress report by printing a single dot:
-	In the following example if you comment std::flush(std::cout) you won't see that for a long time, until the buffer became full
-*/
-	for (;;)
-	{
-
-		// performing some expensive operation
-		std::size_t j;
-		for (std::size_t i = 0; i < 10000000; i++)
-		{
-			j = 2 * i;
-		}
-
-		std::cout << '.';
-		//std::flush(std::cout);
-	}
+	wordsFrquency[word]++;
 }
+std::cout<<"Frequecy of words in "<<wordsFrquencyStream.str() <<std::endl;
 
-//////////////////////////////////////  Manipulators //////////////////////////////////////
+for(auto i:wordsFrquency)
+	std::cout<<i.first<<":" <<i.second <<std::endl;
+```
 
-void wsExample() 
-{
-/*
-	std::ws
-	Discards leading whitespace from an input stream
-	formatted input, i.e., the usual input operators using `in >> value, skip leading whitespace and stop whenever the format is filled
-	unformatted input, e.g., std::getline(in, value) does not skip leading whitespace
+Hex Decimal Stream:
 
-	int age;
-	std::string fullname;
+```cpp
+std::stringstream hexDecimalStream;
+hexDecimalStream<<std::hex<<12;
+std::cout<<"0x" << hexDecimalStream.str() <<std::endl;
 
-	if (std::cin >> age && std::getline(std::cin, fullname)) { // BEWARE: this is NOT a Good Idea!
-		 std::cout << "age=" << age << "  fullname='" << fullname << "'\n";
-	 }
-
-	for the folliwng example:
-	47
-	Dietmar Kühl
-
-	It would print something like this
-	age=47 fullname=''
-
-	The use of std::cin >> std::ws skips the whitespace, in particular the newline, and carries on reading where the actual content is entered.
-	The following statement read the data correctly
-	if (std::cin >> age && std::getline(std::cin >> std::ws, fullname)) {
-		...
-	}
-*/
-
-	int age(0);
-	std::string fullname;
-	std::stringstream ss1("     47 \n \n mumbo jumbo");
-	
-	if (ss1 >> age && std::getline(ss1 , fullname))
-	{
-		std::cout << age << std::endl;
-		std::cout << fullname << std::endl;
-	}
-
-	std::stringstream ss2("     47 \n \n mumbo jumbo");
-	if (ss2 >> age && std::getline(ss2 >> std::ws, fullname))
-	{
-		std::cout << age << std::endl;
-		std::cout << fullname << std::endl;
-	}
-}
-
-void setwExample() 
-{
-	std::cout << std::setw(10) << 77 << std::setw(8) << 15 << std::endl;
-}
-
-void setfillExample() 
-{
-	//Sets c as the stream's fill character.
-	std::cout << std::setfill('x') << std::setw(10) << 77 << std::setw(10) << 12 << std::endl;
-}
-
-void leftrightExample() 
-{
-/*
-	The std::setw manipulator sets the width of a column, while std::left and std::right set the alignment of the written value
-	within that column. For example, on line 6, we write the name “John Smith” to a column of width 12 and align it to the left of the column.
-*/
-	std::cout << std::left << std::setw(15) << "John Smith" << std::right << std::setw(7) << 23 << '\n';
-	std::cout << std::left << std::setw(15) << "Sam Brown" << std::right << std::setw(7) << 8 << '\n';
-}
-
-void setprecisionExample() 
-{
-
-	double number = 3.1914534559;
-
-	std::cout <<"default precision: " <<std::cout.precision()<< "\n";
-
-	std::cout << number << "\n";
-	std::cout << std::setprecision(1)<< number <<"\n" ;
-	std::cout << std::fixed;
-	std::cout << std::setprecision(7) << number << "\n";
-}
-
-void hexDecOctSetBaseShowBase()
-{
-	//
-	std::cout << std::setbase(16) << 110<<std::endl;
-	std::cout << std::hex << 110 << std::endl;
-	std::cout << std::hex << std::showbase << 110 << '\n';
-	
-	std::cout << std::dec << 0xc1 << std::endl;
-	std::cout << std::setbase(10) << 0xc1 << std::endl;
-}
-
-//////////////////////////////////////  cin, cout //////////////////////////////////////
-
-void cinGetlineExample()
-{
-/*
-	std::getline
-
-	istream& getline (istream&  is, string& str, char delim);
-	istream& getline (istream&  is, string& str);
-	Extracts characters from is and stores them into str until the delimitation character delim is found (or the newline character, '\n'
-*/
-	std::stringstream ss("this is a stringstream");
-	std::string my_string;
-	char delim = ' ';
+unsigned int x;
+hexDecimalStream>>x;
+std::cout<< x<<std::endl;
 
 
-	while (std::getline(ss, my_string, delim))
-		std::cout << my_string << std::endl;
-
-	std::string name;
-	std::cout << "Please, enter your full name: ";
-	std::getline(std::cin, name);
-	std::cout << "Hello, " << name << "!\n";
-}
-
-void cinExtractOperatorExample()
-{
-	/*
-	extract operator >>
-	It will read the user input (discard the white spaces or '\n' before the user input) until it encounter 
-	first end of line or white space. It will also leave the '\n' in the cin object.
-	If user input has a space in it, you should use getline.
-	for instance here favorite food might have two words with a space in between, so the second part of the favorite food will be
-	passed to the next std::cin. 
-
-	In the following example in the line:
-	std::cin >> n1;
-
-	since it leaves the '\n' in the cin object, the line:
-	std::getline(std::cin >> std::ws, key);
-
-	would only get '\n' and finishes immediately. 
-	*/
-
-	int n1;
-	std::string favouriteFood,key;
-
-	std::getline(std::cin>>std::ws , favouriteFood);
-	std::cout << favouriteFood << '\n';
-
-	std::cin >> n1;
-	std::cout << n1 << '\n'; 
-			
-	std::getline(std::cin >> std::ws, key);
-	std::cout << key <<'\n';
-
-}
-
-void cinIgnoreExample() 
-{
-
-
-	/*
-	It doesn't "throw away" something you don't need instead, it ignores the amount of characters you specify when you call it,
-	up to the char you specify as a breakpoint.
-
-	Essentially, for std::cin statements you use ignore before you do a getline call, because when a user inputs something with std::cin,
-	they hit enter and a '\n' char gets into the cin buffer. Then if you use getline, it gets the newline char instead of the string you want.
-	So you do a std::cin.ignore(MAX,'\n') and that should clear the buffer up to the string that you want. (The MAX is put there to skip
-	over a specific amount of chars before the specified break point, in this case, the \n newline character.)
-	*/
-
-	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-	//in c style programming you can call 
-	//while ((getchar()) != '\n');
-
-	/*
-	If you don't specify any argument it will ignore the first character it faces
-	std::cin.ignore(5); //it will discared 5 character
-	std::cin.ignore(5, demiliter); //it will discared 5 character or delimiter character i.e. '\n'
-	*/
-
-}
-
-void cinPeekExample()
-{
-	/*
-	It just move the pointer in the stream buffer and doesn't remove anything from that
-	*/
-	std::cin.peek();
-}
-
-void cinPutbackExample()
-{
-	/*
-	It putback something in the stream buffer.
-	*/
-}
-
-void cinGetExample()
-{
-	/*
-	Extracts characters from the stream, as unformatted input:
-	*/
-
-	char str[256];
-	std::cout << "Enter the name of an existing text file: ";
-	std::cin.get(str, 256);    // get c-string
-
-	std::string filePath = "";
-	std::ifstream is(filePath.c_str(), std::ifstream::in);     // open file
-
-	char c;
-	while (is.get(c))          // loop getting single characters
-		std::cout << c;
-
-	c = std::cin.get();
-}
-
-void coutPutExample() 
-{
-	std::cout.put(65);
-}
-
-void coutWriteExample()
-{
-	std::string message("message for write");
-	std::cout.write(message.c_str(), message.size());
-}
+std::cout<<"the hexadecimal value of 12 is:"<<std::endl;
+std::cout<<"0x"<<std::setbase(16)<<12<<std::endl;
+```
 
 
 
-# Formating  cout
+
+
+
+
+# Formatting cout
 
 It can be set with 
 `std::cout.setf(arg1, arg2);`
@@ -697,6 +623,110 @@ It is recommended to use `cout << “\n”;` instead of `cout << endl;`. `endl` 
 which is usually unnecessary
 
 
+
+# cin, cout examples
+
+## cin extract operator >>
+
+It will read the user input (discard the white spaces or '\n' before the user input) until it encounter 
+first end of line or white space. It will also leave the '\n' in the cin object.
+If user input has a space in it, you should use getline.
+for instance here favorite food might have two words with a space in between, so the second part of the favorite food will be
+passed to the next `std::cin`. 
+
+In the following example in the line: `std::cin >> n1;` since it leaves the `'\n'` in the cin object, 
+the line: `std::getline(std::cin >> std::ws, key);` would only get `'\n'` and finishes immediately. 
+
+```cpp
+int n1;
+std::string favouriteFood,key;
+
+std::getline(std::cin>>std::ws , favouriteFood);
+std::cout << favouriteFood << '\n';
+
+std::cin >> n1;
+std::cout << n1 << '\n'; 
+        
+std::getline(std::cin >> std::ws, key);
+std::cout << key <<'\n';
+```
+
+## cin ignore
+
+It doesn't "throw away" something you don't need instead, it ignores the amount of characters you specify when you call it,
+up to the char you specify as a breakpoint.
+
+Essentially, for `std::cin` statements you use ignore before you do a getline call, because when a user inputs something with std::cin,
+they hit enter and a '\n' char gets into the cin buffer. Then if you use getline, it gets the newline char instead of the string you want.
+So you do a std::cin.ignore(MAX,'\n') and that should clear the buffer up to the string that you want. (The MAX is put there to skip
+over a specific amount of chars before the specified break point, in this case, the \n newline character.)
+
+```cpp
+std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+```
+in c style programming you can call:
+```cpp
+while ((getchar()) != '\n');
+```
+
+If you don't specify any argument it will ignore the first character it faces
+
+it will discarded 5 character:
+```cpp
+std::cin.ignore(5); 
+```
+
+
+it will discarded 5 character or delimiter character i.e. '\n'
+```cpp
+std::cin.ignore(5, demiliter); 
+```
+
+## cin peek
+
+It just move the pointer in the stream buffer and doesn't remove anything from that
+
+```cpp
+std::cin.peek();
+```
+
+## cin putback
+It putback something in the stream buffer.
+
+## cin get
+
+Extracts characters from the stream, as unformatted input:
+
+```cpp
+char str[256];
+std::cout << "Enter the name of an existing text file: ";
+std::cin.get(str, 256);    // get c-string
+
+std::string filePath = "";
+std::ifstream is(filePath.c_str(), std::ifstream::in);     // open file
+
+char c;
+while (is.get(c))          // loop getting single characters
+    std::cout << c;
+
+c = std::cin.get();
+}
+```
+
+
+
+## cout put
+
+```cpp
+std::cout.put(65);
+```
+
+## cout write
+```cpp
+std::string message("message for write");
+std::cout.write(message.c_str(), message.size());
+```
+
 # filesystem
 ```cpp
 const auto FilePath {"FileToCopy"};
@@ -720,6 +750,31 @@ if(std::filesystem::exists(FilePath))
     }
 }  
 ```
+
+
+## std::getline
+Extracts characters from is and stores them into str until the delimitation character delim is found (or the newline character, '\n'
+istream& getline (istream&  is, string& str, char delim);
+istream& getline (istream&  is, string& str);
+
+
+
+```cpp
+std::stringstream ss("this is a stringstream");
+std::string my_string;
+char delim = ' ';
+
+
+while (std::getline(ss, my_string, delim))
+    std::cout << my_string << std::endl;
+
+std::string name;
+std::cout << "Please, enter your full name: ";
+std::getline(std::cin, name);
+std::cout << "Hello, " << name << "!\n";
+```
+
+
 
 
 [source code](../src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
