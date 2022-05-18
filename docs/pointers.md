@@ -394,32 +394,7 @@ std::unique_ptr<Object> getUnique()
 }
 ```
 
-## reference_wrapper
-std::vector and std::list elements cannot be references, because:
-1. references have to be initialized.
-2. they cannot be reassigned, so the following won't compile:
 
-```cpp
-std::vector<person&> m_people{};
-```
-
-or 
-```cpp
-std::vector<<std::unique_ptr<person>>> people;
-```
-or 
-```cpp
-std::vector<<const person> people;
-```
-
-
-Essentially, std::reference_wrapper is a class that acts like a reference, but also allows assignment and copying, so it’s compatible with std::lists and std::vector.
-
-```cpp
-std::vector<std::reference_wrapper<std::unique_ptr<person>>> people;
-std::unique_ptr empolyee1= std::make_unique<person>();
-people.push_back(empolyee1 );
-```
 ## Reference
 
 Basically pointers can be reassigned to different location in memory but references can only stick to one variable. 
@@ -481,7 +456,40 @@ int x= 1;
 int& y = x;
 ```
 
-
-
 Refs: [1](https://www.geeksforgeeks.org/lvalues-references-and-rvalues-references-in-c-with-examples)
+
+
+## reference wrapper
+std::vector and std::list elements cannot be references, because:
+1. references have to be initialized.
+2. they cannot be reassigned, so the following won't compile:
+
+```cpp
+std::vector<person&> m_people{};
+```
+
+or 
+```cpp
+std::vector<<std::unique_ptr<person>>> people;
+```
+or 
+```cpp
+std::vector<<const person> people;
+```
+
+
+Essentially, std::reference_wrapper is a class that acts like a reference, but also allows assignment and copying, so it’s compatible with std::lists and std::vector.
+
+```cpp
+std::vector<std::reference_wrapper<std::unique_ptr<person>>> people;
+std::unique_ptr empolyee1= std::make_unique<person>();
+people.push_back(empolyee1 );
+```
+
+## removing reference/ pointer 
+
+```cpp
+std::cout<< std::is_same<int, std::remove_pointer<int>::type>();
+std::cout<< std::is_same<int, std::remove_reference<int &>::type>();
+```
 
