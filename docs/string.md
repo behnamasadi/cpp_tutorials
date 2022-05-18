@@ -13,13 +13,13 @@
 - [C string](#c-string)
   * [Definition](#definition)
   * [Modifications and Accessing Elements](#modifications-and-accessing-elements)
-    + [char *](#char--)
-    + [char []](#char---)
+  * [char *](#char--)
+  * [char []](#char---)
+  * [Difference between char * and char[]](#difference-between-char---and-char--)
   * [strlen](#strlen)
   * [strdup](#strdup)
-  * [Difference between char * and char[]](#difference-between-char---and-char--)
   * [String copying](#string-copying)
-  * [C++ String](#c---string)
+- [C++ String](#c---string)
   * [warning iso c++ forbids converting a string constant to ‘char*’ -wwrite-strings](#warning-iso-c---forbids-converting-a-string-constant-to--char----wwrite-strings)
 - [String to Number Conversion](#string-to-number-conversion)
   * [int, float, double to string](#int--float--double-to-string)
@@ -308,7 +308,7 @@ to make it easy to read remove the variable type,  then read it like:
 
 ## Modifications and Accessing Elements
 
-### char *
+## char *
 consider the following variable:
 ```cpp
 char* p1 = "John";
@@ -336,7 +336,7 @@ p1 = "Margarethe";
 ```
 
 
-### char []
+## char []
 
 consider the following variables:
 ```cpp
@@ -362,6 +362,10 @@ but the following code is wrong, `string1` is not a valid L-Value:
 string1 = "rope";
 ```
 
+## Difference between char * and char[]
+	
+Refs: [1](https://cs50.stackexchange.com/questions/8899/difference-between-char-and-char-in-c), [2](https://www.reddit.com/r/C_Programming/comments/jjdl7s/difference_between_char_and_char/)		
+	
 ## strlen
 
 
@@ -382,14 +386,12 @@ if(temp)
 
  It allocates a copy of a `char*` on the heap. 
 
-## Difference between char * and char[]
-	
-Refs: [1](https://cs50.stackexchange.com/questions/8899/difference-between-char-and-char-in-c), [2](https://www.reddit.com/r/C_Programming/comments/jjdl7s/difference_between_char_and_char/)	
+
 	
 ## String copying
 
 
-## C++ String
+# C++ String
 `std::string` usually allocates memory dynamically, and must copy the C-style string literal to it at run time.
 
 ```cpp
