@@ -1,3 +1,10 @@
+- [Size and Range of Primitive Data types](#size-and-range-of-primitive-data-types)
+- [Numerical Limits and Precision](#numerical-limits-and-precision)
+- [Setting Precision](#setting-precision)
+- [Variable Suffix](#variable-suffix)
+- [Scientific Notation](#scientific-notation)
+- [decltype vs typeof](#decltype-vs-typeof)
+
 # Size and Range of Primitive Data types
 
 
@@ -97,5 +104,17 @@ template<class T> T min(T a, T b)
 Code: [1](src/data_type_info.cpp), [2](src/primitive_data_types_numerical_limits_accuracy.cpp)
    
    
-# decltype    
-   
+# decltype vs typeof
+There is no `typeof` operator in c++. although the functionality has been offered by most of compilers it is a compiler specific language extension and it is extremely platform dependent. Also `decltype` always preserves references as part of the information, whereas `typeof` may not:
+```cpp
+int a = 1;
+int& ra = a;
+typeof(a) b = 1;     // int
+typeof(ra) b2 = 1;   // int
+decltype(a) b3;      // int
+decltype(ra) b4 = a; // reference to int
+```
+
+
+
+Refs: [1](https://stackoverflow.com/questions/14130774/difference-between-decltype-and-typeof)   
