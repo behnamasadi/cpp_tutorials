@@ -1,11 +1,13 @@
-- [Size and Range of Primitive Data types](#size-and-range-of-primitive-data-types)
+- [Size and range of primitive data types](#size-and-range-of-primitive-data-types)
 - [Numerical Limits and Precision](#numerical-limits-and-precision)
+- [size of objects and types](#size-of-objects-and-types)
 - [Setting Precision](#setting-precision)
 - [Variable Suffix](#variable-suffix)
 - [Scientific Notation](#scientific-notation)
 - [decltype vs typeof](#decltype-vs-typeof)
 
-# Size and Range of Primitive Data types
+
+# Size and range of primitive data types
 
 
 |DATA TYPE    |SIZE (IN BYTES)     | RANGE  | 
@@ -56,10 +58,66 @@ or
 ```cpp
 std::cout<<"FLT_EPSILON: " <<FLT_EPSILON <<std::endl;
 ```
+# size of objects and types
+sizeof operator queries size of the object or type.
+
+```cpp
+struct Empty {};
+struct Base { int a; };
+struct Derived : Base { int b; };
+```
+
+size of primitive types in bytes
+```cpp
+std::cout<<sizeof(char) <<std::endl;
+
+std::cout<<sizeof(std::byte) <<std::endl;
+```
+
+
+
+size of empty class:
+```cpp
+std::cout<< sizeof(Empty)   <<std::endl;
+```
+
+size of pointer:
+```cpp
+std::cout << sizeof(Empty *) << std::endl;
+```
+
+size of Base:
+```cpp
+std::cout << sizeof(Base) << std::endl;
+```
+
+size of Derived:
+```cpp
+std::cout << sizeof(Derived) << std::endl;
+```
+
+size of array of 10 int:
+```cpp
+std::cout << sizeof(int[10]) << std::endl;
+```
+
+size of a array of 10 int:
+
+```cpp
+int a[10];
+std::cout << sizeof(a) << std::endl;
+```
+
+length of array of 10 int:
+```cpp
+std::cout << ((sizeof a) / (sizeof *a)) << std::endl;
+std::cout << ((sizeof a) / (sizeof a[0])) << std::endl;
+```
+
 
 
 # Setting Precision
-
+```cpp
 double a;
 a = 3.1415926534;
 std::cout<<"a is: 3.1415926534" <<std::endl;
@@ -72,11 +130,12 @@ std::cout<<a<<std::endl;//3.140000
 
 std::cout.precision(1);
 std::cout<<a<<std::endl;//3.1
-
+```
 
 
 
 # Variable Suffix
+Your templated function:
 
 ```cpp
 template<class T> T min(T a, T b)
@@ -84,19 +143,24 @@ template<class T> T min(T a, T b)
   return (a < b) ? a : b;
 }
 ```
+your variables:
+```cpp
+25;     //int
+25l;    //long
+25u;   //unsigned
+25.0;  //double
+25.0f; //float
+```
 
-
-    //Suffix of “f” on float value
-    25;     //int
-    25l;    //long
-    25u;   //unsigned
-    25.0;  //double
-    25.0f; //float
-    float x = min(3.0f, 2.0f); // will compile
-/*
-    x = min(3.0f, 2);   // compiler cannot deduce T type
-    x = min(3.0f, 2.0); // compiler cannot deduce T type
-*/
+will compile
+```cpp
+float x = min(3.0f, 2.0f); // 
+```
+compiler cannot deduce T type
+```cpp
+x = min(3.0f, 2);
+x = min(3.0f, 2.0);
+```
 
 
 
