@@ -1,3 +1,39 @@
+- [String Encoding](#string-encoding)
+  * [ASCII](#ascii)
+  * [ANSI](#ansi)
+  * [ASCII Extended (extended ASCII" or "8-bit ASCII)](#ascii-extended--extended-ascii--or--8-bit-ascii-)
+  * [Unicode](#unicode)
+  * [Encodings: UTF-8 vs UTF-16 vs UTF-32](#encodings--utf-8-vs-utf-16-vs-utf-32)
+- [Strings in Windows](#strings-in-windows)
+  * [8-bit AnsiStrings](#8-bit-ansistrings)
+  * [16-bit UnicodeStrings](#16-bit-unicodestrings)
+  * [Depending on UNICODE define](#depending-on-unicode-define)
+  * [Checklist for Windows String Programming](#checklist-for-windows-string-programming)
+- [Literals and String Data Types](#literals-and-string-data-types)
+- [C string](#c-string)
+  * [Definition](#definition)
+  * [Modifications and Accessing Elements](#modifications-and-accessing-elements)
+    + [char *](#char--)
+    + [char []](#char---)
+  * [strlen](#strlen)
+  * [strdup](#strdup)
+  * [Difference between char * and char[]](#difference-between-char---and-char--)
+  * [String copying](#string-copying)
+  * [C++ String](#c---string)
+  * [warning iso c++ forbids converting a string constant to ‘char*’ -wwrite-strings](#warning-iso-c---forbids-converting-a-string-constant-to--char----wwrite-strings)
+- [String to Number Conversion](#string-to-number-conversion)
+  * [int, float, double to string](#int--float--double-to-string)
+- [Number to String Conversion](#number-to-string-conversion)
+  * [float to string](#float-to-string)
+  * [int to string](#int-to-string)
+  * [double to string](#double-to-string)
+  * [string to vector of char](#string-to-vector-of-char)
+- [Spiting String By Delimiter](#spiting-string-by-delimiter)
+- [string_view](#string-view)
+- [Short String Optimization](#short-string-optimization)
+- [Find String Case Insensitive](#find-string-case-insensitive)
+
+
 # String Encoding
 ## ASCII 
 ASCII uses 7 bits to represent a character. By using 7 bits, we can have a maximum of 2^7 (= 128)
@@ -326,7 +362,7 @@ but the following code is wrong, `string1` is not a valid L-Value:
 string1 = "rope";
 ```
 
-
+## strlen
 
 
 ## strdup
@@ -346,6 +382,10 @@ if(temp)
 
  It allocates a copy of a `char*` on the heap. 
 
+## Difference between char * and char[]
+	
+Refs: [1](https://cs50.stackexchange.com/questions/8899/difference-between-char-and-char-in-c), [2](https://www.reddit.com/r/C_Programming/comments/jjdl7s/difference_between_char_and_char/)	
+	
 ## String copying
 
 
