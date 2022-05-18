@@ -1,3 +1,15 @@
+- [Type conversions](#type-conversions)
+  * [Implicit conversion](#implicit-conversion)
+  * [Explicit conversion](#explicit-conversion)
+- [Type casting](#type-casting)
+  * [static cast](#static-cast)
+  * [dynamic cast](#dynamic-cast)
+  * [const cast](#const-cast)
+  * [reinterpret cast](#reinterpret-cast)
+- [Type comparision](#type-comparision)
+
+
+
 # Type conversions
 ## Implicit conversion
 
@@ -6,7 +18,7 @@
 
 # Type casting
 
-## static_cast
+## static cast
 It is a compile time cast. static_cast performs a tight type checking.  
 
 ```cpp
@@ -59,7 +71,7 @@ obj = static_cast<Int>(30);
 ```
     
 
-## dynamic_cast
+## dynamic cast
 This cast is executed at run-time, not compile time. It is exclusively used for handling polymorphism.
 
 You can use it for more than just casting downwards - you can cast sideways or even up another chain. The dynamic_cast will seek out the desired object and return it if possible. If it can't, it will return `nullptr `in the case of a pointer, or throw `std::bad_cast` in the case of a reference.
@@ -125,11 +137,11 @@ Base& baseReference = dynamic_cast<Base&> (*basePointer); // Ok.
 
 ```
 
-## const_cast
+## const cast
 
 Refs: [1](//https://www.geeksforgeeks.org/const_cast-in-c-type-casting-operators/)
 
-## reinterpret_cast
+## reinterpret cast
 
 It is used to convert one pointer of another pointer of any type, no matter either the class is related to each other or not. It does not check if the pointer type and data pointed by the pointer is same or not.
 
@@ -207,8 +219,17 @@ std::cout << *(reinterpret_cast<bool*>(ch));
 ```
 
 
-
-
+# Type comparision
+```cpp
+ std::is_same<T1, T2>
+ ```
+The putput is true:
+```cpp
+std::cout << std::boolalpha;
+std::cout<< std::is_same<int, std::remove_pointer<int>::type>();
+std::cout<< std::is_same<int, std::remove_reference<int &>::type>();
+```
+Refs: [1](https://en.cppreference.com/w/cpp/types/remove_pointer)
 
 
 [code](../src/cast.cpp)
