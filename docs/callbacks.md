@@ -66,6 +66,7 @@ f(param);
 
 
 Refs: [1](//https://www.youtube.com/watch?v=ZlHi8txU4aQ)
+
 [code](../src/bind.cpp)
 ## Function objects (classes with overloaded function call operator operator())
 
