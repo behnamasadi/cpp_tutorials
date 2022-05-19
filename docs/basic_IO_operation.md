@@ -40,7 +40,7 @@
 
 # Standard Input/ Output Library
 
-![PlantUML model](https://github.com/behnamasadi/cpp_tutorials/blob/master/docs/diagrams/uml_diagrams/svg/basi_io.svg)
+![PlantUML model](https://github.com/behnamasadi/cpp_tutorials/blob/master/docs/diagrams/uml_diagrams/basic_io.svg)
 
 
 
