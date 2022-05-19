@@ -40,6 +40,17 @@
 
 # Standard Input/ Output Library
 
+Most of the classes in standard input/ output library are templated and they can be adapted to any basic character type. 
+
+```cpp
+typedef basic_ios<char>                ios;
+typedef basic_istream<char>         istream;
+typedef basic_ostream<char>         ostream;
+typedef basic_iostream<char>       iostream;
+typedef basic_ifstream<char>       ifstream;
+```
+
+
 ![PlantUML model](https://github.com/behnamasadi/cpp_tutorials/blob/master/docs/diagrams/uml_diagrams/basic_io.svg)
 
 Refs: [1](https://en.cppreference.com/w/cpp/io)
