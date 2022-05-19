@@ -459,17 +459,6 @@ else
 
 ```cpp
 typedef basic_stringstream<char> stringstream;
-
-ios_base      istream
-   |         ↗   |
-   |        /    |
-   |       /     |
-   ↓      /      ↓
-   ios        iostream
-          \      ↑    ------------------------------------------->stringstream
-           \     |
-            \    |
-             ↘ ostream
 ```
 
 Objects of this class use a "string buffer" that contains a sequence of characters. This sequence of characters
@@ -718,7 +707,39 @@ std::string message("message for write");
 std::cout.write(message.c_str(), message.size());
 ```
 
-# filesystem
+## std::getline
+Extracts characters from is and stores them into str until the delimitation character delim is found (or the newline character, '\n'
+istream& getline (istream&  is, string& str, char delim);
+istream& getline (istream&  is, string& str);
+
+
+
+```cpp
+std::stringstream ss("this is a stringstream");
+std::string my_string;
+char delim = ' ';
+
+
+while (std::getline(ss, my_string, delim))
+    std::cout << my_string << std::endl;
+
+std::string name;
+std::cout << "Please, enter your full name: ";
+std::getline(std::cin, name);
+std::cout << "Hello, " << name << "!\n";
+```	
+# Error category interface
+## io_errc
+## iostream_category
+ 
+	
+# Synchronized output
+## basic_syncbuf	
+## basic_osyncstream	
+	
+	
+# Filesystem library
+The Filesystem library provides can be used for operations on file systems (paths, regular files, and directories.) 	
 ```cpp
 const auto FilePath {"FileToCopy"};
 
@@ -742,28 +763,7 @@ if(std::filesystem::exists(FilePath))
 }  
 ```
 
-
-## std::getline
-Extracts characters from is and stores them into str until the delimitation character delim is found (or the newline character, '\n'
-istream& getline (istream&  is, string& str, char delim);
-istream& getline (istream&  is, string& str);
-
-
-
-```cpp
-std::stringstream ss("this is a stringstream");
-std::string my_string;
-char delim = ' ';
-
-
-while (std::getline(ss, my_string, delim))
-    std::cout << my_string << std::endl;
-
-std::string name;
-std::cout << "Please, enter your full name: ";
-std::getline(std::cin, name);
-std::cout << "Hello, " << name << "!\n";
-```
+Refs: [1](https://en.cppreference.com/w/cpp/filesystem)
 
 
 
