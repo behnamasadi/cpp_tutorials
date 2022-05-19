@@ -1,3 +1,7 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+
 basic_ios  -up..|> ios_base 
 
 basic_ostream -up..|> basic_ios
@@ -20,3 +24,5 @@ basic_iftreamstream -up..|> basic_istream
 
 basic_fstream -up..|> basic_iostream
 basic_stringstream -up..|> basic_iostream
+
+@enduml
