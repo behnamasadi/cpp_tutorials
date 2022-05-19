@@ -22,6 +22,47 @@ int secondParam=5;
 auto MyPrinter=std::bind(&print,firstParam,secondParam);
 MyPrinter();
 ```
+You can use `std::placeholders::_` to set the order of the parameters:
+
+```cpp
+auto reversePrintFunc = std::bind(&print, std::placeholders::_2, std::placeholders::_1);
+
+int firstParam = 3;
+int secondParam = 5;
+
+print(firstParam, secondParam);
+reversePrintFunc(firstParam, secondParam);
+
+```
+You can use it like a lambda expression:
+
+
+```cpp
+std::vector<int> vec={1,2,3};
+std::vector<int> values(vec.size(),0);
+
+// raise every value in vec to the power of 3
+auto f=std::bind(&std::pow<int,int>,std::placeholders::_1,3);
+std::transform(vec.begin(), vec.end(), values.begin(), f);
+        
+for(auto value:values)
+    std::cout<< value<<std::endl;
+```
+an other example:
+
+```cpp
+int param=3;
+auto printer=std::bind(&printTemplate<int>,param);
+```
+or
+```cpp
+auto printer=std::bind(&printTemplate<int>,std::placeholders::_1);
+```
+an calling it:
+```cpp
+std::function<void (int)>f(printer);
+f(param);
+```
 
 
 Refs: [1](//https://www.youtube.com/watch?v=ZlHi8txU4aQ)
