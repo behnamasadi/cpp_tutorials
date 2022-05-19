@@ -42,34 +42,9 @@
 
 ![PlantUML model](https://github.com/behnamasadi/cpp_tutorials/blob/master/docs/diagrams/uml_diagrams/basic_io.svg)
 
+Refs: [1](https://en.cppreference.com/w/cpp/io)
 
 
-
-```
-
- <ios>        <istream>       <iostream>        <fstream>         <sstream>
-
-                 |------------------------------->ifstream
-ios_base      istream
-   |         ↗   |----------------------------------------------->istringstream
-   |        /    |
-   |       /     |
-   ↓      /      ↓------------------------------->fstream
-   ios        iostream
-          \      ↑----------------------------------------------->stringstream
-           \     |
-            \    |------------------------------->ofstream
-             ↘ ostream
-                 |------------------------------------------------>ostrngstream
-
-             <streambuf>
-                  |------------------------------->filebuf
-              streambuf
-                  |------------------------------------------------->stringbuf
-
-```
-
-Refs: [1](http://www.cplusplus.com/reference/iolibrary/)
 
 ## Stream
 A stream is an abstraction that represents a device (keyboard, files, network, ...) on which input and ouput operations are performed. 
