@@ -11,7 +11,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Align](docs/align.md)  
    * [Allocator](src/allocator.cpp)  
    * [Algorithms library](src/algorithms_library.cpp)  
-   * [Assert](src/assert.cpp)  
+   * [Assert](docs/assert.md)  
    * [Basic IO Operation, filesystem, Streams, Reading/Writing Files, Formating Output, cin, scanf, gets, getline, printf](docs/basic_IO_operation.md)  
    * [Bindinng](src/bind.cpp)  
    * [Bitset, Bit field](src/bitset_bit_field.cpp)  
