@@ -34,7 +34,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Forking](src/fork.cpp)  
    * [Forwarding Reference](src/forward.cpp)  
    * [Functions](docs/functions.md)  
-     * [Callbacks, Callable Objects, std::function, std::bind, Lambda](docs/callbacks.md)  
+     * [Callbacks, Callable Objects, std::function, std::bind, std::invoke,Lambda](docs/callbacks.md)  
      * [Extern Function](src/extern/function/main.cpp)  
      * [Function Objects](docs/function_objects.md)  
      * [Function Pointer](docs/function_pointer.md)
