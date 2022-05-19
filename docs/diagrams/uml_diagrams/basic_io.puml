@@ -1,0 +1,22 @@
+basic_ios  -up..|> ios_base 
+
+basic_ostream -up..|> basic_ios
+
+basic_istream -up..|> basic_ios
+
+
+basic_iostream -up..|> basic_istream
+
+basic_iostream -up..|> basic_ostream
+
+
+
+basic_ostreamstream -up..|> basic_ostream
+basic_oftreamstream -up..|> basic_ostream
+
+
+basic_istreamstream -up..|> basic_istream
+basic_iftreamstream -up..|> basic_istream
+
+basic_fstream -up..|> basic_iostream
+basic_stringstream -up..|> basic_iostream
