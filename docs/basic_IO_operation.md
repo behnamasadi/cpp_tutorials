@@ -35,8 +35,14 @@
   * [cin get](#cin-get)
   * [cout put](#cout-put)
   * [cout write](#cout-write)
-- [filesystem](#filesystem)
   * [std::getline](#std--getline)
+- [Error category interface](#error-category-interface)
+  * [io_errc](#io-errc)
+  * [iostream_category](#iostream-category)
+- [Synchronized output](#synchronized-output)
+  * [basic_syncbuf](#basic-syncbuf)
+  * [basic_osyncstream](#basic-osyncstream)
+- [Filesystem library](#filesystem-library)
 
 # Standard Input/ Output Library
 
