@@ -139,6 +139,8 @@ and the caller:
 std::unique_ptr<int> x = getInt();
 ```
 
+
+Refs: [1](https://stackoverflow.com/questions/10643563/how-to-return-smart-pointers-shared-ptr-by-reference-or-by-value)
 ## Passing smart pointers to functions
   
   
