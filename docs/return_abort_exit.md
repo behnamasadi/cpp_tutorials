@@ -24,11 +24,11 @@ return 5;
 now if run the program and then echo $?  it wil give you (7) but the destructor won't be called:
 
 ```cpp
-    foo fooObject;
-    exit(7) ;
+foo fooObject;
+exit(7) ;
 ```
 # abort
-abort sends a `SIGABRT` signal, exit just closes the application performing normal cleanup.
+abort sends a `SIGABRT` [signal](signals.md), exit just closes the application performing normal cleanup.
 
 
 [code](../src/return_abort_exit.cpp)
