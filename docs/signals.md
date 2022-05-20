@@ -45,51 +45,37 @@ Unlike SIGKILL, this signal can be blocked, handled, and ignored. It is
 the normal way to politely ask a program to terminate. The shell command
 kill generates SIGTERM by default.
 
-# raise() function
-  csignal header file declared the function `raise()` to handle a particular signal. Signal learns some unusual behavior in a program, and calls the signal handler. It is implemented to check if the default handler will get called or it will be ignored.
+# raising a signal
+csignal header file declared the function `raise()` to handle a particular signal. Signal learns some unusual behavior in a program, and calls the signal handler. It is implemented to check if the default handler will get called or it will be ignored.
 Syntax: 
 ```cpp
 int raise ( int signal_ )
 ```
+# setting signal handler
+Sets the handler for signal sig
+```cpp
+signal(int sig, /*signal-handler*/* handler);
+```
 
-
-
+defining a signal handler:
+```cpp
 sig_atomic_t s_value = 0;
 void handle(int signum)
 {
     s_value = signum;
 }
-
-void SIGSEGVhandle(int signum)
-{
-    std::cout << "oh my god! segmenation fault happened"<< std::endl;
-    printf("Process %d got signal %d\n", getpid(), signum);
-
-    //kill(getpid(), signum);
-    exit(signum);
-}
-
-
-void SIGExample()
-{
-    //SIGILL,SIGINT,SIGSEGV,SIGTERM,SIGABRT,SIGFPE
-    signal(SIGTERM, handle);
-    std::cout << "Before called Signal = " << s_value << std::endl;
-    raise(SIGTERM);
-    std::cout << "After called Signal = " << s_value << std::endl;
-}
-
-int main()
-{
-    //first example
-    //SIGExample();
-
-    //second example
-    signal(SIGSEGV, SIGSEGVhandle);
-    //signal(SIGSEGV, SIG_DFL);  // restore default behavior
-    int *p;
-    *p=10;
-}
+```
+setting the handler for a specific signal: 
+```cpp
+//SIGILL,SIGINT,SIGSEGV,SIGTERM,SIGABRT,SIGFPE
+signal(SIGTERM, handle);
+```
+raising the signal:
+```cpp
+std::cout << "Before called Signal = " << s_value << std::endl;
+raise(SIGTERM);
+std::cout << "After called Signal = " << s_value << std::endl;
+```
   
   
   
