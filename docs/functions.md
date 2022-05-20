@@ -3,7 +3,7 @@
 
 # returning object from function
 ##  returning a reference
-it's okay to return a reference if the lifetime of the object won't end after the call. Also okay for accessing things where you know the lifetime is being kept open on a higher-level, e.g.:
+it's okay to return a reference if the lifetime of the object won't end after the call but never retrun a reference to a local object. Also okay for accessing things where you know the lifetime is being kept open on a higher-level, e.g.:
 ```cpp
 struct S {
     S(int i) : m_i(i) {}
@@ -76,6 +76,54 @@ char *myOtherBadFunction()
 ```
 
 Refs: [1](https://stackoverflow.com/questions/275214/scope-and-return-values-in-c), [2](https://stackoverflow.com/questions/752658/is-the-practice-of-returning-a-c-reference-variable-evil)
+
+## returning a const reference
+
+```cpp
+class Complx {
+private:
+	double real;
+	double imag;
+public:
+	Complx() {}
+	Complx(double r, double i): real(r), imag(i) {}
+	Complx  operator+(const Complx & c) const 
+    {
+		return Complx(real + c.real, imag + c.imag);
+	}
+	Complx & operator=(const Complx &c;) 
+    {
+		real = c.real;
+		imag = c.imag;
+		return *this;
+	}
+
+	double size() const 
+    {
+		return sqrt(real*real + imag*imag);
+	}
+};
+```
+
+Here in the Maximum function,
+```cpp
+const Complx & Maximum(const Complx &c1, const Complx &c2) 
+{
+	
+	if (c1.size() > c2.size()) 
+		return c1;
+	else
+		return c2;
+}
+```
+Returning an object invokes the **copy constructor** while returning a reference doesn't. Also, the reference should be to an object that exists when the calling function is execution which in this case both of them are class members so they will exist as long as the class exist.
+
+Refs: [1](https://www.bogotobogo.com/cplusplus/object_returning.php)
+
+
+# returning a reference to a non-const object
+
+
 ## Return smart pointers from functions
 If you want to allocate something that lives beyond the scope of the function, use a smart pointer (or in general, a container):
 
