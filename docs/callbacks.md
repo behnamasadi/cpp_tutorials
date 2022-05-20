@@ -1,3 +1,12 @@
+- [Callbacks](#callbacks)
+  * [Function pointers (including pointers to member functions)](#function-pointers--including-pointers-to-member-functions-)
+  * [std::function](#std--function)
+  * [Lambda expressions](#lambda-expressions)
+  * [Bind expressions](#bind-expressions)
+  * [Function objects (classes with overloaded function call operator operator())](#function-objects--classes-with-overloaded-function-call-operator-operator---)
+- [Sending a function as parameter to an other function](#sending-a-function-as-parameter-to-an-other-function)
+
+
 # Callbacks
 
 A callback is a callable  accepted by a class or function, used to customize the current logic depending on that callback. `std::invoke` is a generic way to activate any callable. `std::invoke` takes something callable, and arguments to call it with, and does the call. `std::invoke( f, args... )` is a slight generalization of typing `f(args...)` that also handles a few additional cases.
@@ -115,8 +124,43 @@ Refs: [1](//https://www.youtube.com/watch?v=ZlHi8txU4aQ)
 
 
 Refs: [1](https://stackoverflow.com/questions/2298242/callback-functions-in-c), [2](https://stackoverflow.com/questions/6610046/stdfunction-and-stdbind-what-are-they-and-when-should-they-be-used), [2](https://en.wikipedia.org/wiki/Partial_application)
-
-
-
-
 [source code](../src/callbacks.cpp)
+
+
+# Sending a function as parameter to an other function
+Here in this case planner might use various solver for planning:
+
+```cpp
+int planner( int(*fn_solver)(int,int))
+{
+    return fn_solver(10,12);
+}
+
+int solver1(int a,int b)
+{
+    return a+b;
+}
+
+int solver2(int a,int b)
+{
+    return a-b;
+}
+```
+
+Sending `solver1` or `solver2`:
+    
+```cpp
+std::cout<< "solver1"<<std::endl;
+planner( solver1);
+std::cout<< "solver2"<<std::endl;
+planner( solver2);
+```
+
+function pointer
+```cpp
+auto func_ptr1=std::bind( &solver1, std::placeholders::_1, std::placeholders::_2);
+std::function<int (int,int)> func_ptr2=std::bind( &solver1, std::placeholders::_1, std::placeholders::_2);
+
+std::cout<< func_ptr1(1,2)<<std::endl;
+std::cout<< func_ptr2(1,2)<<std::endl;
+```
