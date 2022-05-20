@@ -3,7 +3,49 @@
 A callback is a callable  accepted by a class or function, used to customize the current logic depending on that callback. `std::invoke` is a generic way to activate any callable. `std::invoke` takes something callable, and arguments to call it with, and does the call. `std::invoke( f, args... )` is a slight generalization of typing `f(args...)` that also handles a few additional cases.
 
 ## Function pointers (including pointers to member functions)
-## std::function objects
+## std::function 
+Class template std::function is a general-purpose polymorphic function wrapper. Instances of std::function can store, copy, and invoke any Callable target:
+1. functions
+2. lambda expressions
+3. bind expressions
+4. functors
+
+```cpp
+void print(int value)
+{
+    std::cout<< value<<std::endl;
+}
+```
+
+storing a functions:
+```cpp
+std::function<void(int)> funcPrint=print;
+funcPrint(3);
+```
+
+store a bind expressions:
+
+```cpp
+std::function<void (int)> funcPrint=std::bind(&print,std::placeholders::_1);
+std::function<void (int)> f(funcPrint);
+f(3);
+```
+
+store lambda expressions:
+```cpp
+auto lambda=[](int value){std::cout<< value<<std::endl;};
+std::function<void(int)>f(lambda);
+f(3);
+```
+
+store a functors:
+```cpp
+void (*printfunctor)(int);
+printfunctor=print;
+std::function<void(int)>f(printfunctor);
+f(3);
+```
+
 ## Lambda expressions
 ## Bind expressions
 `std::bind` works as a Functional Adaptor i.e. it takes a function as input and returns a new function Object as an output with with one or more of the arguments of passed function bound or rearranged (partial function application).
@@ -72,7 +114,7 @@ Refs: [1](//https://www.youtube.com/watch?v=ZlHi8txU4aQ)
 
 
 
-Refs: [1](https://stackoverflow.com/questions/2298242/callback-functions-in-c)
+Refs: [1](https://stackoverflow.com/questions/2298242/callback-functions-in-c), [2](https://stackoverflow.com/questions/6610046/stdfunction-and-stdbind-what-are-they-and-when-should-they-be-used), [2](https://en.wikipedia.org/wiki/Partial_application)
 
 
 
