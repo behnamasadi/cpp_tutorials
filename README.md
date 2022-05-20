@@ -52,7 +52,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Register Keyword](src/register.cpp)  
    * [Random Number](docs/random_number.md)
    * [Raw Pointers, Smart (Shared, Unique, Weak) Pointers, Reference, addressof, reference_wrapper, std::ref](docs/pointers.md)  
-   * [Return, Abort, Exit](src/return_abort_exit.cpp)  
+   * [Return, Abort, Exit](docs/return_abort_exit.md)  
    * [Scope Resolution Operator](src/scope_resolution_operator.cpp)  
    * [Setting argc, argv](src/set_argv_argc.cpp)  
    * [Signals](src/signals.cpp)  
