@@ -147,9 +147,27 @@ void twoDimentionalArray()
     delete[] array;
 }
 
+struct Foo {};
+
+void checkingIsArray()
+{
+    char *s  = "geeksquiz";
+    std::cout << std::boolalpha;
+    std::cout << std::is_array<Foo>::value << '\n';
+    std::cout << std::is_array<Foo[]>::value << '\n';
+    std::cout << std::is_array<Foo[3]>::value << '\n';
+    std::cout << std::is_array<float>::value << '\n';
+    std::cout << std::is_array<int>::value << '\n';
+    std::cout << std::is_array<int[]>::value << '\n';
+    std::cout << std::is_array<int[3]>::value << '\n';
+    std::cout << std::is_array<std::array<int, 3>>::value << '\n';
+
+
+}
+
 int main(int argc, char *argv[])
 {
-
+    checkingIsArray();
     return 0;
 }
 

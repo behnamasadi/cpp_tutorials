@@ -115,6 +115,17 @@ std::cout << ((sizeof a) / (sizeof a[0])) << std::endl;
 ```
 
 
+for string `sizeof(string)` tells you the size of the pointer, so it should **NOT** be used.
+for c strings `strlen` could be used:
+
+
+```cpp
+char my_str[100]="my string";
+std::cout<<"size of string is: "<<strlen( my_str )<<" bytes and string is: "<< my_str <<std::endl;
+```
+
+`str.size()` also return the size of c++ strings.
+
 
 # Setting Precision
 ```cpp

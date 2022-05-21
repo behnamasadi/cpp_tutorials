@@ -21,6 +21,23 @@ This signal is also generated when stack overflow occurs.
 The signal is generated when process tries to access memory location not
 allocated to it, like de-referencing a wild pointer which leads to
 “segmentation fault”.
+
+###  Segmentation fault  
+The following are some typical causes of a segmentation fault:
+1. Attempting to access a nonexistent memory address (outside process's address space)
+2. Attempting to access memory the program does not have rights to (such as kernel structures in process context)
+3. Attempting to write read-only memory (such as code segment)
+These often happens while dereferencing or assigning null pointer/ wild pointer/ dangling pointer, heap overflow, stack overflow
+When you access an array index, C and C++ don't do bound checking. Segmentation faults only happen when you try to
+read or write to a page that was not allocated (or try to do something on a page which isn't permitted,
+e.g. trying to write to a read-only page), but since pages are usually pretty big
+(multiples of a few kilobytes), it often leaves you with lots of room to overflow.
+By setting the followings flag you can find the issue:
+```
+set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+```
+
 ## SIGABRT
 If an error itself is detected by the program then this signal is
 generated using call to abort(). This signal is also used by
