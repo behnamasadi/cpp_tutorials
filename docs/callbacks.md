@@ -119,48 +119,10 @@ f(param);
 Refs: [1](//https://www.youtube.com/watch?v=ZlHi8txU4aQ)
 
 [code](../src/bind.cpp)
-## Function objects (classes with overloaded function call operator operator())
-
 
 
 Refs: [1](https://stackoverflow.com/questions/2298242/callback-functions-in-c), [2](https://stackoverflow.com/questions/6610046/stdfunction-and-stdbind-what-are-they-and-when-should-they-be-used), [2](https://en.wikipedia.org/wiki/Partial_application)
 [source code](../src/callbacks.cpp)
 
 
-# Sending a function as parameter to an other function
-Here in this case planner might use various solver for planning:
 
-```cpp
-int planner( int(*fn_solver)(int,int))
-{
-    return fn_solver(10,12);
-}
-
-int solver1(int a,int b)
-{
-    return a+b;
-}
-
-int solver2(int a,int b)
-{
-    return a-b;
-}
-```
-
-Sending `solver1` or `solver2`:
-    
-```cpp
-std::cout<< "solver1"<<std::endl;
-planner( solver1);
-std::cout<< "solver2"<<std::endl;
-planner( solver2);
-```
-
-function pointer
-```cpp
-auto func_ptr1=std::bind( &solver1, std::placeholders::_1, std::placeholders::_2);
-std::function<int (int,int)> func_ptr2=std::bind( &solver1, std::placeholders::_1, std::placeholders::_2);
-
-std::cout<< func_ptr1(1,2)<<std::endl;
-std::cout<< func_ptr2(1,2)<<std::endl;
-```

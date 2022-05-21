@@ -1,3 +1,26 @@
+- [Exception Handling](#exception-handling)
+- [C++ Standard Exceptions](#c---standard-exceptions)
+  * [bad_alloc](#bad-alloc)
+    + [nothrow](#nothrow)
+  * [bad_cast](#bad-cast)
+  * [bad_typeid](#bad-typeid)
+  * [logic_error](#logic-error)
+  * [domain_error](#domain-error)
+  * [invalid_argument](#invalid-argument)
+  * [length_error](#length-error)
+  * [out_of_range](#out-of-range)
+  * [overflow_error](#overflow-error)
+  * [range_error](#range-error)
+  * [User defined exceptions](#user-defined-exceptions)
+- [catching all exceptions with ...](#catching-all-exceptions-with-)
+- [noexcept](#noexcept)
+  * [noexcept specifier:](#noexcept-specifier-)
+  * [noexcept operator](#noexcept-operator)
+  * [when should we use noexcept](#when-should-we-use-noexcept)
+
+
+
+
 # Exception Handling
 exception handling has the following form:
 
@@ -77,7 +100,7 @@ This constant value is used as an argument for operator new and operator new[] t
 Refs: [1](https://www.cplusplus.com/reference/new/nothrow/), [2](https://en.cppreference.com/w/cpp/memory/new/nothrow)
 
 
-# bad_cast  
+## bad_cast  
 
 
 ```cpp
@@ -99,7 +122,7 @@ try
 
 
 
-# bad_typeid
+## bad_typeid
 
 ```cpp
 Foo* p = nullptr;
@@ -112,7 +135,7 @@ try
 ```
 
 
-# logic_error
+## logic_error
 ```cpp
 int amount, available;
 amount=10;
@@ -136,7 +159,7 @@ catch ( std::exception &e )
   std::cerr << "Type: " << typeid( e ).name( ) << std::endl;
 };
 ```
-# domain_error
+## domain_error
 
 ```cpp
 try
@@ -155,7 +178,7 @@ catch (...)
 ```
 
 
-# invalid_argument
+## invalid_argument
 
 ```cpp
 try
@@ -170,7 +193,7 @@ catch (std::exception &err)
 }
 ```
 
-# length_error
+## length_error
 
 ```cpp
 try
@@ -185,7 +208,7 @@ catch (const std::length_error& le)
 }
 ```
 
-# out_of_range
+## out_of_range
 
 ```cpp
 std::vector<int> myvector(10);
@@ -200,7 +223,7 @@ catch (const std::out_of_range& oor)
 ```
 
 
-# overflow_error
+## overflow_error
 The only standard library components that throw `std::overflow_error` are `std::bitset::to_ulong` and `std::bitset::to_ullong`.  
 ```cpp
 try
@@ -219,7 +242,7 @@ catch(std::exception &err)
 ```
 
 
-# range_error
+## range_error
 
 ```cpp
 try
@@ -233,7 +256,7 @@ catch (std::range_error &e)
 }
 ```
 
-# User defined exceptions
+## User defined exceptions
 
 Definition:
 ```cpp
@@ -264,7 +287,7 @@ try
 
 
 # catching all exceptions with ...
-.`...` is a parameter pack and refers to zero or more template parameters. The `...` will catch **all** exception.
+`...` is a parameter pack and refers to zero or more template parameters. The `...` will catch **all** exception.
 
 # noexcept 
 
@@ -276,7 +299,7 @@ In the case of excpetion std::sterminate will be called
 It tests if a function noexcept specification evalute to true or false at complie time.
 noexcept(some compile time expression) and this returns a boolan
 
-### when should we use it?
+## when should we use noexcept
 1. When using c++ functions in c
 2. when c++ standard requires us.
 

@@ -11,12 +11,8 @@
   * [Checklist for Windows String Programming](#checklist-for-windows-string-programming)
 - [Literals and String Data Types](#literals-and-string-data-types)
 - [C string](#c-string)
-  * [Definition](#definition)
-  * [Modifications and Accessing Elements](#modifications-and-accessing-elements)
-  * [char *](#char--)
-  * [char []](#char---)
   * [Difference between char * and char[]](#difference-between-char---and-char--)
-  * [strlen](#strlen)
+  * [size of string](#size-of-string)
   * [strdup](#strdup)
   * [String copying](#string-copying)
 - [C++ String](#c---string)
@@ -30,8 +26,10 @@
   * [string to vector of char](#string-to-vector-of-char)
 - [Spiting String By Delimiter](#spiting-string-by-delimiter)
 - [string_view](#string-view)
-- [Short String Optimization](#short-string-optimization)
 - [Find String Case Insensitive](#find-string-case-insensitive)
+- [The small string optimization](#the-small-string-optimization)
+
+
 
 
 # String Encoding
@@ -223,9 +221,8 @@ line3)";
 
 
 # C string 
-
-## Definition
-`name` is a stack variable:
+Strings are actually one-dimensional array of characters terminated by a null character '\0'. 
+Here the `name` is a stack variable:
 ```cpp
 char name[10] = { 'b','e','h','n','a','m','\0' };
 ```
@@ -253,7 +250,7 @@ compiler output:
 char name[7] = "behnam";
 ```
 
-it is on the code section of memory, this type of definition is not recommend, read the warning section.
+it is on the **code section** of memory, this type of definition is not recommend
 ```cpp
 char* name = "behnam";
 ```
@@ -262,7 +259,21 @@ and it is better to use
 const char* name = "behnam";
 ```
 
-and this code is okay since there is a `'\0'` at the end of string:
+This will complies:
+```cpp
+name[0] = 'C';
+```
+but it will cause `segmentation fault` as the variable is on the `code section` and code section is read only
+(`"behnam"`  is a string literal and `name` holds the starting address of that.)
+
+
+This is allowed (Value of `name` can be changed):
+```cpp
+name = "Margarethe";
+```
+
+
+this code is okay since there is a `'\0'` at the end of string:
 ```cpp
 std::cout << "name: " << name << std::endl;
 ```
@@ -298,82 +309,46 @@ to make it easy to read remove the variable type,  then read it like:
 
 `const int *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.
 `int const *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.
-
-
 `int * const p` ==>  `* const p` ==> `p` is fixed which is an address.
 
 
 
-
-
-## Modifications and Accessing Elements
-
-## char *
-consider the following variable:
-```cpp
-char* p1 = "John";
-```
-
-This will complies:
-```cpp
-p1[0] = 'C';
-```
-but it will cause `segmentation fault` as the variable is on the `code section` and code section is read only
-(`"John"`  is a string literal and `p1` holds the starting address of that.)
-
-
-This is allowed (Value of `p1` can be changed):
-```cpp
-p1 = "Margarethe";
-```
-However is we define it as follows:
-```cpp
-char* const p1 = "John";
-```
-since `p1` is fixed we can not change it and it is not valid:
-```cpp
-p1 = "Margarethe";
-```
-
-
-## char []
-
-consider the following variables:
-```cpp
-int a[10];
-```
-and 
-
-```cpp
-int *pa;
-```
-A pointer is a variable, so pa=a and pa++ are legal. But an array name is not a variable; constructions like a=pa and a++ areillegal.
-
-
-This is allowed, because the location where string literal is not a CONSTANT: 
-```cpp
-char string1[] = "string";
-string1[1] = 'p';
-```
-
-but the following code is wrong, `string1` is not a valid L-Value:
-
-```cpp
-string1 = "rope";
-```
-
 ## Difference between char * and char[]
-	
-Refs: [1](https://cs50.stackexchange.com/questions/8899/difference-between-char-and-char-in-c), [2](https://www.reddit.com/r/C_Programming/comments/jjdl7s/difference_between_char_and_char/)		
-	
-## strlen
+Consider below two statements:
 
+```cpp
+char a1[] = "Behnam";
+char *p1  = "Behnam";
+```
+
+1. `a1` is an array while `p1` is a pointer
+2. `a` is stored at stack, but `p1` resides in code section of memory
+3. `a1++` is invalid but `p1` is valid.
+4. `sizeof(a1)` will return `7` (six chars +'\0') but `sizeof(p1)` while return `8` (pointer size)
+5. `a1` and `&a1` are same but `p1` and `&p1`are not same.
+6. `a1[1]='n'` is okay but `p1[1]='n'` will cause segmentation fault.
+
+	
+Refs: [1](https://cs50.stackexchange.com/questions/8899/difference-between-char-and-char-in-c), [2](https://www.reddit.com/r/C_Programming/comments/jjdl7s/difference_between_char_and_char/), [3](https://stackoverflow.com/questions/1641957/is-an-array-name-a-pointer)  
+		
+	
+## size of string
+
+1. `sizeof(string)` tells you the size of the pointer, so it should **NOT** be used.
+2.  `strlen( "my string" )` could be used for c strings.
+
+```cpp
+char my_str[100]="my string";
+std::cout<<"size of string is: "<<strlen( my_str )<<" bytes and string is: "<< my_str <<std::endl;
+```
+
+3. `str.size()` also return the size of c++ strings.
 
 ## strdup
 String Duplicate,
 
 
-Each call to strdup creates a new `char *` of the size matching the length of the string. You should bind it to a raw pointer `char*` and remove it at some point.
+Each call to `strdup` creates a new `char *` of the size matching the length of the string. You should bind it to a raw pointer `char*` and remove it at some point.
 
 ```cpp
 char* temp = strdup("foo");
@@ -477,8 +452,6 @@ while ((pos = s.find(delimiter)) != std::string::npos)
 
 # string_view
 
-# Short String Optimization
-
 
 
 # Find String Case Insensitive
@@ -489,6 +462,10 @@ auto it = std::search(
 		[](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
 	);
 	return (it != sentence.end());
-```	
+```
+
+# The small string optimization
+
+Small size STL containers, would be set on stack instead of heap and after the size get bigger they would be allocated on heap, this is called **The Small String Optimization**. complete example [here](track_memory_allocations_overriding_new_operator.md)
 
 [source code](../src/string.cpp)

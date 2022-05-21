@@ -31,5 +31,7 @@ exit(7) ;
 abort sends a `SIGABRT` [signal](signals.md), exit just closes the application performing normal cleanup.
 
 
+Refs: [1](https://en.cppreference.com/w/cpp/utility/program/abort), [2](https://stackoverflow.com/questions/397075/what-is-the-difference-between-exit-and-abort)
+
 [code](../src/return_abort_exit.cpp)
 

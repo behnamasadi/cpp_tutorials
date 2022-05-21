@@ -1,15 +1,8 @@
 #include <iostream>
 #include <memory>
-/*
 
-Ref: https://www.youtube.com/watch?v=sLlGEUO_EGE
-Track Memoy Allocations
-
-If we override the new oprator globaly, we are asking the compiler to do not use the "new"
-operator that come with std library but use ours.
-
-*/
-
+#include <stdio.h>
+#include <string.h>
 
 void * operator new (size_t size)
 {
@@ -29,7 +22,7 @@ void  operator delete(void * memory )
     free(memory);
 }
 
-struct object
+struct S
 {
     double a;
     int b;
@@ -38,13 +31,34 @@ struct object
 
 int main()
 {
-    std::string mystring="my name is Behnam Asadi";
-    object* myobject=new object;
 
-    std::unique_ptr<object> bject_ptr=std::make_unique<object>();
-
-
-    delete myobject;
-    return 0;
+{
+    std::cout<<"allocating and freeing memory for struct S" <<std::endl;
+    std::cout<<"size of struct S is: "<<sizeof(S)<<" bytes" <<std::endl;
+    S* my_S=new S;
+    delete my_S;
 }
 
+
+    std::cout<<"************************************************" <<std::endl;
+
+
+{
+    std::cout<<"allocating and freeing memory for struct S with unique pointers: " <<std::endl;
+    std::unique_ptr<S> my_S=std::unique_ptr<S>(new S);
+    std::unique_ptr<S> bject_ptr=std::make_unique<S>();
+}
+
+    std::cout<<"************************************************" <<std::endl;
+
+{
+    std::string str;
+    std::cout<<"allocating and freeing memory for strings" <<std::endl;
+    for(std::size_t i=0;i<25;i++)
+    {
+        str =str+std::to_string(i);
+        std::cout<<"size of string is: "<<str.size()<<" bytes and string is: "<< str <<std::endl;
+    }
+}
+    return 0;
+}
