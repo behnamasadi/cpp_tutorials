@@ -66,7 +66,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
    * [Unions](src/unions.cpp)  
    * [Value Categories: rvalue, lvalue, prvalue, xvalue, glvalue, move semantic](docs/rvalue_lvalue_prvalue_xvalue_glvalue_move_semantic.md)     
    * [Variadic Templates Function](src/variadic_templates.cpp)     
-   * [Volatile Keyword](src/volatile.cpp)  
+   * [Volatile Keyword](docs/volatile.md)  
 - [C++ Classes](class/)
    * [Abstract Class Vs Interface](src/class/abstract_class_vs_interface.cpp)   
    * [Cast Base Class to Derived/  Derived to Base](src/class/cast_Base_to_Derived_to_Base.cpp)   

@@ -1,23 +1,25 @@
 - [Guideline for declaring functions](#guideline-for-declaring-functions)
   * [using constexpr](#using-constexpr)
-  * [declaring functions as inline](#declaring-functions-as-inline)
+  * [Declaring functions as inline](#declaring-functions-as-inline)
+  * [Declare function as noexcept](#declare-function-as-noexcept)
 - [Guideline for parameter passing to functions](#guideline-for-parameter-passing-to-functions)
+  * [Take `T*` or `T&` arguments rather than smart pointers](#take--t---or--t---arguments-rather-than-smart-pointers)
+- [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
+  * [Passing as `const smartptr<T>&`](#passing-as--const-smartptr-t---)
+  * [Passing as `smartptr<T>&`](#passing-as--smartptr-t---)
+  * [Passing as `smartptr<T>`](#passing-as--smartptr-t--)
+  * [Passing as `smartptr<T>&&`](#passing-as--smartptr-t----)
 - [Guideline for value return from functions](#guideline-for-value-return-from-functions)
 - [Returning object from function](#returning-object-from-function)
   * [Returning a reference](#returning-a-reference)
   * [Returning a const reference](#returning-a-const-reference)
   * [Returning a reference to a non-const object](#returning-a-reference-to-a-non-const-object)
   * [Return smart pointers from functions](#return-smart-pointers-from-functions)
-- [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
 - [Sending a function as parameter to an other function](#sending-a-function-as-parameter-to-an-other-function)
 - [Function Objects (Functors)](#function-objects--functors-)
 - [Function Pointer](#function-pointer)
 - [Inline Function](#inline-function)
 - [Extern Function](#extern-function)
-
-
-
-
 
 # Guideline for declaring functions
 ## using constexpr
@@ -38,14 +40,132 @@ const long int res = fib(30);
 ```
 [more about constexpr](const_constexpr_mutable.md)
 
-## declaring functions as inline
+## Declaring functions as inline
 If a function tiny and time-critical, it is better to declare it as inline. [more about inline](#inline-function)
 
-## declare function as noexcept
+## Declare function as noexcept
 
 # Guideline for parameter passing to functions
 
 ## Take `T*` or `T&` arguments rather than smart pointers
+
+
+# Passing smart pointers to functions
+Smart pointers are all about ownership of what they point to. Who owns this memory and who will be responsible for deleting it.
+
+```cpp
+struct S
+{
+	int m_id;
+	S(int id) 
+	{ 
+		m_id = id;
+		std::cout << "int constructor:"<< m_id << std::endl; }
+	S() { std::cout << "constructor" << std::endl; }
+	~S() { std::cout << "deconstructor" << std::endl; }
+	S(const S& rhs) { std::cout << "copy constructor" << rhs.m_id <<std::endl; }
+	S(S&& rhs) { std::cout << "move constructor" << rhs.m_id <<std::endl; }
+};
+```
+
+## Passing as `const smartptr<T>&`
+
+Passing as `const smartptr<T>&` always work (and you cannot change the pointer, but can change the state of what it points to).
+
+```cpp
+void foo(const std::unique_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+or 
+```cpp
+void foo(const std::shared_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+## Passing as `smartptr<T>&`
+Passing as `smartptr<T>&` always work (and you can change the pointer as well).
+
+```cpp
+void foo(std::unique_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 12;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+or
+
+```cpp
+void foo(std::shared_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 12;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+## Passing as `smartptr<T>`
+Passing as `smartptr<T>` (by copy) works only if smartptr is copyable. It works with `std::shared_ptr`, but not with `std::unique_ptr`, unless you "move" it on call, like in `foo(atd::move(s_ptr))`, thus nullifying myptr, moving the pointer to the passed parameter. (Note that move is implicit if myptr is temporary). 
+
+```cpp
+void foo(std::unique_ptr<S> s_ptr)
+{
+	s_ptr->m_id = 12;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+you should call the `foo` as following :
+
+`foo(std::move(s_ptr));`
+
+or you should define `foo` as:
+
+```cpp
+void foo(std::shared_ptr<S> s_ptr)
+{
+
+	std::cout << "bar " << s_ptr->m_id << std::endl;
+}
+```
+## Passing as `smartptr<T>&&`
+
+Passing as `smartptr<T>&&` (by move) imposes the pointer to be moved on call, by forcing you to explicitly use `std::move` (but requires "move" to make sense for the particular pointer).
+
+```cpp
+void foo(const std::shared_ptr<S> &&s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+or
+
+```cpp
+void foo(const std::unique_ptr<S> &&s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+should be called:
+
+
+```cpp
+foo(std::move(s_ptr));
+if (s_ptr.get()==nullptr )
+{
+	std::cout << s_ptr->m_id << std::endl;
+}
+```
+
+Refs: [1](https://stackoverflow.com/questions/12519812/how-do-i-pass-smart-pointers-into-functions)
+
 
 
 # Guideline for value return from functions
@@ -193,133 +313,6 @@ std::unique_ptr<int> x = getInt();
 
 Refs: [1](https://stackoverflow.com/questions/10643563/how-to-return-smart-pointers-shared-ptr-by-reference-or-by-value)
 
-
-# Passing smart pointers to functions
-Smart pointers are all about ownership of what they point to. Who owns this memory and who will be responsible for deleting it.
-
-```cpp
-struct S
-{
-	int m_id;
-	S(int id) 
-	{ 
-		m_id = id;
-		std::cout << "int constructor:"<< m_id << std::endl; }
-	S() { std::cout << "constructor" << std::endl; }
-	~S() { std::cout << "deconstructor" << std::endl; }
-	S(const S& rhs) { std::cout << "copy constructor" << rhs.m_id <<std::endl; }
-	S(S&& rhs) { std::cout << "move constructor" << rhs.m_id <<std::endl; }
-};
-```
-
-1. Passing as `const smartptr<T>&` always work (and you cannot change the pointer, but can change the state of what it points to).
-
-
-
-
-```cpp
-void foo(const std::unique_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-or 
-```cpp
-void foo(const std::shared_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-2 .Passing as `smartptr<T>&` always work (and you can change the pointer as well).
-
-```cpp
-void foo(std::unique_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 12;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-or
-
-```cpp
-void foo(std::shared_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 12;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-
-3. Passing as `smartptr<T>` (by copy) works only if smartptr is copyable. It works with `std::shared_ptr`, but not with `std::unique_ptr`, unless you "move" it on call, like in `foo(atd::move(s_ptr))`, thus nullifying myptr, moving the pointer to the passed parameter. (Note that move is implicit if myptr is temporary). 
-
-```cpp
-void foo(std::unique_ptr<S> s_ptr)
-{
-	s_ptr->m_id = 12;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-you should call the `foo` as following :
-
-`foo(std::move(s_ptr));`
-
-or you should define `foo` as:
-
-```cpp
-void foo(std::shared_ptr<S> s_ptr)
-{
-
-	std::cout << "bar " << s_ptr->m_id << std::endl;
-}
-```
-
-4. Passing as `smartptr<T>&&` (by move) imposes the pointer to be moved on call, by forcing you to explicitly use `std::move` (but requires "move" to make sense for the particular pointer).
-
-```cpp
-void foo(const std::shared_ptr<S> &&s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-or
-
-```cpp
-void foo(const std::unique_ptr<S> &&s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-should be called:
-
-
-```cpp
-foo(std::move(s_ptr));
-if (s_ptr.get()==nullptr )
-{
-	std::cout << s_ptr->m_id << std::endl;
-}
-```
-
-## unique_ptr
- `unique_ptr` represents unique ownership: exactly one piece of code owns this memory. If you are passing someone a `unique_ptr`, you are giving them ownership. You can't copy a `unique_ptr` at all..You can transfer ownership (via `move`), but in so doing, you lose ownership of the memory.
-Which means, by the nature of unique ownership, you are losing ownership of the memory. Thus, there's almost no reason to ever pass a `unique_ptr` by anything except by **value**.
-
-## shared_ptr
-
-
-
-
-
-
-Refs: [1](https://stackoverflow.com/questions/12519812/how-do-i-pass-smart-pointers-into-functions)
 
 # Sending a function as parameter to an other function
 Here in this case planner might use various solver for planning:

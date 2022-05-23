@@ -307,9 +307,9 @@ int * const p = &someInt;
 
 to make it easy to read remove the variable type,  then read it like:
 
-`const int *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.
-`int const *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.
-`int * const p` ==>  `* const p` ==> `p` is fixed which is an address.
+`const int *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.  
+`int const *p;`  ==> `const  *p ;` ==> `*p` is which is data is fixed.  
+`int * const p` ==>  `* const p` ==> `p` is fixed which is an address.  
 
 
 
@@ -323,8 +323,8 @@ char *p1  = "Behnam";
 
 1. `a1` is an array while `p1` is a pointer
 2. `a` is stored at stack, but `p1` resides in code section of memory
-3. `a1++` is invalid but `p1` is valid.
-4. `sizeof(a1)` will return `7` (six chars +'\0') but `sizeof(p1)` while return `8` (pointer size)
+3. `a1++` is invalid but `p1++` is valid.
+4. `sizeof(a1)` will return `7` (six chars +`'\0'`) but `sizeof(p1)` while return `8` (pointer size)
 5. `a1` and `&a1` are same but `p1` and `&p1`are not same.
 6. `a1[1]='n'` is okay but `p1[1]='n'` will cause segmentation fault.
 
