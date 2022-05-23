@@ -210,6 +210,7 @@ std::unique_ptr<person> secondentity=std::move(entity);
 
 3. thread
 
+4. file handler or a similar OS resource
 
 ## when to use and not to use move?
 
