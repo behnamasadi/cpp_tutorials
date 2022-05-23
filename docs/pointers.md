@@ -1,6 +1,7 @@
   * [Raw pointer](#raw-pointer)
     + [Dereference a Pointer](#dereference-a-pointer)
     + [Null pointers](#null-pointers)
+    + [NULL vs nullptr](#null-vs-nullptr)
     + [Wild pointer](#wild-pointer)
     + [Dangling pointer](#dangling-pointer)
   * [Memory safety and Pointers](#memory-safety-and-pointers)
@@ -50,7 +51,17 @@ p[1] == 'b'; // p[1] actually dereferences a pointer created by adding  p and 1 
 
 ### Null pointers
 
-In **C**, `NULL` and `0` - and additionally in **C++** `nullptr` - can be used to indicate that a pointer doesn't currently hold the memory address of a variable, and shouldn't be dereferenced
+In **C**, `NULL` and `0` - and additionally  in **C++** `0x` or `NULL` was replaced by `nullptr` 
+which can be used to indicate that a pointer doesn't currently hold the memory address of a variable, and shouldn't be dereferenced. 
+
+### NULL vs nullptr
+`0` or `NULL` could cause ambiguity in overloaded function resolution,for instance:
+```cpp
+f(int);
+f(foo *);
+```
+you can `0` to both of them. in C++ `nullptr` has type `std::nullptr_t` and it's implicitly convertible to any pointer type. Thus, it'll match `std::nullptr_t` or pointer types in overload resolution, but not other types such as int.
+
 
 ### Wild pointer
 
