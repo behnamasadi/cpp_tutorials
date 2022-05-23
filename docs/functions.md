@@ -323,8 +323,19 @@ Refs: [1](https://stackoverflow.com/questions/10643563/how-to-return-smart-point
 
 
 # Passing smart pointers to functions
+Smart pointers are all about ownership of what they point to. Who owns this memory and who will be responsible for deleting it.
+## unique_ptr
+ `unique_ptr` represents unique ownership: exactly one piece of code owns this memory. If you are passing someone a `unique_ptr`, you are giving them ownership. You can't copy a `unique_ptr` at all..You can transfer ownership (via `move`), but in so doing, you lose ownership of the memory.
+Which means, by the nature of unique ownership, you are losing ownership of the memory. Thus, there's almost no reason to ever pass a `unique_ptr` by anything except by **value**.
+
+## shared_ptr
 
 
+
+
+
+
+Refs: [1](https://stackoverflow.com/questions/12519812/how-do-i-pass-smart-pointers-into-functions)
 
 # Sending a function as parameter to an other function
 Here in this case planner might use various solver for planning:
