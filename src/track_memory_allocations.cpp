@@ -2,7 +2,7 @@
 #include <memory>
 
 #include <stdio.h>
-#include <string.h>
+#include <string>
 
 void * operator new (size_t size)
 {
