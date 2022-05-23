@@ -1,9 +1,8 @@
 - [const variables](#const-variables)
-- [const parameter](#const-parameter)
+- [const parameter in functions](#const-parameter-in-functions)
+- [const return from functions](#const-return-from-functions)
 - [const methods in classes](#const-methods-in-classes)
-- [const variables](#const-variables)
-- [const parameter](#const-parameter)
-- [const methods in classes](#const-methods-in-classes)
+- [all possible const](#all-possible-const)
   * [const and non-const getter methods](#const-and-non-const-getter-methods)
 - [const iterators](#const-iterators)
 - [const pointers](#const-pointers)
@@ -17,16 +16,21 @@
   * [constexpr vs const](#constexpr-vs-const)
 - [checking if type or value is const](#checking-if-type-or-value-is-const)
 
-
 # const variables
-
 When declaring a `const` variable, it is possible to put `const` either before or after the type: 
 that is, both `int const MAX_FILE_SIZE = 5;` and `const int MAX_FILE_SIZE = 4;` result in `MAX_FILE_SIZE` being a constant integer.
 
-# const parameter
+# const parameter in functions
 Here, a `str` object is passed by reference into `func`. For safety's sake, const is used to ensure that `func` cannot change the object-
 ```cpp
 void func(const std::string& str);
+```
+
+# const return from functions
+Here, the return value is const.
+
+```cpp
+const int func();
 ```
 
 # const methods in classes
@@ -91,6 +95,16 @@ non_const_foo_obj.non_const_func();
 so the rule is, if you have something const, whatever it calls should be const as well.
 
 Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU), [2](https://stackoverflow.com/questions/2157458/using-const-in-classs-functions)
+
+# all possible const
+
+struct S
+{
+	const <return-value> foo(const &<args>) const
+	{   
+	}
+
+};
 
 ## const and non-const getter methods
 
