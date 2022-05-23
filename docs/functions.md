@@ -1,7 +1,8 @@
-- [Extern Function](#extern-function)
-- [Function Objects (Functors)](#function-objects--functors-)
-- [Function Pointer](#function-pointer)
-- [Inline Function](#inline-function)
+- [Guideline for declaring functions](#guideline-for-declaring-functions)
+  * [using constexpr](#using-constexpr)
+  * [declaring functions as inline](#declaring-functions-as-inline)
+- [Guideline for parameter passing to functions](#guideline-for-parameter-passing-to-functions)
+- [Guideline for value return from functions](#guideline-for-value-return-from-functions)
 - [Returning object from function](#returning-object-from-function)
   * [Returning a reference](#returning-a-reference)
   * [Returning a const reference](#returning-a-const-reference)
@@ -9,176 +10,47 @@
   * [Return smart pointers from functions](#return-smart-pointers-from-functions)
 - [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
 - [Sending a function as parameter to an other function](#sending-a-function-as-parameter-to-an-other-function)
+- [Function Objects (Functors)](#function-objects--functors-)
+- [Function Pointer](#function-pointer)
+- [Inline Function](#inline-function)
+- [Extern Function](#extern-function)
 
 
 
-# Extern Function
 
-C++ mangle the name of functions so it will be able to overload function, while in "c", there is no overloading and function will have the same name in object file as what they had in their
-respective "c" file, so if we want to compile a "c" function in c++, we have to use it extern 
 
-in your `foo.h` you have 
+# Guideline for declaring functions
+## using constexpr
+Don’t make all functions `constexpr` since most of the computation done at run time but if a function might have to be evaluated at compile time, declare it `constexpr`.
+
+
 ```cpp
-void foo();
-```
-
-in your `foo.cpp` you have 
-
-```cpp
-#include "foo.h"
-
-void foo()
+constexpr long int fib(int n)
 {
-	printf("foo here");
+    constexpr int max_exp = 17;      // constexpr enables max_exp to be used in Expects
+    Expects(0 <= n && n < max_exp);  // prevent silliness and overflow
+    return (n <= 1)? n : fib(n-1) + fib(n-2);
 }
-```
-
-in your application:
-
+```  
+if  call it like:
 ```cpp
-extern  "C"
-{
-#include "foo.h"
-}
-
-int main()
-{
-    foo();
-}
+const long int res = fib(30);
 ```
-[code](../src/extern/function)
+[more about constexpr](const_constexpr_mutable.md)
 
-# Function Objects (Functors)
-Function objects (aka "functors"), Functors are objects that can be treated as they are a function or function pointer. You could write code that looks like this:
+## declaring functions as inline
+If a function tiny and time-critical, it is better to declare it as inline. [more about inline](#inline-function)
 
-```cpp
-Foo foo_obj( 5 );
-std::cout << foo_obj( 6 )<<std::endl;
-```
+## declare function as noexcept
 
-This code works because C++ allows you to overload `operator()`, the "function call" operator. 
+# Guideline for parameter passing to functions
 
-
-Refs: [1](http://www.cprogramming.com/tutorial/functors-function-objects-in-c++.html)
-
-```cpp
-class Foo
-{
-    public:
-        Foo (int x) : m_x( x ) {}
-        int operator() (int y) { return m_x + y; }
-    private:
-        int m_x;
-};
-```
-This will call the constructor:
-```cpp
-Foo foo_obj( 5 );
-```
-This calls the `operator()`:
-```cpp
-std::cout << foo_obj( 6 )<<std::endl;
-```
-# Function Pointer
-A function pointer is a variable that stores the address of a function that can later be called through that function pointer.
-
-```cpp
-int adder(int a, int b)
-{
-    return a+b;
-}
-```
-
-now in your code you can have the following variable `adder_fn_ptr`:
-
-```cpp
-int (*adder_fn_ptr)(int, int);
-```
-binding:
-
-```cpp
-adder_fn_ptr=adder; 
-```
-or
-```cpp 
-adder_fn_ptr=&adder
-```
-
-calling:
-
-```cpp
-std::cout<<adder_fn_ptr(2,3) <<std::endl;
-```
-or
-```cpp
-std::cout<< (*adder_fn_ptr) (2,3) <<std::endl;
-```
-
-Another example
-
-```cpp
-void foreach(std::vector<int> values, void(UnaryFunc)(int))
-{
-    for(auto value:values)
-        UnaryFunc(value);
-} 
-```
-some unary functions:
-
-```cpp 
-void print(int i)
-{
-    std::cout<<i <<std::endl;
-}
-```
-
-Now we can have the followings:
-
-```cpp
-std::vector<int> values={1,2,3,4};
-foreach(values,print);
-```    
-or
-
-```cpp        
-std::vector<int> values={1,2,3,4};
-foreach(values,[](int value){std::cout<<value <<std::endl;});
-```
+## Take `T*` or `T&` arguments rather than smart pointers
 
 
-# Inline Function
+# Guideline for value return from functions
 
-Calling a function has lot of overhead, calling, copying arguments, push/pop on the stack, and return. Inline function will be added to your code so there is no call and return. The `inline` keyword is a hint to the compiler and it is up to the compiler to decide weather to inline a function or not
-
-
-
-
-What to consider:
-
-- The function should be very small and is called very often
-- Use inline function over **macros**.
-
-
-Refs: [1](http://www.cplusplus.com/articles/2LywvCM9/), [2](https://stackoverflow.com/questions/1932311/when-to-use-inline-function-and-when-not-to-use-it), [3](https://www.mygreatlearning.com/blog/inline-functions-in-cpp/#:~:text=Inline%20functions%20are%20commonly%20used,definition%20of%20the%20called%20function.)
-
-
-```cpp
-class foo
-{
- public:
-    int add(int a, int b);
-};
-
-inline int foo::add(int a, int b)
-{
-   return (a + b);
-}
-```
-
-[code](inline_functions.cpp)
-
-
-
+Refs: [1](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-functions)
 
 # Returning object from function
 ##  Returning a reference
@@ -485,5 +357,170 @@ std::function<int (int,int)> func_ptr2=std::bind( &solver1, std::placeholders::_
 
 std::cout<< func_ptr1(1,2)<<std::endl;
 std::cout<< func_ptr2(1,2)<<std::endl;
-```  
-  
+```
+
+# Function Objects (Functors)
+Function objects (aka "functors"), Functors are objects that can be treated as they are a function or function pointer. You could write code that looks like this:
+
+```cpp
+Foo foo_obj( 5 );
+std::cout << foo_obj( 6 )<<std::endl;
+```
+
+This code works because C++ allows you to overload `operator()`, the "function call" operator. 
+
+
+Refs: [1](http://www.cprogramming.com/tutorial/functors-function-objects-in-c++.html)
+
+```cpp
+class Foo
+{
+    public:
+        Foo (int x) : m_x( x ) {}
+        int operator() (int y) { return m_x + y; }
+    private:
+        int m_x;
+};
+```
+This will call the constructor:
+```cpp
+Foo foo_obj( 5 );
+```
+This calls the `operator()`:
+```cpp
+std::cout << foo_obj( 6 )<<std::endl;
+```
+# Function Pointer
+A function pointer is a variable that stores the address of a function that can later be called through that function pointer.
+
+```cpp
+int adder(int a, int b)
+{
+    return a+b;
+}
+```
+
+now in your code you can have the following variable `adder_fn_ptr`:
+
+```cpp
+int (*adder_fn_ptr)(int, int);
+```
+binding:
+
+```cpp
+adder_fn_ptr=adder; 
+```
+or
+```cpp 
+adder_fn_ptr=&adder
+```
+
+calling:
+
+```cpp
+std::cout<<adder_fn_ptr(2,3) <<std::endl;
+```
+or
+```cpp
+std::cout<< (*adder_fn_ptr) (2,3) <<std::endl;
+```
+
+Another example
+
+```cpp
+void foreach(std::vector<int> values, void(UnaryFunc)(int))
+{
+    for(auto value:values)
+        UnaryFunc(value);
+} 
+```
+some unary functions:
+
+```cpp 
+void print(int i)
+{
+    std::cout<<i <<std::endl;
+}
+```
+
+Now we can have the followings:
+
+```cpp
+std::vector<int> values={1,2,3,4};
+foreach(values,print);
+```    
+or
+
+```cpp        
+std::vector<int> values={1,2,3,4};
+foreach(values,[](int value){std::cout<<value <<std::endl;});
+```
+
+
+# Inline Function
+
+Calling a function has lot of overhead, calling, copying arguments, push/pop on the stack, and return. Inline function will be added to your code so there is no call and return. The `inline` keyword is a hint to the compiler and it is up to the compiler to decide weather to inline a function or not
+
+
+
+
+What to consider:
+
+- The function should be very small and is called very often
+- Use inline function over **macros**.
+
+
+Refs: [1](http://www.cplusplus.com/articles/2LywvCM9/), [2](https://stackoverflow.com/questions/1932311/when-to-use-inline-function-and-when-not-to-use-it), [3](https://www.mygreatlearning.com/blog/inline-functions-in-cpp/#:~:text=Inline%20functions%20are%20commonly%20used,definition%20of%20the%20called%20function.)
+
+
+```cpp
+class foo
+{
+ public:
+    int add(int a, int b);
+};
+
+inline int foo::add(int a, int b)
+{
+   return (a + b);
+}
+```
+
+[code](inline_functions.cpp)
+
+
+# Extern Function
+
+C++ mangle the name of functions so it will be able to overload function, while in "c", there is no overloading and function will have the same name in object file as what they had in their
+respective "c" file, so if we want to compile a "c" function in c++, we have to use it extern 
+
+in your `foo.h` you have 
+```cpp
+void foo();
+```
+
+in your `foo.cpp` you have 
+
+```cpp
+#include "foo.h"
+
+void foo()
+{
+	printf("foo here");
+}
+```
+
+in your application:
+
+```cpp
+extern  "C"
+{
+#include "foo.h"
+}
+
+int main()
+{
+    foo();
+}
+```
+[code](../src/extern/function)  

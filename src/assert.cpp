@@ -75,6 +75,20 @@ int static_assertExample()
 }
 
 
+constexpr int  multiplyBy10(int x)
+{
+    return 10*x;
+}
+
+void static_assertExample2()
+{
+    const int a=5;
+    const int result=multiplyBy10(a);
+    const int expected=50;
+    static_assert(expected==result);
+}
+
+
 int main(int argc, char *argv[])
 {
     assertExample();
