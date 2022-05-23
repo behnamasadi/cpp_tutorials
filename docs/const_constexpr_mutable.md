@@ -2,8 +2,8 @@
 - [const parameter in functions](#const-parameter-in-functions)
 - [const return from functions](#const-return-from-functions)
 - [const methods in classes](#const-methods-in-classes)
+   * [const and non-const getter methods](#const-and-non-const-getter-methods)
 - [all possible const](#all-possible-const)
-  * [const and non-const getter methods](#const-and-non-const-getter-methods)
 - [const iterators](#const-iterators)
 - [const pointers](#const-pointers)
 - [const cast](#const-cast)
@@ -96,15 +96,6 @@ so the rule is, if you have something const, whatever it calls should be const a
 
 Refs: [1](https://www.youtube.com/watch?v=4fJBrditnJU), [2](https://stackoverflow.com/questions/2157458/using-const-in-classs-functions)
 
-# all possible const
-
-struct S
-{
-	const <return-value> foo(const &<args>) const
-	{   
-	}
-
-};
 
 ## const and non-const getter methods
 
@@ -163,6 +154,17 @@ Since we call const method from non-const, the object itself is non-const, and c
 
 
 Refs: [1](https://riptutorial.com/cplusplus/example/16974/avoiding-duplication-of-code-in-const-and-non-const-getter-methods-)
+
+# all possible const
+
+struct S
+{
+	const <return-value> foo(const &<args>) const
+	{   
+	}
+
+};
+
 
 # const iterators
 They make sure that you can not change the variable in the loop,
