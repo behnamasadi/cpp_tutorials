@@ -324,6 +324,118 @@ Refs: [1](https://stackoverflow.com/questions/10643563/how-to-return-smart-point
 
 # Passing smart pointers to functions
 Smart pointers are all about ownership of what they point to. Who owns this memory and who will be responsible for deleting it.
+
+```cpp
+struct S
+{
+	int m_id;
+	S(int id) 
+	{ 
+		m_id = id;
+		std::cout << "int constructor:"<< m_id << std::endl; }
+	S() { std::cout << "constructor" << std::endl; }
+	~S() { std::cout << "deconstructor" << std::endl; }
+	S(const S& rhs) { std::cout << "copy constructor" << rhs.m_id <<std::endl; }
+	S(S&& rhs) { std::cout << "move constructor" << rhs.m_id <<std::endl; }
+};
+```
+
+1. Passing as `const smartptr<T>&` always work (and you cannot change the pointer, but can change the state of what it points to).
+
+
+
+
+```cpp
+void foo(const std::unique_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+or 
+```cpp
+void foo(const std::shared_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+2 .Passing as `smartptr<T>&` always work (and you can change the pointer as well).
+
+```cpp
+void foo(std::unique_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 12;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+or
+
+```cpp
+void foo(std::shared_ptr<S> &s_ptr)
+{
+	s_ptr->m_id = 12;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+
+3. Passing as `smartptr<T>` (by copy) works only if smartptr is copyable. It works with `std::shared_ptr`, but not with `std::unique_ptr`, unless you "move" it on call, like in `foo(atd::move(s_ptr))`, thus nullifying myptr, moving the pointer to the passed parameter. (Note that move is implicit if myptr is temporary). 
+
+```cpp
+void foo(std::unique_ptr<S> s_ptr)
+{
+	s_ptr->m_id = 12;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+you should call the `foo` as following :
+
+`foo(std::move(s_ptr));`
+
+or you should define `foo` as:
+
+```cpp
+void foo(std::shared_ptr<S> s_ptr)
+{
+
+	std::cout << "bar " << s_ptr->m_id << std::endl;
+}
+```
+
+4. Passing as `smartptr<T>&&` (by move) imposes the pointer to be moved on call, by forcing you to explicitly use `std::move` (but requires "move" to make sense for the particular pointer).
+
+```cpp
+void foo(const std::shared_ptr<S> &&s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+or
+
+```cpp
+void foo(const std::unique_ptr<S> &&s_ptr)
+{
+	s_ptr->m_id = 11;
+	std::cout << "foo " << s_ptr->m_id << std::endl;
+}
+```
+
+should be called:
+
+
+```cpp
+foo(std::move(s_ptr));
+if (s_ptr.get()==nullptr )
+{
+	std::cout << s_ptr->m_id << std::endl;
+}
+```
+
 ## unique_ptr
  `unique_ptr` represents unique ownership: exactly one piece of code owns this memory. If you are passing someone a `unique_ptr`, you are giving them ownership. You can't copy a `unique_ptr` at all..You can transfer ownership (via `move`), but in so doing, you lose ownership of the memory.
 Which means, by the nature of unique ownership, you are losing ownership of the memory. Thus, there's almost no reason to ever pass a `unique_ptr` by anything except by **value**.
