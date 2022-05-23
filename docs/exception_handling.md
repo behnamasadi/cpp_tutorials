@@ -293,19 +293,86 @@ try
 
 
 ## noexcept specifier:
-This means if a function specified with noexcept it shouldn't throw exeption.
-In the case of excpetion std::sterminate will be called
+This means if a function specified with noexcept it shouldn't throw exception (evaluation of its operand can propagate an exception).
+
+The bodies of called functions are not examined to check if they actually throw exception or not, and `noexcept` can yield false negatives. 
+In the case of excpetion `std::sterminate` will be called
 ## noexcept operator
-It tests if a function noexcept specification evalute to true or false at complie time.
+It tests if a function noexcept specification evalute to true or false at compile time.
 noexcept(some compile time expression) and this returns a boolan
+
+examples:
+
+
+equals to `noexcept(true),`this `func` can not throw exception
+```cpp
+void func1() noexcept 
+{
+}
+```
+
+equals to not using noexcept, means this func2 can throw exception
+```cpp
+void func2() noexcept (false)
+{
+}
+```
+
+
+
+```cpp
+void bar() noexcept
+{
+}
+
+void baz() noexcept
+{
+    throw std::range_error("range error");
+}
+
+void foo()
+{
+    return;
+}
+```
+
+
+now running the followings:
+
+```cpp
+std::cout << std::boolalpha;
+std::cout << noexcept(bar()) << '\n';
+std::cout << noexcept(baz()) << '\n';
+std::cout << noexcept(foo()) << '\n';
+std::cout << noexcept(1 + 1) << '\n'; 
+```
+the output is:
+
+```
+true
+true
+false
+true
+```
+
+[code](../src/noexcept_operator_specifier.cpp) 
+
 
 ## when should we use noexcept
 1. When using c++ functions in c
 2. when c++ standard requires us.
 
 
-Refs: [1](https://akrzemi1.wordpress.com/2014/04/24/noexcept-what-for/), [2](https://stackoverflow.com/questions/10787766/when-should-i-really-use-noexcept)
+Almost every optimization in the compiler uses something called a "flow graph" of a function to reason about what is legal. A flow graph consists of what are generally called "blocks" of the function (areas of code that have a single entrance and a single exit) and edges between the blocks to indicate where flow can jump to. Noexcept alters the flow graph.
 
-[code](../src/noexcept_operator_specifier.cpp) 
+A noexcept specification on a function is merely a method for a programmer to inform the compiler whether or not a function should throw exceptions.
+
+The compiler can use this information to enable certain optimizations on non-throwing functions as well as enable the noexcept operator, which can check at compile time if a particular expression is declared to throw any exceptions.
 
 
+Declaring a function noexcept helps optimizers by reducing the number of alternative execution paths. It also speeds up the exit after failure.
+
+
+
+
+Refs: [1](https://akrzemi1.wordpress.com/2014/04/24/noexcept-what-for/), [2](https://stackoverflow.com/questions/10787766/when-should-i-really-use-noexcept), [3](https://stackoverflow.com/questions/33210169/how-to-use-noexcept-in-c-or-how-does-it-work), [4](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rf-constexpr)

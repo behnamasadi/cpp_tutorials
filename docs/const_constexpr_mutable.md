@@ -342,6 +342,8 @@ For a function it must be explicitly declared constexpr to be fit for use in con
 ```cpp
 constexpr long int fib(int n)
 {
+    constexpr int max_exp = 17;      // constexpr enables max_exp to be used in Expects
+    Expects(0 <= n && n < max_exp);  // prevent silliness and overflow
     return (n <= 1)? n : fib(n-1) + fib(n-2);
 }
 ```  
@@ -359,6 +361,29 @@ Also the following only works because of `constexpr`, because the size of the ar
 int a[fib(3)];
 ```
 
+
+another example:
+
+```cpp
+constexpr int  multiplyBy10(int x)
+{
+    return 10*x;
+}
+```
+in the main:
+
+```cpp
+const int a=5;
+const int result=multiplyBy10(a);
+const int expected=50;
+
+static_assert(expected==result);
+```
+if you change the value `expected`
+```cpp
+const int expected=50;
+```
+it will fail during the **compile** time.
 
 ## constexpr vs inline functions
 Both are used performance improvements.  The [inline functions](inline_functions.md) is keyword that hints to the compiler to expand a function code (to save the overhead time of function call), however expressions are always evaluated at run time. `constexpr`  are evaluated at compile time. Inline functions suggest the compiler to expand at compile time and
