@@ -136,7 +136,7 @@ a ^ b	a != b
 ```
 
 
-bitwiseshift POW2: `[variable]<<[number of places to shift]`
+bitwise shift to calculate POW2: `[variable]<<[number of places to shift]`
 
 ```cpp
 int number=2;
