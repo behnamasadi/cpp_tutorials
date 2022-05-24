@@ -9,7 +9,7 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
 
 ## [C++ Tutorials](#)
    * [Align](docs/align.md)  
-   * [Allocator](src/allocator.cpp)  
+   * [Allocator](docs/allocator.md)  
    * [Algorithms library](src/algorithms_library.cpp)  
    * [Assert](docs/assert.md)  
    * [Basic IO Operation, filesystem, Streams, Reading/Writing Files, Formating Output, cin, scanf, gets, getline, printf](docs/basic_IO_operation.md)  
