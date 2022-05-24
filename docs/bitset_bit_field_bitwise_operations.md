@@ -36,17 +36,21 @@ setting first bit (or 6th index) :
 set8[1] = 1; // 00000010 
 set8[4] = set8[1]; // 00010010 
 cout << set8 << endl; 
-```
+```  
 count function returns number of set bits in bitset:
+
 ```cpp
 int numberof1 = set8.count(); 
+```
+size function returns total number of bits in bitset so there difference will give us number of unset(0)  bits in bitset: 
 
-size function returns total number of bits in bitset so there difference will give us number of unset(0)  bits in bitset 
 ```cpp
 int numberof0 = set8.size() - numberof1; 
 cout << set8 << " has " << numberof1 << " ones and "  << numberof0 << " zeros\n"; 
 ```
+
 test function return 1 if bit is set else returns 0:
+
 ```cpp
 cout << "bool representation of " << set8 << " : "; 
 for (std::size_t i = 0; i < set8.size(); i++) 
@@ -103,3 +107,66 @@ Refs: [1](https://www.geeksforgeeks.org/c-bitset-interesting-facts/), [2](https:
 # bit field  
   
 [code](../src/bitset_bit_field.cpp)
+
+
+# bitwise operations
+
+```
+&	bitwise AND
+|	bitwise inclusive OR
+^	bitwise XOR (eXclusive OR)
+<<	left shift 
+>>	right shift
+~	bitwise NOT (one's complement) (unary)
+ 
+&=	bitwise AND assignment
+|=	bitwise inclusive OR assignment
+^=	bitwise exclusive OR assignment
+<<=	left shift assignment
+>>=	right shift assignment
+```
+
+Bitwise	Logical:
+
+```
+a & b	a && b
+a | b	a || b
+a ^ b	a != b
+~a	!a
+```
+
+
+bitwiseshift POW2: `[variable]<<[number of places to shift]`
+
+```cpp
+int number=2;
+int power=5
+int result=number<<(power-1);
+std::cout <<result<<std::endl;
+```
+
+even/ odd number:
+
+```cpp
+int num=6;
+int result=num&1;
+std::cout<<num << (result ? " is odd":" is even")<<std::endl;
+```
+
+shifting bits:
+
+```cpp
+int a,b, result;
+a=13;//1101
+b=2;
+result=(a>>b);//0011
+std::cout <<result<<std::endl;
+```
+`a >>= 2` means "set a to itself shifted by two bit to the right"
+
+```cpp
+std::cout <<(a >>= 2) <<std::endl;
+```
+
+Refs: [1](https://www.geeksforgeeks.org/bitwise-algorithms/)
+
