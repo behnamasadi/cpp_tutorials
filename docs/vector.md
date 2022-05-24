@@ -1,20 +1,33 @@
+- [Vector Initialization](#vector-initialization)
+- [Vector Iteration](#vector-iteration)
+- [emplace_back vs push_bask](#emplace-back-vs-push-bask)
+- [std::copy](#std--copy)
+- [erase VS remove](#erase-vs-remove)
+- [front()/back() vs begin()/end()](#front---back---vs-begin---end--)
+- [Copying Vectors](#copying-vectors)
+- [Reinterpret Vector](#reinterpret-vector)
+- [Vector to/from C Array](#vector-to-from-c-array)
+- [String to Vector of Char](#string-to-vector-of-char)
+- [Vector Accessing Elements](#vector-accessing-elements)
+
+
 # Vector Initialization
 
-1) Initializing by pushing/ emplacing values one by one :
+1. Initializing by pushing/ emplacing values one by one :
     std::vector<int> vect1;
 ```cpp
 vect1.emplace_back(10);
 vect1.emplace_back(20);
 vect1.emplace_back(30);
 ```
-2) Specifying size and initializing all values. Here we create a vector of size 10 with  all values as 0.5.
+2. Specifying size and initializing all values. Here we create a vector of size 10 with  all values as 0.5.
 ```cpp
 int size = 10;
 double value=0.5;
 std::vector<double> vect2(size, value);
 ```
 
-3) Initializing like arrays
+3. Initializing like arrays
 ```cpp
 std::vector<int> vect3{ 1, 2, 3 };
 std::vector<person> vectPerson={person(10),person(12),person(3)};
@@ -38,7 +51,7 @@ dst.resize(src.size());
 for(auto i:src)
 	dst.push_back(i);
 ```
-Refs: [1](https://www.youtube.com/watch?v=jKS9dSHkAZY)
+Refs: [1](https://www.youtube.com/watch?v=jKS9dSHkAZY), [2](http://htmlpreview.github.io/?https://github.com/HowardHinnant/papers/blob/master/insert_vs_emplace.html)
 
 # std::copy
 
