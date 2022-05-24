@@ -8,4 +8,4 @@ C++11 introduced **move semantics** to the language and added the **move constru
 
 
 
-Refs: [1](https://www.foonathan.net/2019/02/special-member-functions/)
+Refs: [1](https://www.foonathan.net/2019/02/special-member-functions/), [2](https://howardhinnant.github.io/)
