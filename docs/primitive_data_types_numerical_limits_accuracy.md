@@ -1,4 +1,5 @@
 - [Size and range of primitive data types](#size-and-range-of-primitive-data-types)
+- [integral, floating point, and void](#integral--floating-point--and-void)
 - [Numerical Limits and Precision](#numerical-limits-and-precision)
 - [size of objects and types](#size-of-objects-and-types)
 - [Setting Precision](#setting-precision)
@@ -26,6 +27,57 @@
 |double|                          8     |  |
 |long double|                     12    |   |
 |wchar_t |                        2 or 4 |             1 wide character|
+
+
+# integral, floating point, and void
+Fundamental types in C++ are divided into three categories: 
+1. integral Integral types are capable of handling whole numbers.  Floating point types are capable of specifying values that may have fractional parts..The category integral includes the following datatypes: `bool, char, char8_t (since C++20), char16_t, char32_t, wchar_t, short, int, long, long longt`.
+
+```cpp
+struct foo {};
+std::cout << std::boolalpha <<
+std::is_integral<foo>::value << ", " <<
+std::is_integral_v<float> << ", " <<
+std::is_integral_v<int> << ", " <<
+std::is_integral_v<const int> << ", " <<
+std::is_integral_v<bool> << ", " << std::endl;
+```
+the output is: 
+```
+false, false, true, true, true
+````
+
+2. floating point. The category floating point includes the following datatypes: `float, double, long double`.
+
+```cpp
+std::cout <<std::boolalpha   <<
+std::is_floating_point<float>::value <<", " <<
+std::is_floating_point<float&>::value << ", " <<
+std::is_floating_point<int>::value << std::endl;
+```
+the output is: 
+```
+true, false, false
+````
+
+we can use `std::is_arithmetic` for both  integral and floating point type:
+```cpp
+std::cout << std::boolalpha <<
+std::is_arithmetic<int>::value << ", " <<
+std::is_arithmetic<float>::value << ", " <<
+std::is_arithmetic<char>::value << std::endl;
+```
+output is:
+
+```
+true, true, true
+```
+
+
+3. void.  The void type describes an empty set of values.  It is used in the followings situations:
+-  Function returns as void :  functions  which do not return any value (they return void) has the return type as void. 
+-  Function arguments as void :  functions which do not accept any parameter.
+-  Pointers to void :   A pointer of type `void *` represents the address of an object, but not its type. For instance, a memory allocation function `void *malloc( size_t size);` returns a pointer to void which can be casted to any data type.
 
 
 # Numerical Limits and Precision 
