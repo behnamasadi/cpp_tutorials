@@ -54,3 +54,4 @@ deallocate space for five ints
 myAllocator.deallocate(arr, 5);
 ```
 
+Refs: [1](https://www.geeksforgeeks.org/stdallocator-in-cpp-with-examples/), [2](https://stackoverflow.com/questions/21081796/why-not-to-inherit-from-stdallocator?noredirect=1&lq=1), [3](https://stackoverflow.com/questions/55451468/what-is-stdallocator-and-why-do-i-need-it?noredirect=1&lq=1), [4](https://stackoverflow.com/questions/826569/compelling-examples-of-custom-c-allocators?noredirect=1&lq=1), [5](https://stackoverflow.com/questions/31358804/whats-the-advantage-of-using-stdallocator-instead-of-new-in-c), [6](https://medium.com/@vgasparyan1995/what-is-an-allocator-c8df15a93ed)
