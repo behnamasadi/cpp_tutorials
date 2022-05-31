@@ -7,6 +7,88 @@
   
 Time complexity of map operations is `O(Log n)` while for `unordered_set`, it is `O(1)` on average.
 
+
+    
+## map example
+item are stored sorted:
+```cpp
+std::map<std::string, int> items;
+std::pair< std::string,int > single_item;
+single_item.first="book";
+single_item.second=45;
+
+items.insert(single_item);
+
+
+single_item.first="beer";
+single_item.second=10;
+
+items.insert(single_item);
+
+single_item.first="wine";
+single_item.second=14;
+
+items.insert(single_item);
+```
+
+keys should be unique:
+```cpp
+items["melon"]=3;
+```
+this will replace the old value:
+```cpp
+items["melon"]=6;
+```
+this even won't be added:
+```cpp
+single_item.first="melon";
+single_item.second=18;
+items.insert(single_item);
+items["water melon"]=6;
+
+for(std::map<std::string,int>::iterator it=items.begin();it!=items.end();++it)
+{
+    std::cout<<it->first<< ":"<<it->second <<std::endl;
+}
+```    
+ 
+ 
+## set example
+
+```cpp
+std::set<std::string> items;
+```
+items are unique:
+```cpp
+items.insert("bread");
+items.insert("water");
+items.insert("condom");
+items.insert("beer");
+std::cout<<items.size() <<std::endl;
+```
+
+this won't add beer again:
+```cpp
+items.insert("beer");
+```
+
+all available items are: (itesm are stored sorted in set):
+```cpp
+for(std::set<std::string>::iterator it=items.begin(); it!= items.end();it++ )
+{
+    std::cout<<*it <<std::endl;
+}
+```
+
+searching a key:
+
+```cpp
+std::string searchingKey="water";
+std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
+``` 
+ 
+
+
 # unordered_map, multimap, unordered_set, multiset
 C++ 11 added `std::unordered_map` (as well as `std::unordered_set` and multi versions of both), which is based on **hashing**.
 Map is implemented as balanced tree structure that is why it is possible to maintain an order between the elements (by specific tree traversal). 
@@ -46,85 +128,112 @@ See advantages of BST over Hash Table for more cases.
 1. We need to keep a set of distinct elements and no ordering is required.
 2. We need single element access i.e. no traversal.
     
-    
-
-item are stored sorted:
-```cpp
-std::map<std::string, int> items;
-std::pair< std::string,int > single_item;
-single_item.first="book";
-single_item.second=45;
-
-items.insert(single_item);
 
 
-single_item.first="beer";
-single_item.second=10;
 
-items.insert(single_item);
 
-single_item.first="wine";
-single_item.second=14;
 
-items.insert(single_item);
+## multimap example
+```
+std::multimap<std::string,int> items;
+std::pair<std::string,int> item;
+
+
+item.first="water";
+item.second=4;
+items.insert(item);
+
+item.first="book";
+item.second=1;
+items.insert(item);
+
+item.first="book";
+item.second=2;
+items.insert(item);
+
+item.first="beer";
+item.second=5;
+items.insert(item);
+
+item.first="wine";
+item.second=8;
+items.insert(item);
+
+item.first="book";
+item.second=9;
+items.insert(item);
+
+
+
+std::cout<< "printing all items:"<<std::endl;
+
+for(auto i:items)
+    std::cout<< i.first<< ", "<<i.second  <<std::endl;
 ```
 
-keys shoudl be unique:
-```cpp
-items["melon"]=3;
+Finding an element with a key. If there are several elements with key in the container, the one inserted earlier is selected.
 ```
-this will replace the old value:
-```cpp
-items["melon"]=6;
-```
-this even won't be added:
-```cpp
-single_item.first="melon";
-single_item.second=18;
-items.insert(single_item);
-items["water melon"]=6;
+std::string searchingKey="book";
 
-for(std::map<std::string,int>::iterator it=items.begin();it!=items.end();++it)
-{
-    std::cout<<it->first<< ":"<<it->second <<std::endl;
-}
-```    
- 
- 
-set example:
-
-```cpp
-std::set<std::string> items;
-```
-items are unique:
-```cpp
-items.insert("bread");
-items.insert("water");
-items.insert("condom");
-items.insert("beer");
-std::cout<<items.size() <<std::endl;
+std::cout<< "searching for "<<searchingKey  <<std::endl;
+std::multimap<std::string,int>::iterator it= items.find(searchingKey);
+std::cout<<searchingKey<<" " <<(it!=items.end()? std::to_string(it->second) :"not found") <<std::endl;
 ```
 
-this won't add beer again:
+finding all elements with same key:
 ```cpp
-items.insert("beer");
+typedef std::multimap<std::string, int>::iterator MMAPIterator;
+std::pair<MMAPIterator, MMAPIterator> result = items.equal_range(searchingKey);
+for (MMAPIterator it = result.first; it != result.second; it++)
+std::cout <<it->first<<":" << it->second << std::endl;
+
+int count = std::distance(result.first, result.second);
+std::cout << "Total values for key: {" <<searchingKey <<"} are : " << count << std::endl;
 ```
 
-all available items are: (itesm are stored sorted in set):
+
+
+## unordered_set example
+
+
+Creating an Unoredered_set of type string:
 ```cpp
-for(std::set<std::string>::iterator it=items.begin(); it!= items.end();it++ )
-{
-    std::cout<<*it <<std::endl;
-}
+std::unordered_set<std::string> items;
 ```
 
-searching a key:
-
+Insert strings to the set:
 ```cpp
-std::string searchingKey="water";
-std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
-``` 
- 
+items.insert("z");
+items.insert("a");
+items.insert("b");
+```
+
+Try to Insert a duplicate string in set:
+```cpp
+items.insert("a");
+```
+
+Iterate Over the Unordered Set and display it:
+```cpp
+for (auto s : items)
+ std::cout << s << std::endl;
+```
+
+
+more examples:
+```cpp
+std::set<int> first;                           // empty set of ints
+
+int myints[]= {10,20,30,40,50};
+std::set<int> second (myints,myints+5);        // pointers used as iterators
+
+std::set<int> third (second);                  // a copy of second
+
+std::set<int> fourth (second.begin(), second.end());  // iterator ctor.
+```
+
+
+
  
 # tie
 The work of `tie()` is to unpack the tuple values into seperate variables. There are two variants of `tie()`, with and without “ignore” , 
@@ -186,31 +295,27 @@ item1.second=12;
 
 item2=std::make_pair("size",12);
 ```
- 
 
-
-
-checking exsitance of key in a map:
+checking exsitance of key in a map using `std::map::count()`:
 ```cpp
-//using std::map::count() 
-//finding an item based on the key for an item in map
-
 std::map<std::string, int> wordMap = { {"a",0}, {"b",1}, {"c",2} };
-
 if (wordMap.count("a") > 0)
 {
     std::cout << "'a' Found" << std::endl;
 }
+```
 
 
+checking exsitance of key in a map using `std::map::find`:
 
-// using std::map::find
+```
 std::map<std::string, int> items;
 std::string searchingKey="melon";
 std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
+```
 
-
-// when key doesn't exist:
+when key doesn't exist:
+```cpp
 if(items["mumbo jumo"]==NULL)
 {
     std::cout<<"not found" <<std::endl;
@@ -264,8 +369,85 @@ for (p = wordFreq.begin(); p != wordFreq.end(); p++)
     std::cout << "(" << p->first << ", " << p->second << ")\n";
 ```
 
+## unordered_map user defined type
+supose we want to store the followiong class in an `unordered_map`:
+
+```cpp
+class student
+{
+public:
+    int id;
+    std::string first_name;
+    std::string last_name;
+    
+    bool operator==(const student &other) const
+    {
+        return (first_name == other.first_name   && last_name == other.last_name  && id == other.id);
+    }
+};
+```
+example for user-defined hash functions:
+
+```cpp
+namespace std 
+{
+
+  template <>
+  struct hash<student>
+  {
+    std::size_t operator()(const student& k) const
+    {
+    using std::size_t;
+    using std::hash;
+    using std::string;
+
+    // Compute individual hash values for first,
+    // second and third and combine them using XOR
+    // and bit shifting:
+
+    return ((hash<string>()(k.first_name)
+            ^ (hash<string>()(k.last_name) << 1)) >> 1)
+            ^ (hash<int>()(k.id) << 1);;
+    }
+  };
+
+}
+```
+If you don't want to specialize template inside the std namespace (although it's perfectly legal in this case), you can define the hash function as a separate class and add it to the template argument list for the map:
+
+```cpp
+struct KeyHasher
+{
+  std::size_t operator()(const student& k) const
+  {
+    using std::size_t;
+    using std::hash;
+    using std::string;
+
+    return ((hash<string>()(k.first_name)
+             ^ (hash<string>()(k.last_name) << 1)) >> 1)
+             ^ (hash<int>()(k.id) << 1);
+  }
+};
+
+bool fncomp (int lhs, int rhs) {return lhs<rhs;}
+
+struct classcomp {
+	bool operator() (const int& lhs, const int& rhs) const
+	{return lhs<rhs;}
+};
+```
+
+Now you can store the object of type `student` in an `unordered_map`:
+```cpp
+std::unordered_map<student,std::string> student_umap
+= {  { {1,"John", "Doe"}, "example"},  { {2,"Mary", "Sue"}, "another"} };
 
 
+std::unordered_map<student,std::string,KeyHasher> m6 = {
+{ {1,"John", "Doe"}, "example"},
+{ {2,"Mary", "Sue"}, "another"}};
+```
 
 
 
