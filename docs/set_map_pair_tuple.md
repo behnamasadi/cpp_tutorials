@@ -4,13 +4,14 @@
 - [unordered_map, multimap, unordered_set, multiset](#unordered-map--multimap--unordered-set--multiset)
   * [multimap example](#multimap-example)
   * [unordered_set example](#unordered-set-example)
-- [tie](#tie)
-- [tuple](#tuple)
-- [pair](#pair)
-- [unordered_map](#unordered-map)
+  * [unordered_map example](#unordered-map-example)
   * [unordered_map user defined type](#unordered-map-user-defined-type)
   * [set user defined type](#set-user-defined-type)
   * [unordered_set user defined type](#unordered-set-user-defined-type)
+- [tie](#tie)
+- [tuple](#tuple)
+- [pair](#pair)
+
 
 # map, set
 `std::map` is red black tree and **NOT** hash table. Both `std::set` and `std::map` are associative containers. The difference is that `std::sets` contain
@@ -246,99 +247,7 @@ std::set<int> third (second);                  // a copy of second
 std::set<int> fourth (second.begin(), second.end());  // iterator ctor.
 ```
 
-
-
- 
-# tie
-The work of `tie()` is to unpack the tuple values into seperate variables. There are two variants of `tie()`, with and without “ignore” , 
-the "ignore" ignores a particular tuple element and stops it from getting unpacked.
-
-
-```cpp
-int i_val; 
-char ch_val; 
-float f_val;    
-
-// Initializing tuple 
-std::tuple <int,char,float> tup1(20,'g',17.5);
-
-
-std::tie(i_val,ch_val,f_val) = tup1;
-
-std::tie(i_val,std::ignore,f_val) = tup1;
-std::cout<<i_val<<" " <<ch_val<<" " <<f_val  <<std::endl;
-```    
-
-
-
-
-# tuple
-A tuple is an object that can hold a number of elements. The elements can be of different data types.
-
-
-```cpp
-std::tuple<int, double, int, std::string > mytuple = std::make_tuple(10, 12.4, 3, "this is a tuple");
-```
-`get()` is used to access the tuple values and modify them, it accepts the index and tuple name as arguments 
-
-```cpp
-std::cout<<std::get<0>(mytuple) <<std::endl;
-std::cout << std::get<1>(mytuple) << std::endl;
-std::cout << std::get<2>(mytuple) << std::endl;
-std::cout << std::tuple_size<decltype(mytuple)>::value << std::endl;
-```
-
-`tie()` : unpack the tuple values into seperate variables. There are two variants of tie()
-
-```cpp
-int i; 
-double d; 
-int n; 
-std::string s;
-std::tie(i, d, n, s) = mytuple;
-```
-
-
-# pair
-
-```cpp
-//std::make_pair()
-std::pair<std::string, int> item1,item2;
-item1.first="wieght";
-item1.second=12;
-
-item2=std::make_pair("size",12);
-```
-
-checking exsitance of key in a map using `std::map::count()`:
-```cpp
-std::map<std::string, int> wordMap = { {"a",0}, {"b",1}, {"c",2} };
-if (wordMap.count("a") > 0)
-{
-    std::cout << "'a' Found" << std::endl;
-}
-```
-
-
-checking exsitance of key in a map using `std::map::find`:
-
-```
-std::map<std::string, int> items;
-std::string searchingKey="melon";
-std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
-```
-
-when key doesn't exist:
-```cpp
-if(items["mumbo jumo"]==NULL)
-{
-    std::cout<<"not found" <<std::endl;
-}
-```    
-
-
-
-# unordered_map
+## unordered_map example
 
 ```cppp
 std::cout<<"item are sorted in std::map \nThe order that we inserted the items is: wine, beer, book" <<std::endl;
@@ -540,3 +449,95 @@ courses.insert(c2);
 
 courses.find(c2)->m_name;
 ```
+
+
+ 
+# tie
+The work of `tie()` is to unpack the tuple values into seperate variables. There are two variants of `tie()`, with and without “ignore” , 
+the "ignore" ignores a particular tuple element and stops it from getting unpacked.
+
+
+```cpp
+int i_val; 
+char ch_val; 
+float f_val;    
+
+// Initializing tuple 
+std::tuple <int,char,float> tup1(20,'g',17.5);
+
+
+std::tie(i_val,ch_val,f_val) = tup1;
+
+std::tie(i_val,std::ignore,f_val) = tup1;
+std::cout<<i_val<<" " <<ch_val<<" " <<f_val  <<std::endl;
+```    
+
+
+
+
+# tuple
+A tuple is an object that can hold a number of elements. The elements can be of different data types.
+
+
+```cpp
+std::tuple<int, double, int, std::string > mytuple = std::make_tuple(10, 12.4, 3, "this is a tuple");
+```
+`get()` is used to access the tuple values and modify them, it accepts the index and tuple name as arguments 
+
+```cpp
+std::cout<<std::get<0>(mytuple) <<std::endl;
+std::cout << std::get<1>(mytuple) << std::endl;
+std::cout << std::get<2>(mytuple) << std::endl;
+std::cout << std::tuple_size<decltype(mytuple)>::value << std::endl;
+```
+
+`tie()` : unpack the tuple values into seperate variables. There are two variants of tie()
+
+```cpp
+int i; 
+double d; 
+int n; 
+std::string s;
+std::tie(i, d, n, s) = mytuple;
+```
+
+
+# pair
+
+```cpp
+//std::make_pair()
+std::pair<std::string, int> item1,item2;
+item1.first="wieght";
+item1.second=12;
+
+item2=std::make_pair("size",12);
+```
+
+checking exsitance of key in a map using `std::map::count()`:
+```cpp
+std::map<std::string, int> wordMap = { {"a",0}, {"b",1}, {"c",2} };
+if (wordMap.count("a") > 0)
+{
+    std::cout << "'a' Found" << std::endl;
+}
+```
+
+
+checking exsitance of key in a map using `std::map::find`:
+
+```
+std::map<std::string, int> items;
+std::string searchingKey="melon";
+std::cout<<searchingKey <<(items.find(searchingKey)!=items.end()? " found" :" not found") <<std::endl;
+```
+
+when key doesn't exist:
+```cpp
+if(items["mumbo jumo"]==NULL)
+{
+    std::cout<<"not found" <<std::endl;
+}
+```    
+
+
+
