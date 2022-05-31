@@ -1,3 +1,17 @@
+- [map, set](#map--set)
+  * [map example](#map-example)
+  * [set example](#set-example)
+- [unordered_map, multimap, unordered_set, multiset](#unordered-map--multimap--unordered-set--multiset)
+  * [multimap example](#multimap-example)
+  * [unordered_set example](#unordered-set-example)
+- [tie](#tie)
+- [tuple](#tuple)
+- [pair](#pair)
+- [unordered_map](#unordered-map)
+  * [unordered_map user defined type](#unordered-map-user-defined-type)
+  * [set user defined type](#set-user-defined-type)
+  * [unordered_set user defined type](#unordered-set-user-defined-type)
+
 # map, set
 `std::map` is red black tree and **NOT** hash table. Both `std::set` and `std::map` are associative containers. The difference is that `std::sets` contain
  only the key, while in `std::map` there is an associated value. Choosing one over the other depends mainly on what the task at hand is. 
