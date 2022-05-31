@@ -2,6 +2,10 @@
 
 FROM ubuntu:20.04
 
+
+MAINTAINER Behnam Asadi behnam.asadi@gmail.com
+
+
 # this is for timezone config
 ENV DEBIAN_FRONTEND=noninteractive 
 ENV TZ=Europe/Berlin
@@ -20,6 +24,8 @@ WORKDIR "gflags/build"
 RUN pwd
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON   ../ && make -j8 all install 
 RUN cd ../../
+RUN rm -rf gflags
+
 
 # 2) glog
 RUN echo "************************ glog ************************"
@@ -28,7 +34,7 @@ WORKDIR "glog/build"
 RUN mkdir -p  glog/build && cd glog/build
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Release  -DBUILD_SHARED_LIBS=ON   ../ && make -j8 all install 
 WORKDIR "/"
-
+RUN rm -rf glog
 
 
 RUN echo "************************ googletest ************************"
@@ -38,7 +44,8 @@ RUN mkdir -p  googletest/build && cd googletest/build
 WORKDIR "googletest/build"
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++1z -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../ && make -j8 all install 
 WORKDIR "/"
-
+# we need googletest source code for google benchmark, so we shouldn't delete it! 
+# RUN rm -rf googletest
 
 
 # 4) google benchmark
@@ -48,7 +55,7 @@ RUN mkdir -p  benchmark/build && cd benchmark/build
 WORKDIR "benchmark/build"
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++1z   -DGOOGLETEST_PATH=../../googletest   -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../ && make -j8 all install 
 WORKDIR "/"
-
+RUN rm -rf benchmark
 
 
 
@@ -59,7 +66,7 @@ RUN mkdir -p  tinyxml2/build && cd tinyxml2/build
 WORKDIR "tinyxml2/build"
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++1z   -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../ && make -j8 all install 
 WORKDIR "/"
-
+RUN rm -rf tinyxml2
 
 
 
@@ -70,7 +77,7 @@ RUN mkdir -p  yaml-cpp/build && cd yaml-cpp/build
 WORKDIR "yaml-cpp/build"
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++1z   -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../ && make -j8 all install 
 WORKDIR "/"
-
+RUN rm -rf yaml-cpp
 
 
 
