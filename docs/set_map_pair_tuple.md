@@ -449,5 +449,80 @@ std::unordered_map<student,std::string,KeyHasher> m6 = {
 { {2,"Mary", "Sue"}, "another"}};
 ```
 
+## set user defined type
+
+first way:
+```cpp
+auto cmp = [](student left, student right) { return  (left.id>right.id);};
+auto set_of_students = std::set<int,decltype(cmp)>( cmp );
+```
+
+second way:
+```
+std::set<int,classcomp> fifth;                 // class as Compare
+```
+
+third way:
+```
+bool(*fn_pt)(int,int) = fncomp;
+std::set<int,bool(*)(int,int)> sixth (fn_pt);  // function pointer as Compare
+```
 
 
+## unordered_set user defined type
+let say we want to store the following class in an `unordered_set`:
+```cpp
+class Course
+{
+public:
+    std::string m_name;
+    bool m_isAdvanced;
+
+    Course (std::string name, bool isAdvanced)
+    {
+        m_name=name;
+        m_isAdvanced=isAdvanced;
+    }
+
+    bool isAdvanced()
+    {
+        return m_isAdvanced;
+    }
+
+    bool operator ==(const Course& rhs) const
+    {
+        return ((rhs.m_isAdvanced==this->m_isAdvanced )&&(rhs.m_name==this->m_name));
+    }
+};
+```
+
+The `unordered_set` internally implements a hash table to store elements. By default we can store only
+pre definded type as int, string, float etc.
+Some comparison function need to be designed. Since unordered_set also store implements hash table
+to store elements we should also have to implement hash function to perform hashing related work. here we define the hash function for our class:
+
+```cpp
+class CourseHashFunction
+{
+public:
+    std::size_t operator ()(const Course& k) const
+    {
+        // We use predfined hash functions of string and bool and define our hash function as XOR of the hash values.
+        return (std::hash<std::string>()(k.m_name)) ^ (std::hash<bool>()(k.m_isAdvanced)) ;
+    }
+};
+```
+
+Now we can store object of type `Course`:
+
+```cpp
+std::unordered_set<Course,CourseHashFunction> courses;
+
+Course c1=Course("Smalltalk Programming", false);
+Course c2=Course("Appreciating Single Malts", true);
+
+courses.insert(c1);
+courses.insert(c2);
+
+courses.find(c2)->m_name;
+```
