@@ -7,6 +7,22 @@
 
 This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
+## Building and Installation
+There is docker file for this project and you build your image with :   
+
+`docker build -t cpp_tutorials .`
+
+and create a container from that with:  
+`docker run  --name cpp  -it cpp_tutorials`
+
+you can remove unnecessary images and containers by:
+
+`docker image prune -a`
+
+
+`docker container prune` 
+
+
 ## [C++ Tutorials](#)
    * [Align](docs/align.md)  
    * [Allocator](docs/allocator.md)  
