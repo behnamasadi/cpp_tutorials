@@ -121,16 +121,13 @@ given keys for an exact match. You can implement this either as a class that ove
 
 
 
-|                |     set             | unordered_set     |
-|---------------:|--------------------:|------------------:|
-|Ordering        | increasing  order   | no ordering       |
-|                | (by default)        |                   |  
-|Implementation  | Self balancing BST  | Hash Table        |
-|                | like Red-Black Tree |                   |
-|search time     | log(n)              | O(1) -> Average   |
-|                |                     | O(n) -> Worst Case|
-|Insertion time  | log(n) + Rebalance  | Same as search    |
-|Deletion time   | log(n) + Rebalance  | Same as search    |
+|                |     set                               | unordered_set     |
+|---------------:|--------------------:                  |------------------:|
+|Ordering        | increasing  order (by default)        | no ordering       |
+|Implementation  | Self balancing BST like Red-Black Tree| Hash Table        |
+|search time     | `log(n)`                                | `O(1)` -> Average, `O(n)` -> Worst Case   |
+|Insertion time  | `log(n)` + Rebalance                    | Same as search  |
+|Deletion time   | `log(n)` + Rebalance                    | Same as search  |
 
 **Use set when**
 1. We need ordered data.
