@@ -12,12 +12,9 @@ There is docker file for this project where contains all dependencies and you bu
 
 `docker build -t cpp_tutorials .`
 
-and create a container from that with:  
-`docker run  --name cpp_container  -it cpp_tutorials`
-
 then create a container where you mount the checkout code into your container: 
 
-`docker run --name <continer-name> -v <checked-out-path-on-host>:<path-in-the-container> -it cpp_tutorials`
+`docker run --name <continer-name> -v <checked-out-path-on-host>:<path-in-the-container> -it <docker-image-name>
 
 for instance:
 
