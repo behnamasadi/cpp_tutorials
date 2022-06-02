@@ -78,14 +78,3 @@ WORKDIR "yaml-cpp/build"
 RUN cmake -DCMAKE_CXX_FLAGS=-std=c++1z   -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../ && make -j8 all install 
 WORKDIR "/"
 RUN rm -rf yaml-cpp
-
-
-
-
-# 7) cpp_tutorials
-RUN echo "************************ cpp_tutorials ************************"
-RUN git clone  https://github.com/behnamasadi/cpp_tutorials
-RUN mkdir -p  cpp_tutorials/build && cd cpp_tutorials/build
-WORKDIR "cpp_tutorials/build"
-RUN cmake -DCMAKE_BUILD_TYPE=Release  .. && make -j8
-WORKDIR "/"
