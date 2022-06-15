@@ -1,8 +1,10 @@
 # Virtual Method Table and Virtual Table Pointer
 
-The Virtual Method Table or `vtable` is a mechanism used for supporting dynamic dispatch (or run-time method binding). As you might know, we have two types of polymorphism:
-1. Early binding (Compile time) is done according to the type of pointer (i.e. template function).
-2. Late binding (Run-time) is done in accordance with the content of pointer (i.e. location pointed to by pointer)
+As you might know, we have two types of polymorphism in C++:
+1. Static Polymorphism : is done at compile time according to the type.
+2. Dynamic Polymorphism: is done at run-time in accordance with the content of pointer.
+
+The Virtual Method Table or `vtable` is a mechanism used for supporting run-time method binding.
 
 
 Let say we have the following classes:
