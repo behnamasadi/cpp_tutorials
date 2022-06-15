@@ -61,9 +61,9 @@ bptr->print();
 ```
 
 
-## vtable
+## Virtual Method Table (vtable)
 Every class that has virtual function will get a table name `vtable`. It is a  table of only "virtual function" memory addresses and it is maintained **per class**. `vtable`is created by compiler at compile time.
-## vptr
+## Virtual Table Pointer (vptr)
 when you create an object that which has virtual function, compiler adds a hidden member to your class called `__vptr`. It is pointer to the `vtable`, and it is maintained **per object instance**.
 `vptr` is inherited to all the derived classes. If you create multiple from a class, the `__vptr` in all of them  point to the same `vtable` of a particular class.
  
