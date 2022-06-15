@@ -1,4 +1,4 @@
-# Virtual Table and Late (Run-time) Binding 
+# Virtual Method Table and Virtual Table Pointer
 
 The Virtual Method Table or `vtable` is a mechanism used for supporting dynamic dispatch (or run-time method binding). As you might know, we have two types of polymorphism:
 1. Early binding (Compile time) is done according to the type of pointer (i.e. template function).
