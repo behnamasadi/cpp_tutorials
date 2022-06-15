@@ -1,23 +1,78 @@
-# Virtual Table and Late(Runtime) Binding 
-Late binding (Runtime) is done in accordance with the content of pointer (i.e. location pointed to by pointer)
-and Early binding(Compile time) is done according to the type of pointer, since print() function is declared
-with virtual keyword so it will be bound at run-time.
+# Virtual Table and Late (Run-time) Binding 
+
+The Virtual Method Table or `vtable` is a mechanism used for supporting dynamic dispatch (or run-time method binding). As you might know, we have two types of polymorphism:
+1. Early binding (Compile time) is done according to the type of pointer (i.e. template function).
+2. Late binding (Run-time) is done in accordance with the content of pointer (i.e. location pointed to by pointer)
+
+
+Let say we have the following classes:
+
+```cpp
+class base
+{
+public:
+
+    void virtual foo()
+    {
+        std::cout<<"foo base" <<std::endl;
+    }
+
+    void print()
+    {
+        std::cout<<"print base" <<std::endl;
+    }
+
+};
+
+
+class derived : public base
+{
+public:
+
+    void foo() override
+    {
+        std::cout<<"foo derived" <<std::endl;
+    }
+    void print()
+    {
+        std::cout<<"print derived" <<std::endl;
+    }
+};
+```
+
+Now if we execute the followings in our main:
+
+```cpp
+base *bptr;
+derived d;
+bptr = &d;
+```
+virtual function, bound at run-time, we got the `foo()` from derived
+
+```cpp
+bptr->foo();
+```
+
+Non-virtual function, bound at compile time, we get `print()` from base:
+```cpp
+bptr->print();
+```
+
 
 ## vtable
-Every class that has virtual function will get a table name `vtable`. It is a  table of only "virtual function" memory addresses.  and it is maintained **per class**. `vtable`is created by compiler at compile time.
+Every class that has virtual function will get a table name `vtable`. It is a  table of only "virtual function" memory addresses and it is maintained **per class**. `vtable`is created by compiler at compile time.
 ## vptr
-when you create an object that which has virtual function, compiler adds a hidden member to your class called `vptr`. It is pointer to the vtable, (address of that vtable). It is maintained **per object instance**.
-`vptr` is inherited to all the derived classes. If you create multiple from a class, the `vptr` in all of them  point to the same `vtable` of a particular class.
+when you create an object that which has virtual function, compiler adds a hidden member to your class called `__vptr`. It is pointer to the `vtable`, and it is maintained **per object instance**.
+`vptr` is inherited to all the derived classes. If you create multiple from a class, the `__vptr` in all of them  point to the same `vtable` of a particular class.
  
 
 
 ```
-
    ____________________                                              _____________________________________
-   |      Base         |                                             |   vtable for class base            |
+   |    base object    |                                             |   vtable for class base            |
    |  _vptr------------|-------------------------------------------->|                                    |
-   | virtual foo()<--- |---------------------------------------------|--address of base version of foo()  |
----|->virtual func1()<-|---------------------------------------------|--address of base version of func1()|
+   | virtual foo()<----|---------------------------------------------|--address of base version of foo()  |
+---|->virtual bar()<---|---------------------------------------------|--address of base version of bar()  |
 |  |___________________|                                             |____________________________________|
 |
 |
@@ -25,32 +80,16 @@ when you create an object that which has virtual function, compiler adds a hidde
 |
 |
 |   ____________________                                             ________________________________________________
-|   |      Derived     |                                             |   vtable for class derived                    |
+|   |  derived object  |                                             |   vtable for class derived                    |
 |   |  _vptr-----------|-------------------------------------------->|                                               |
 |   |         foo()<---|---------------------------------------------|--address of derived implementation of foo()   |
-|   |         print()  |                                      |------|--address of base implementation of func1()    |
+|   |         print()  |                                      |------|--address of base implementation of bar()      |
 |   |__________________|                                      |      |_______________________________________________|
 |                                                             |
 |-------------------------------------------------------------|
 ```
 
 
-```cpp
-
-base *bptr;
-derived d;
-bptr = &d;
-
-//virtual function, binded at runtime, we got the foo() from derived
-bptr->foo();
-
-// Non-virtual function, binded at compile time, we get print() from base
-bptr->print();
-
-//we get print() from derived
-d.print();
-
-```
 
 
 Refs: [1](https://www.geeksforgeeks.org/virtual-functions-and-runtime-polymorphism-in-c-set-1-introduction/), [2](https://www.geeksforgeeks.org/virtual-function-cpp/), [3](https://www.learncpp.com/cpp-tutorial/125-the-virtual-table/)
