@@ -71,7 +71,7 @@ when you create an object that which has virtual function, compiler adds a hidde
 
 ```
    ____________________                                              _____________________________________
-   |    base object    |                                             |   vtable for class base            |
+   |    base           |                                             |   vtable for class base            |
    |  _vptr------------|-------------------------------------------->|                                    |
    | virtual foo()<----|---------------------------------------------|--address of base version of foo()  |
 ---|->virtual bar()<---|---------------------------------------------|--address of base version of bar()  |
@@ -82,7 +82,7 @@ when you create an object that which has virtual function, compiler adds a hidde
 |
 |
 |   ____________________                                             ________________________________________________
-|   |  derived object  |                                             |   vtable for class derived                    |
+|   |  derived         |                                             |   vtable for class derived                    |
 |   |  _vptr-----------|-------------------------------------------->|                                               |
 |   |         foo()<---|---------------------------------------------|--address of derived implementation of foo()   |
 |   |         print()  |                                      |------|--address of base implementation of bar()      |

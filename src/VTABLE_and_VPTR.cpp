@@ -50,8 +50,5 @@ int main()
     // Non-virtual function, binded at compile time, we get print() from base
     bptr->print();
 
-    //we get print() from derived
-    d.print();
-
 
 }
