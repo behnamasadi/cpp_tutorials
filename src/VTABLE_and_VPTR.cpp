@@ -7,17 +7,17 @@ public:
 
     void virtual foo()
     {
-        std::cout<<"foo base" <<std::endl;
+        std::cout<<"foo from base" <<std::endl;
     }
 
-    void virtual func1()
+    void virtual bar()
     {
-        std::cout<<"func1 base" <<std::endl;
+        std::cout<<"bar from base" <<std::endl;
     }
 
     void print()
     {
-        std::cout<<"print base" <<std::endl;
+        std::cout<<"print from base" <<std::endl;
     }
 
 };
@@ -29,11 +29,11 @@ public:
 
     void foo() override
     {
-        std::cout<<"foo derived" <<std::endl;
+        std::cout<<"foo from derived" <<std::endl;
     }
     void print()
     {
-        std::cout<<"print derived" <<std::endl;
+        std::cout<<"print from derived" <<std::endl;
     }
 };
 
