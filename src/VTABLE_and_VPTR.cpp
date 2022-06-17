@@ -41,8 +41,8 @@ public:
 int main()
 {
     base *bptr;
-    derived d;
-    bptr = &d;
+    derived derived_object;
+    bptr = &derived_object;
 
     //virtual function, binded at runtime, we got the foo() from derived
     bptr->foo();
@@ -50,5 +50,7 @@ int main()
     // Non-virtual function, binded at compile time, we get print() from base
     bptr->print();
 
+    // shadow method, 
+    derived_object.print();
 
 }

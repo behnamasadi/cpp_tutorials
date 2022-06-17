@@ -133,10 +133,20 @@ void scientific_notation()
 int main(int argc, char ** argv)
 {
 
-    //stackSize();
-    //numericalLimitsPrecisionExample();
-    setPrescion();
+double a;
+a = 3.1415926534;
+std::cout<<"a is: 3.1415926534" <<std::endl;
 
+std::cout.setf(std::ios::scientific,std::ios::floatfield);
+std::cout<<a<<std::endl;//3.140000e+00
+
+std::cout.setf(std::ios::fixed,std::ios::floatfield);
+std::cout<<a<<std::endl;//3.140000
+
+std::cout.precision(1);
+std::cout<<a<<std::endl;//3.1
+
+return 4;
 
 }
 

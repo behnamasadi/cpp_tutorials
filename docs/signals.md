@@ -1,3 +1,17 @@
+- [Signals](#signals)
+  * [SIGILL](#sigill)
+  * [SIGSEGV](#sigsegv)
+    + [Segmentation fault](#segmentation-fault)
+  * [SIGABRT](#sigabrt)
+  * [SIGFPE](#sigfpe)
+  * [SIGBUS](#sigbus)
+  * [SIGSYS](#sigsys)
+  * [SIGTRAP](#sigtrap)
+  * [SIGTERM](#sigterm)
+- [Raising a Signal](#raising-a-signal)
+- [Setting Signal Handler](#setting-signal-handler)
+
+
 # Signals
 Signals in computers are a way of communication between the process and the OS.
 When a running program undergoes some serious error then the OS sends a signal to
@@ -40,15 +54,15 @@ set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 
 ## SIGABRT
 If an error itself is detected by the program then this signal is
-generated using call to abort(). This signal is also used by
+generated using call to `abort()`. This signal is also used by
 standard library to report an internal error.
-assert() function in c++ also uses abort() to generate this signal.
+assert() function in c++ also uses `abort()` to generate this signal.
 ## SIGFPE
 Error that occurred like division by zero, floating point error.
 ## SIGBUS
 This signal is also produced when an invalid memory is accessed. It may
-seem to be same like SIGSEGV but in SIGSEGV, the memory location referenced
-is valid but in case of SIGBUS, memory referenced does not exist
+seem to be same like `SIGSEGV` but in `SIGSEGV`, the memory location referenced
+is valid but in case of `SIGBUS`, memory referenced does not exist
 i.e de-referencing a memory location out of memory space.
 ## SIGSYS
 This signal is sent to process when an invalid argument is passed to a system call.
@@ -57,18 +71,18 @@ This signal is send to process when an exception is occurred.
 This is requested by the debugger to get informed. For example,
 if a variable changes its value then this will trigger it.
 ## SIGTERM
-The SIGTERM signal is a generic signal used to cause program termination.
-Unlike SIGKILL, this signal can be blocked, handled, and ignored. It is
+The `SIGTERM` signal is a generic signal used to cause program termination.
+Unlike `SIGKILL`, this signal can be blocked, handled, and ignored. It is
 the normal way to politely ask a program to terminate. The shell command
-kill generates SIGTERM by default.
+kill generates `SIGTERM` by default.
 
-# raising a signal
-csignal header file declared the function `raise()` to handle a particular signal. Signal learns some unusual behavior in a program, and calls the signal handler. It is implemented to check if the default handler will get called or it will be ignored.
+# raising a Signal
+The `<csignal>` header file declared the function `raise()` to handle a particular signal. Signal learns some unusual behavior in a program, and calls the signal handler. It is implemented to check if the default handler will get called or it will be ignored.
 Syntax: 
 ```cpp
 int raise ( int signal_ )
 ```
-# setting signal handler
+# Setting Signal Handler
 Sets the handler for signal sig
 ```cpp
 signal(int sig, /*signal-handler*/* handler);

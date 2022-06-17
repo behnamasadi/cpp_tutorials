@@ -1,20 +1,35 @@
 # assert
-An assert statement is a preprocessor macro that evaluates a conditional expression. If the conditional expression is true, the assert statement does nothing.
-assert will terminate the program (usually with a message quoting the assert statement) if its argument turns out to be false. 
-It's commonly used during debugging to make the program fail more obviously if an unexpected condition occurs. When you're doing a release (non-debug) build, 
-you can also remove the overhead of evaluating assert statements by defining the `NDEBUG` macro, usually with a compiler switch. The corollary of this is that
-your program  should never rely on the assert macro running.
+An assert statement is a preprocessor macro that evaluates a conditional expression. If the conditional expression is true, the assert statement does nothing. assert will terminate the program (usually with a message quoting the assert statement) if its argument turns out to be false. 
+It's commonly used during debugging to make the program fail more obviously if an unexpected condition occurs. 
 
 ```cpp
-assert ( bool-constexpr , message )		
+assert ( bool-constexpr )
 ```
 
-Here we're asserting that nIndex is between 0 and 9
+## Add custom messages in assert
+
+As a hack you can use the `&&` operator in your assert. Since assert shows the condition that has failed, it will also show your message too.
 ```cpp
-int nIndex=12;
-int g_anArray[10];
-assert(nIndex >= 0 && nIndex <= 9);
-return g_anArray[nIndex];
+assert(bool-constexpr && "message");
+```
+
+or you can reverse the operands and use the comma operator. You need extra parentheses`()` so the comma isn't treated as a delimiter between the arguments:
+
+```cpp
+assert(("message", bool-constexpr));
+
+```
+
+Example:
+
+Here we're asserting that `idx` is between 0 and 9:
+```cpp
+int idx=12;
+int array[10]={0,1,2,3,4,5,6,7,8,9};
+// we're asserting that idx is between 0 and 9
+assert((idx >= 0 && idx <= 9) &&  "idx should be between 0 and 9");
+
+assert(("idx should be between 0 and 9" , (idx >= 0 && idx <= 9) ));
 ```
 
 # static_assert 
@@ -23,16 +38,9 @@ if you implement some functionality by code that critically depends on unsigned 
 ```cpp
 static_assert(sizeof(unsigned int) * CHAR_BIT == 32);
 ```
-in your code. On another platform, with differently sized unsigned int type the compilation will fail, thus drawing attention of the developer to the problematic
-portion of the code and advising them to re-implement or re-inspect it.
-For another example, you might want to pass some integral value as a `void * pointer` to a `function (a hack, but useful at times)` and you want to make sure that 
-the integral value will fit into the pointer
-```cpp
-int i;
-static_assert(sizeof(void *) >= sizeof i);
-foo((void *) i);
-```
-You might want to asset that char type is signed:
+in your code. On another platform, with differently sized unsigned int type the compilation will fail, thus drawing attention of the developer
+As an other example, you might want to asset that char type is signed:
+
 ```cpp
 static_assert(CHAR_MIN < 0);
 ```
@@ -41,29 +49,27 @@ or that integral division with negative values rounds towards zero
 static_assert(-5 / 2 == -2);
 ```
 
-Run-time assertions in many cases can be used instead of static assertions, but run-time assertions only work at run-time and only when control passes over
-the assertion. For this reason a failing run-time assertion may lay dormant, undetected for extended periods of time.
-Of course, the expression in static assertion has to be a compile-time constant.
-It can't be a run-time value. For run-time values you have no other choice but use the ordinary assert.
-Also for checking against static member functions
+or checking the version of c++:
 
-if you change into 3, you will get compiler error:
+
+- pre-C++98: `__cplusplus` is 1.
+- C++98:     `__cplusplus` is 199711L.
+- C++11:     `__cplusplus` is 201103L.
+- C++14:     `__cplusplus` is 201402L.
+- C++17:     `__cplusplus` is 201703L.
+- C++20:     `__cplusplus` is 202002L.
+
+
 ```cpp
-class Foo
-{
-    public:
-        static const int bar = 5;
-};
+static_assert(__cplusplus > 201103L);
 ```
-Now in your main:
-```cpp
-static_assert(Foo::bar > 4, "Foo::bar is too small :(");
-return Foo::bar;
-```
+
 
 
 # NDEBUG
-If NDEBUG is defined as a macro name at the point in the source file where is included, the assert macro is defined simply as
+
+When you're doing a release (non-debug) build, you can also remove the overhead of evaluating assert statements by defining the `NDEBUG` macro, usually with a compiler switch. 
+If `NDEBUG` is defined as a macro name at the point in the source file where is included, the assert macro is defined simply as
 
 ```cpp
  #define assert(ignore) ((void)0)
@@ -72,7 +78,6 @@ If NDEBUG is defined as a macro name at the point in the source file where is in
 The output of followings with comented NDEBUG: `Assertion x >= 0.0 failed.`
  
 ```cpp
-// #define NDEBUG 
 double x = -1.0;
 assert(x >= 0.0);
 printf("sqrt(x) = %f\n", sqrt(x));  
