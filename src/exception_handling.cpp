@@ -7,73 +7,6 @@
 #include <stdexcept>
 
 
-//double division(int a, int b)
-//{
-//   if( b == 0 )
-//   {
-//      throw "Division by zero condition!";
-//   }
-//   return (a/b);
-//}
-
-////struct S { // The type has to be polymorphic
-////    virtual void f();
-////};
-
-
-//void exceptionHandlingExample()
-//{
-//    int x = 50;
-//    int y = 0;
-//    double z = 0;
-
-//    try
-//    {
-//        z = division(x, y);
-//        std::cout << z << std::endl;
-//    } catch (const char* msg)
-//    {
-//        std::cerr << msg << std::endl;
-//    }
-//}
-
-/*
-exception handling has the following form:
-
-try
-{
-    some code
-}
-catch (Exception e)
-{
-    throw e;
-}
-catch (...)//... will catch any exception
-{
-    throw;
-}
-
-====================================C++ Standard Exceptions============================================
-
-std::exception
-
-    1)std::bad_alloc
-    2)std::bad_cast
-    3)std::bad_exception
-    4)std::bad_typeid
-    5)std::logic_error
-        5-1)std::domain_error: exception thrown when a mathematically invalid domain is used.
-        5-2)std::invalid_argument
-        5-3)std::length_error
-        5-4)std::out_of_range
-    6)std::runtime_error: An exception that theoretically cannot be detected by reading the code.
-        6-1)std::overflow_error :
-            The only standard library components that
-            throw std::overflow_error are std::bitset::to_ulong and std::bitset::to_ullong.
-        6-2)std::underflow_error
-        6-3)std::range_error
-
-*/
 
 struct Foo { virtual ~Foo() {} };
 struct Bar { virtual ~Bar() {} };
@@ -93,7 +26,6 @@ void bad_allocExample()
     }
 }
 
-
 void bad_castExample()
 {
     Bar b;
@@ -106,7 +38,6 @@ void bad_castExample()
     }
 }
 
-
 void bad_typeidExample()
 {
     Foo* p = nullptr;
@@ -117,7 +48,6 @@ void bad_typeidExample()
         std::cout << e.what() << '\n';
     }
 }
-
 
 void logical_ErrorExample()
 {
@@ -218,7 +148,6 @@ void overflow_errorExample()
     }
 }
 
-
 void range_errorExample()
 {
     try
@@ -243,7 +172,7 @@ struct CustomException : public std::exception
    }
 };
 
-void customExceptionExample()
+void customExceptionExample()   
 {
     try
     {

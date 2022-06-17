@@ -3,23 +3,13 @@
 #include <dlfcn.h>
 
 /*
-add.cpp
 
-extern "C" 
-{
 
-  int add(int a,int b)
-  {
-	return a+b;
-  }
-}
+
 
 in the CMakeLists.txt
 
-ADD_LIBRARY(add SHARED  src/add.cpp)
 
-ADD_EXECUTABLE(loadeding_libraries src/loadeding_libraries.cpp )
-TARGET_LINK_LIBRARIES(loadeding_libraries dl)
 
 SHARED libraries are linked dynamically and loaded at runtime.
 MODULE libraries are plugins that are not linked into other targets but may be
@@ -48,7 +38,6 @@ int main(int argc, char ** argv)
         exit(1);
     }
 
-//    printf ("%d\n", (*adder_fn_ptr)(2,3));
     printf ("%d\n", adder_fn_ptr(2,3));
     dlclose(handle);
     return 0;

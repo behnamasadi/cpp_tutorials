@@ -11,13 +11,12 @@
   * [out_of_range](#out-of-range)
   * [overflow_error](#overflow-error)
   * [range_error](#range-error)
-  * [User defined exceptions](#user-defined-exceptions)
-- [catching all exceptions with ...](#catching-all-exceptions-with-)
+- [User defined exceptions](#user-defined-exceptions)
+- [Catching All Exceptions With Parameter Pack Expansion ...](#catching-all-exceptions-with-parameter-pack-expansion-)
 - [noexcept](#noexcept)
-  * [noexcept specifier:](#noexcept-specifier-)
+  * [noexcept specifier](#noexcept-specifier)
   * [noexcept operator](#noexcept-operator)
   * [when should we use noexcept](#when-should-we-use-noexcept)
-
 
 
 
@@ -29,13 +28,17 @@ try
 {
     some code
 }
-catch (Exception e)
+catch (Exception1 e)
 {
-    throw e;
+    some code
+}
+catch (Exception2 e)
+{
+    some code
 }
 catch (...)
 {
-    throw;
+    some code
 }
 ```
 
@@ -61,6 +64,8 @@ catch (...)
 
 ## bad_alloc
 
+This exception is thrown by the allocation functions to when it failures to allocate memory.
+
 ```cpp
 
   try
@@ -77,20 +82,25 @@ catch (...)
 
 ### nothrow
 
-This constant value is used as an argument for operator new and operator new[] to indicate that these functions shall not throw an exception on failure, but return a null pointer instead.
+`nothrow` is an empty class type and used as an argument for operator `new` and operator `new[]` to indicate that these functions shall not throw an exception on failure, but return a null pointer instead.
 
 ```cpp
-    try {
-        while (true) {
+    try 
+    {
+        while (true) 
+        {
             new int[100000000ul];   // throwing overload
         }
-    } catch (const std::bad_alloc& e) {
+    } catch (const std::bad_alloc& e) 
+    {
         std::cout << e.what() << '\n';
     }
  
-    while (true) {
+    while (true) 
+    {
         int* p = new(std::nothrow) int[100000000ul]; // non-throwing overload
-        if (p == nullptr) {
+        if (p == nullptr) 
+        {
             std::cout << "Allocation returned nullptr\n";
             break;
         }
@@ -101,6 +111,8 @@ Refs: [1](https://www.cplusplus.com/reference/new/nothrow/), [2](https://en.cppr
 
 
 ## bad_cast  
+
+This exception is thrown when a `dynamic_cast` to a reference type fails, for instance when the types are not related by inheritance.
 
 
 ```cpp
@@ -124,6 +136,17 @@ try
 
 ## bad_typeid
 
+This exception is thrown when a `typeid` operator is applied to a dereferenced null pointer value of a polymorphic type.
+
+The type has to be polymorphic:
+```cpp
+struct Foo 
+{ 
+    virtual void bar();
+}; 
+```
+
+
 ```cpp
 Foo* p = nullptr;
 try
@@ -136,18 +159,14 @@ try
 
 
 ## logic_error
+
+This defines a type of object to be thrown as exception when there are a consequence of faulty logic in your program.
+
 ```cpp
 int amount, available;
 amount=10;
 available=9;
-if(amount>available)
-{
-    throw std::logic_error("Error");
-}
-```
-second example:
 
-```cpp
 try
 {
   if(amount>available)
@@ -161,6 +180,9 @@ catch ( std::exception &e )
 ```
 ## domain_error
 
+This defines a type of object to be thrown as exception in situations where the inputs are outside of the domain on which an operation is defined.
+
+
 ```cpp
 try
 {
@@ -171,19 +193,17 @@ catch (std::domain_error& e)
 {
     std::cout << e.what() << '\n';
 }
-catch (...)
-{
-    std::cout << "Something unexpected happened" << '\n';
-}
 ```
 
 
 ## invalid_argument
 
+This defines a type of object to be thrown as exception when an argument value has not been accepted.
+
+binary wrongly represented by char `X`:
 ```cpp
 try
 {
-// binary wrongly represented by char X
     std::bitset<32> bitset(std::string("0101001X01010110000"));
 }
 catch (std::exception &err)
@@ -195,10 +215,10 @@ catch (std::exception &err)
 
 ## length_error
 
+This defines a type of object to be thrown as exception as a result of attempts to exceed implementation defined length limits for some object. For instance vector throws a `length_error` if resized above `max_size`
 ```cpp
 try
 {
-    // vector throws a length_error if resized above max_size
     std::vector<int> myvector;
     myvector.resize(myvector.max_size()+1);
 }
@@ -209,6 +229,8 @@ catch (const std::length_error& le)
 ```
 
 ## out_of_range
+
+This defines a type of object to be thrown as exception as consequence of attempt to access elements out of defined range.
 
 ```cpp
 std::vector<int> myvector(10);
@@ -244,6 +266,8 @@ catch(std::exception &err)
 
 ## range_error
 
+This defines a type of object to be thrown as exception where a result of a computation cannot be represented by the destination type.
+The only standard library components that throw this exception are `std::wstring_convert::from_bytes` and `std::wstring_convert::to_bytes`.
 ```cpp
 try
 {
@@ -256,7 +280,7 @@ catch (std::range_error &e)
 }
 ```
 
-## User defined exceptions
+# User defined exceptions
 
 Definition:
 ```cpp
@@ -286,13 +310,34 @@ try
 [code](../src/exception_handling.cpp)
 
 
-# catching all exceptions with ...
+# Catching All Exceptions With Parameter Pack Expansion ...
 `...` is a parameter pack and refers to zero or more template parameters. The `...` will catch **all** exception.
+
+
+
+```cpp
+try
+{
+    some code
+}
+catch (Exception e)
+{
+    some code
+}
+catch (...)//... will catch any exception
+{
+    some code
+}
+```
+
+
+
+
 
 # noexcept 
 
 
-## noexcept specifier:
+## noexcept specifier
 This means if a function specified with noexcept it shouldn't throw exception (evaluation of its operand can propagate an exception).
 
 The bodies of called functions are not examined to check if they actually throw exception or not, and `noexcept` can yield false negatives. 

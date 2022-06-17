@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_BUILD_TYPE Debug)
 
 
 
@@ -91,15 +91,12 @@ target_link_libraries(primitive_data_types_numerical_limits_accuracy)
 add_executable(arrays  src/arrays.cpp)
 target_link_libraries(arrays)
 
-
-add_executable(data_type_info  src/data_type_info.cpp)
-target_link_libraries(data_type_info)
-
 add_executable(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
 target_link_libraries(dynamic_memory_allocation)
 
 #ADD_LIBRARY(add MODULE src/add.cpp)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_library(add SHARED  src/add.cpp)
     add_executable(loadeding_libraries src/loadeding_libraries.cpp )
     target_link_libraries(loadeding_libraries dl)
 endif()
@@ -185,6 +182,9 @@ target_link_libraries(set_map_pair_tuple)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_executable(signals src/signals.cpp)
     target_link_libraries(signals)
+
+    add_executable(system_call src/system_call.cpp)
+    target_link_libraries(system_call)
 endif()
 
 
