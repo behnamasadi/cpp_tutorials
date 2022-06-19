@@ -41,7 +41,8 @@ The following are some typical causes of a segmentation fault:
 1. Attempting to access a nonexistent memory address (outside process's address space)
 2. Attempting to access memory the program does not have rights to (such as kernel structures in process context)
 3. Attempting to write read-only memory (such as code segment)
-These often happens while dereferencing or assigning null pointer/ wild pointer/ dangling pointer, heap overflow, stack overflow
+
+The above incidents will happens while dereferencing or assigning null pointer/ wild pointer/ dangling pointer, heap overflow, stack overflow.
 When you access an array index, C and C++ don't do bound checking. Segmentation faults only happen when you try to
 read or write to a page that was not allocated (or try to do something on a page which isn't permitted,
 e.g. trying to write to a read-only page), but since pages are usually pretty big

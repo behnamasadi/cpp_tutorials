@@ -1,11 +1,9 @@
-/*
- * ScopeResolutionOperator.cpp
- *
- *  Created on: Mar 19, 2012
- *      Author: behnam
- */
-#include <iostream>
+# Scope resolution operator ::
 
+The `::` (scope resolution) is a unary operator that is used to qualify  the namespace scope of names.
+
+
+```cpp
 int n = 12; // A global variable
 
 int main()
@@ -15,6 +13,8 @@ int main()
 	std::cout << ::n << '\n'; // Print the global variable: 12
 	std::cout << n   << '\n'; // Print the local variable: 13
 }
+```
 
 
 
+[code](../src/scope_resolution_operator.cpp)

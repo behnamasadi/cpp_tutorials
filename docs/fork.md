@@ -1,10 +1,10 @@
-#include <iostream>
-#include <string>
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdlib.h>   // Declaration for exit()
+# fork
+The `fork()` system call will spawn a new child process which is an identical process to the parent and returns a process ID. The purpose of `fork()` is to create a child process for the caller.
+After calling fork function, the code below the `fork()` would be executed by both process, parent and child. To discriminate which process should do what, we check pID
 
 
+
+```cpp
 int globalVariable = 2;
 
 int main()
@@ -40,8 +40,15 @@ int main()
     }
 
     // Code executed by both parent and child.
+
     pid_t pid = getpid();
     std::cout <<sIdentifier<<" pid:  "<< pid<<std::endl;
     std::cout << " Global variable: " << globalVariable;
     std::cout << " Stack variable: "  << iStackVariable << std::endl;
 }
+```
+
+Refs: [1](http://www.yolinux.com/TUTORIALS/ForkExecProcesses.html), [2](http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html)
+
+
+[code](fork.cpp)
