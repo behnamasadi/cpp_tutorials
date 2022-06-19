@@ -1,4 +1,32 @@
-# Memory checking with Valgrind
+# Memory checking with Address Sanitizer
+
+```cpp
+set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+```
+
+```
+void heap_buffer_overflow()
+{
+    unsigned char  *x=new unsigned char [5];
+    for(int i=0;i<10;i++)
+    {
+        x[i]++;
+    }
+
+}
+
+void stack_buffer_overflow()
+{
+    char x[5];
+    for(int i=0;i<10;i++)
+    {
+        x[i]++;
+    }
+}
+```
+
+# Memory Leaking Detection with Valgrind
 
 disable the followings first:
 ```cpp
@@ -8,27 +36,9 @@ disable the followings first:
 ```
 Then run:
 
-`valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./<you-app>`
+`valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./memory_checking`
 
 
-
-heap buffer overflow
-```cpp
-int *x=new int[3];
-for(int i=0;i<100000000;i++)
-{
-	x[i]++;
-}
-```
-
-stack buffer overflow
-```cpp
-char x[2];
-for(int i=0;i<100000000;i++)
-{
-	x[i]++;
-}
-```
 Here is an example program that causes a stack overflow:
 
 ```cpp
@@ -41,3 +51,6 @@ memory leaking:
 char *x = new char[10]; /* or, in C, char *x = malloc(100) */
 //    delete[] x;
 ```
+
+
+Refs: [1](https://www.osc.edu/book/export/html/5471)

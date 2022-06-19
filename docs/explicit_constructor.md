@@ -7,10 +7,16 @@ class String
 {
 public:
 // allocate n bytes to the String object
-    String(int n);
-   
-// initializes object with char *p    
-    String(const char *p);
+    String(int n)
+    {
+        std::cout<<"allocate "<<n<<" bytes to the String object" <<std::endl;
+    }
+
+// initializes object with char *p
+    String(const char *p)
+    {
+        std::cout<<"initializes object with char *p" <<std::endl;
+    }
 };
 ```
 You can write:
@@ -19,7 +25,13 @@ You can write:
 String mystring = 'a';
 ```
 
-This is actually possible and character `'a'` will be implicitly converted to int (ascii code for 'a' is 97) and then the `String(int)` constructor will be called.But, perhaps this is not what you might have intended. `explicit` keyword will disable the above conversion.
+This is actually possible and character `'a'` will be implicitly converted to int (ascii code for 'a' is 97) and then the `String(int)` constructor will be called:
+
+```
+allocate 97 bytes to the String object
+```
+
+But, perhaps this is not what you might have intended. `explicit` keyword will specify that a constructor or conversion function is explicit, which means, it cannot be used for implicit conversions and copy-initialization and the conversion will be disabled.
 
 
 ```cpp
@@ -31,11 +43,11 @@ public:
 // initialize sobject with string p    
     String(const char *p); 
 };
+```
 
-//This is actually possible because Entity has a constructor that can get only an integer or a string
-Implicit::String s1='a';
+explicit keyword will disable the above conversion (allocate 97 bytes instead of 'a'), so we should do a casting first:
 
-//explicit keyword will disable the above conversion, so we should do it by casting
+```cpp
 Explicit::String s2=(const char*)'a';
 ```    
 

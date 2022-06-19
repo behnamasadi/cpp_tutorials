@@ -19,6 +19,7 @@ or you can call `mkdir` directly"
 mkdir("foo", 0755);
 ```
 
+Also check out [fork](fork.md)
 Linux System Call Table: [Here](https://thevivekpandey.github.io/posts/2017-09-25-linux-system-calls.html)
 
 

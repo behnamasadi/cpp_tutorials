@@ -24,6 +24,13 @@ extern "C"
   }
 }
 ```
+
+and in your `CMakeLists.txt`:
+
+```
+add_library(add SHARED  src/add.cpp)
+```
+
 ## Loading The Plug-in in Host
 
 The second file is `loadeding_libraries.cpp` and paste the following inside:
@@ -63,7 +70,6 @@ int main(int argc, char ** argv)
 
 Now in your `CMakeLists.txt`:
 ```
-add_library(add SHARED  src/add.cpp)
 add_executable(loadeding_libraries src/loadeding_libraries.cpp )
 target_link_libraries(loadeding_libraries dl)
 ```
