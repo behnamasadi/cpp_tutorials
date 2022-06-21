@@ -107,8 +107,13 @@ target_link_libraries(macro)
 add_executable(inline_functions src/inline_functions.cpp)
 target_link_libraries(inline_functions)
 
-add_executable(align src/align.cpp)
-target_link_libraries(align)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	add_executable(align src/align.cpp)
+	target_link_libraries(align)
+endif()
+
+
 
 add_executable(algorithms_library src/algorithms_library.cpp)
 target_link_libraries(algorithms_library)
