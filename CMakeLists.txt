@@ -59,11 +59,6 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 
-#Finding Memory leaking, Stack and Heap overflow
-#set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
-#set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
-
-
 add_executable(pointers  src/pointers/pointers.cpp )
 target_link_libraries( pointers)
 
