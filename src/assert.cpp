@@ -28,7 +28,7 @@ void static_assertExample()
 
 void NDEBUGExample()
 {
-    double x = -1.0;
+    double x = +1.0;
     assert(x >= 0.0);
     printf("sqrt(x) = %f\n", sqrt(x));  
 }
