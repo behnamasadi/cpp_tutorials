@@ -35,8 +35,8 @@ void NDEBUGExample()
 
 int main(int argc, char *argv[])
 {
-    assertExample();
-    static_assertExample();
-    NDEBUGExample();
+    // assertExample();
+    // static_assertExample();
+    // NDEBUGExample();
     return 0;
 }
