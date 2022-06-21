@@ -22,7 +22,7 @@ void static_assertExample()
     static_assert(sizeof(unsigned int) * CHAR_BIT == 32);
     static_assert(CHAR_MIN < 0);
     static_assert(-5 / 2 == -2);
-    static_assert(__cplusplus > 201103L);
+    //static_assert(__cplusplus > 201103L);
 }
 
 
