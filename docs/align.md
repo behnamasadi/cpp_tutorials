@@ -1,4 +1,21 @@
 # Cache Lines
+
+
+When the processor accesses a part of memory that is not already in the cache it loads a chunk of the memory around the accessed address into the cache, hoping that it will soon be used again.
+
+The chunks of memory handled by the cache are called cache lines. The size of these chunks is called the cache line size. Common cache line sizes are 32, 64 and 128 bytes.
+
+A cache can only hold a limited number of lines, determined by the cache size. For example, a 64 kilobyte cache with 64-byte lines has 1024 cache lines.
+
+
+CPUs are word oriented, not byte oriented. In a simple CPU, memory is generally configured to return one word (32bits, 64bits, etc) per address strobe
+Alignment depends on the CPU word size (16, 32, 64bit)
+
+
+
+
+Refs: [1](https://stackoverflow.com/questions/3025125/cpu-and-data-alignment),[2](http://www.nic.uoregon.edu/~khuck/ts/acumem-report/manual_html/ch03s02.html), [4](https://stackoverflow.com/questions/8469427/how-and-when-to-align-to-cache-line-size), [5](https://thewolfsound.com/what-is-data-alignment/), [6](https://www.youtube.com/watch?v=Y7q2ECeFWE8), [7](https://www.youtube.com/watch?v=xNxjRW1ZYng)
+
 Data is transferred between memory and cache in blocks of fixed size, called **cache lines** or **cache blocks**. A typical size for this seems to be 64 bytes.
 
 On Linux you can get cache line size by checking  [sysconf(3)](https://man7.org/linux/man-pages/man3/sysconf.3.html).
@@ -233,6 +250,10 @@ std::cout<<"size: " <<size <<std::endl;
 
 delete[] array;
 ```
-Refs: [1](https://www.youtube.com/watch?v=BP6NxVxDQIs)
+Refs: [1](https://www.youtube.com/watch?v=BP6NxVxDQIs), [2](https://gcc.gnu.org/onlinedocs/gcc/Structure-Layout-Pragmas.html)
+[3](https://stackoverflow.com/questions/14179748/what-is-the-difference-between-pragma-pack-and-attribute-aligned), [4](https://stackoverflow.com/questions/3318410/pragma-pack-effect)
+
+#pragma pack(n) is roughly equivalent to __attribute__((packed,aligned(n))): 
+
 
 [source code](../src/align.cpp)
