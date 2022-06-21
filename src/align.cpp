@@ -165,7 +165,6 @@ int main(int argc, char *argv[])
     std::cout<<"size of Foo3: " << sizeof(Foo3)  <<std::endl;
     std::cout<<"align of Foo3: " << alignof(Foo3)  <<std::endl;
 
-        std::cout<<"size of Foo3: " << sizeof(std::word)  <<std::endl;
 
     printf("offsetof(struct Foo3, c1) = %zu\n", offsetof(struct Foo3, c1));
     printf("offsetof(struct Foo3, c2) = %zu\n", offsetof(struct Foo3, c2));
