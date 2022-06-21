@@ -1,8 +1,50 @@
-# Align
+# Cache Lines
+Data is transferred between memory and cache in blocks of fixed size, called **cache lines** or **cache blocks**. A typical size for this seems to be 64 bytes.
+
+On Linux you can get cache line size by checking  [sysconf(3)](https://man7.org/linux/man-pages/man3/sysconf.3.html).
+
+```cpp
+#include <unistd.h>
+std::cout<<sysconf (_SC_LEVEL1_DCACHE_LINESIZE)<<std::endl;
+```
+
+You can get cache line size by using `getconf`:
+
+`getconf LEVEL1_DCACHE_LINESIZE`
+
+Data that are located closer to each other than this may end up on the same cache line.
+
+If these data are needed by different cores, the system has to work hard to keep the data consistent between the copies residing in the cores' caches. Essentially, while one thread modifies the data, the other thread is blocked by a lock from accessing the data.
+
+
 memory is loaded into the CPU cache in chunks called **cache lines**. This takes time,
 and generally speaking the more cache lines loaded for your object, the longer it takes.
 Otherwise, you might get away with sometimes only having part of your object in cache,
 and the rest in main memory.
+
+
+When the processor needs to read or write a location in memory, it first checks for a corresponding entry in the cache.
+The cache checks for the contents of the requested memory location in any cache lines that might contain that address. If the processor finds that the memory location is in the cache, a cache hit has occurred. However, if the processor does not find the memory location in the cache, a cache miss has occurred. In the case of a cache hit, the processor immediately reads or writes the data in the cache line. For a cache miss, the cache allocates a new entry and copies data from main memory, then the request is fulfilled from the contents of the cache.
+# Alignment
+
+Every object type has the property called **alignment requirement**, which is an integer value (of type std::size_t, always a power of 2) representing the number of bytes between successive addresses at which objects of this type can be allocated.
+
+The alignment requirement of a type can be queried with `alignof` or `std::alignment_of`
+
+## Querying the alignment of a type
+
+
+```cpp
+std::cout<<"align of char: " <<alignof(char)  <<std::endl;
+std::cout<<"align of int: " << alignof(int)  <<std::endl;
+std::cout<<"align of foo1: " << alignof(foo1)  <<std::endl;
+```
+
+stricter alignment can be requested using `alignas`.
+
+
+Every object type has the property called alignment requirement, which is an integer value (of type std::size_t, always a power of 2) representing the number of bytes between successive addresses at which objects of this type can be allocated.
+
 
 
 
@@ -85,6 +127,7 @@ memory address  #0 #1 #2 #3 #4 #5 #6 #7 #8 #9 #a #b #c #d #e #f
 ```
 
 The starting address of struct or class is **aligned to the maximum alignment requirement of it's member**, so for class `foo3` it is `4`, so it's better to put the larger members first.
+
 Refs: [1](https://www.youtube.com/watch?v=ZvYsXQe-kSY)
 # alignas
 
@@ -96,6 +139,7 @@ class alignas(8) foo4
     char c2;
     int i2;
 };
+```
 
 
 ```cpp

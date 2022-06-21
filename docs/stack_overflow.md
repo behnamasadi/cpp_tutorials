@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     return 0;
 }
 ```
-You can set the stack size programmatically with (https://linux.die.net/man/2/setrlimit)[setrlimit], e.g.
+You can set the stack size programmatic-ally with (https://linux.die.net/man/2/setrlimit)[setrlimit], e.g.
 
 
 ```cpp
