@@ -26,7 +26,7 @@ if you need to develop GUI applications, you need to run:
 `docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials --env="DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"  -it cpp_tutorials`
 
 
-and then on the host run:
+and then on the host run the following (every time you run your container):
 
 `export containerId=$(docker ps -l -q)`
 
