@@ -30,7 +30,7 @@ and then on the host run the following (every time you run your container):
 
 `export containerId=$(docker ps -l -q)`
 
-<code> ` xhost +local: docker inspect --format='{{ .Config.Hostname }}' $containerId `</code>
+<code>  xhost +local: docker inspect --format='{{ .Config.Hostname }}' $containerId </code>
 
 
 read more [here](https://ros-developer.com/2017/11/08/docker/)
