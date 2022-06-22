@@ -151,7 +151,7 @@ struct Foo {};
 
 void checkingIsArray()
 {
-    char *s  = "geeksquiz";
+    char *s  = "Behnam";
     std::cout << std::boolalpha;
     std::cout << std::is_array<Foo>::value << '\n';
     std::cout << std::is_array<Foo[]>::value << '\n';
