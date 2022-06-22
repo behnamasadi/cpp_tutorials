@@ -20,6 +20,22 @@ for instance:
 
 `docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials -it cpp_tutorials`
 
+
+if you need to develop GUI applications, you need to run:
+
+`docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials --env="DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"  -it cpp_tutorials`
+
+
+and then on the host run:
+
+`export containerId=$(docker ps -l -q)`
+
+<code> ` xhost +local: docker inspect --format='{{ .Config.Hostname }}' $containerId `</code>
+
+
+read more [here](https://ros-developer.com/2017/11/08/docker/)
+
+
 if you have already created a container from the docker image, you can start it with:
 
 `docker start -i cpp_container`
