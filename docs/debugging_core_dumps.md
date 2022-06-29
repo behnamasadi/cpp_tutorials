@@ -36,3 +36,6 @@ You can use `coredumpctl list` to check the dumped files and `coredumpctl info <
 
 
 `kill -9 pid`
+
+
+Refs: [1](https://doc.qt.io/qtcreator/creator-debugger-operating-modes.html)
