@@ -85,7 +85,7 @@ you can remove unnecessary images and containers by:
    * [Memory Error Detection With Memory Address Sanitizer and Valgrind](docs/memory_leaking_valgrind.md)  
    * [Nested Namespaces, Unnamed/Anonymous Namespaces](docs/nested_unnamed_anonymous_namespaces.md)     
    * [Parameter Pack Expansion ...](docs/parameter_pack_expansion_(...).md)  
-   * [Register Keyword](src/register.cpp)  
+   * [Register Keyword](docs/register.md)  
    * [Pseudo-random Number Generation, Distributions](docs/random_number.md)
    * [Raw Pointers, Smart (Shared, Unique, Weak) Pointers, Reference, addressof, reference_wrapper, std::ref](docs/pointers.md)  
    * [Return, Abort, Exit](docs/return_abort_exit.md)  
