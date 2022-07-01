@@ -173,7 +173,7 @@ you can remove unnecessary images and containers by:
    * [Substitution failure is not an error (SFINAE)](src/SFINAE.cpp)    
    * [Stack overflow](docs/stack_overflow.md)    
    * [Stack Unwinding](src/stack_unwinding.cpp)    
-   * [Type Erasure](src/type_erasure.cpp)
+   * [Type Erasure](docs/type_erasure.md)
    * [Template Specialization, Tag Dispatch](src/template_specialization_tag_dispatch.cpp)
    * [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](docs/VTABLE_and_VPTR.md)  
    * [Virtual address space](docs/virtual_address_space.md)  
