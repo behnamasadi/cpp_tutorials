@@ -322,12 +322,6 @@ target_link_libraries(basic_IO_operation_streams )
 add_executable(explicit_constructor  src/class/explicit_constructor.cpp)
 target_link_libraries(explicit_constructor)
 
-add_executable(volatile  src/volatile.cpp)
-target_link_libraries(volatile)
-
-add_executable(register  src/register.cpp)
-target_link_libraries(register)
-
 add_executable(const_constexpr_mutable  src/const_constexpr_mutable.cpp)
 target_link_libraries(const_constexpr_mutable)
 
