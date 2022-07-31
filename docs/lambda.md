@@ -1,18 +1,18 @@
 # Lambda Expression
 
-syntax:
+## syntax:
 ```cpp
 [ captures ] ( params ) { body }
 [ captures ] ( params ) -> ret { body }
 ```
 
-- inline:
+##  inline:
 
 ```cpp
 std::sort(v1.begin(),v1.end(),[](int x,int y){ return (x<y); }  );
 ```
 
-- outside:
+##  outside:
 
 ```cpp
 
@@ -27,7 +27,7 @@ std::sort(v1.begin(),v1.end(),[](int x,int y){ return (x<y); }  );
 ```
 
 
-- outside as a function:
+##  outside as a function:
 
 ```cpp
 
@@ -44,11 +44,12 @@ int main()
 
 ```
 
-- lambda pass by value:
+## captures
 
+To access other variables other than what was passed to lambda within it, we can use capture-clause `[]`. You can capture by both reference and value, which you can specify using & and = respectively:
 
-`[ = ]` this means passing parameters by value, but they are read only, you need to use mutable to modify read only
-
+### by value
+`[=]` capture all variables within scope by value:
 
 ```cpp
     int a;
@@ -58,10 +59,9 @@ int main()
     std::cout<<a <<std::endl;
 ```
 
+### by reference
 
-
-- lambda pass by ref:
-
+- `[&]` capture all variables within scope by reference
 
 ```cpp
     int a;
@@ -70,5 +70,16 @@ int main()
     lambda();
 
 ```
+
+- `[&var]` capture var by reference
+- `[&, var]` specify that the default way of capturing is by reference and we want to capture var
+- `[=, &var]` capture the variables in scope by value by default, but capture var using reference instead
+
+
+
+
+Refs: [1](https://stackoverflow.com/questions/39789125/what-does-mean-before-function)
+
+
 
 [source code](../src/lambda.cpp)
