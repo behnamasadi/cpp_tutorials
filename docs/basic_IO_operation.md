@@ -57,7 +57,7 @@ typedef basic_ifstream<char>       ifstream;
 ```
 
 
-![PlantUML model](https://github.com/behnamasadi/cpp_tutorials/blob/master/docs/diagrams/uml_diagrams/basic_io.svg)
+![PlantUML model](diagrams/uml_diagrams/basic_io.svg)
 
 Refs: [1](https://en.cppreference.com/w/cpp/io)
 

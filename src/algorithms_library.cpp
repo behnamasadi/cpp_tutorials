@@ -98,6 +98,21 @@ void unique()
 void rotate()
 {
     std::vector<int> vec1={1,2,3,4};
+
+    std::rotate(vec1.begin(), vec1.begin() + 1, vec1.end());
+    std::cout<<"simple rotate left:\n";
+    for (int i : vec1)
+          std::cout << i << " ";
+
+    std::cout<<"\n";
+
+    std::cout<<"simple rotate right:\n";
+    std::rotate(vec1.rbegin(), vec1.rbegin() + 1, vec1.rend());
+    for (int i : vec1)
+          std::cout << i << " ";
+
+    std::cout<<"\n";
+
     std::vector<int>::iterator element_to_became_first_element=vec1.begin()+2;
     std::rotate(vec1.begin(),element_to_became_first_element ,vec1.end());
     for (int i : vec1)
@@ -163,8 +178,8 @@ void find()
     }
 
 
-
-    find_it=std::find_if(numbers.begin(),numbers.end(),[](int x){return x>3;});
+    int number_to_find=3;
+    find_it=std::find_if(numbers.begin(),numbers.end(),[number_to_find](int x){return x>number_to_find;});
     std::ptrdiff_t pos = std::distance(numbers.begin(), find_it);
     std::cout << "the first element larger than 3 located at " << pos << '\n';
 }
