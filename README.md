@@ -184,9 +184,9 @@ you can remove unnecessary images and containers by:
    * [JASON ](src/third_party_tools/jason)
    * [XML ](src/third_party_tools/xml/)
 ## [Code Benchmarking](src/third_party_tools/benchmark)
-   * [Google Benchmark ](src/third_party_tools/benchmark)
-
-
-
-
+   * [Google Benchmark ](src/third_party_tools/benchmark)  
+## [C++ Coding Standards and Style Guide](#)  
+   * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
+   * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
+   * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
 
