@@ -538,3 +538,8 @@ std::cout<< std::is_same<int, std::remove_pointer<int>::type>();
 std::cout<< std::is_same<int, std::remove_reference<int &>::type>();
 ```
 
+
+## Atomic Smart Pointers
+
+Refs: [1](https://www.modernescpp.com/index.php/atomic-smart-pointers)
+
