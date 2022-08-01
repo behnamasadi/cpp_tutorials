@@ -7,6 +7,7 @@
   * [Memory safety and Pointers](#memory-safety-and-pointers)
 - [Smart Pointers](#smart-pointers)
   * [unique_ptr](#unique-ptr)
+    + [Releasing a unique pointer](#releasing-a-unique-pointer)
   * [shared_ptr](#shared-ptr)
   * [weak_pointer](#weak-pointer)
     + [Avoiding cyclic references when using shared pointers](#avoiding-cyclic-references-when-using-shared-pointers)
@@ -20,6 +21,7 @@
   * [lvalues references and rvalues references](#lvalues-references-and-rvalues-references)
   * [reference wrapper](#reference-wrapper)
   * [removing reference/ pointer](#removing-reference--pointer)
+
 
 ## Raw pointer
 
@@ -161,6 +163,30 @@ This will work because because we have move constructor
 std::unique_ptr<person> secondentity=std::move(entity);
 ```
 
+
+### Releasing a unique pointer
+
+`release()` method releases the ownership of its stored pointer, return its value and replace it with a null pointer. This call will not destroy the managed object, but the unique_ptr object is released from the responsibility of deleting the object. you have to delete the object at some point.
+To force the destruction of the object pointed, either use member function reset or perform an assignment operation on it.
+
+```cpp
+std::unique_ptr<int> unique_pointer (new int);
+int * manual_pointer;
+
+*unique_pointer=1;
+manual_pointer = unique_pointer.release();
+
+if(unique_pointer ==nullptr )
+  std::cout << "unique_pointer is now empty" << '\n';
+
+std::cout << "manual_pointer points to " << *manual_pointer << '\n';
+
+delete manual_pointer;
+```
+
+
+
+Refs: [1](https://www.cplusplus.com/reference/memory/unique_ptr/release/)
 
 ## shared_ptr
 Shared ownership: shared pointer, It is  mainly meant for multi-threaded resource sharing and gives the guarantee that the object won’t be freed by another thread. The managed object is deleted when the last owning shared_ptr is destroyed. In a typical implementation, a shared_ptr contains only two pointers: 
