@@ -8,11 +8,12 @@
 This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## Building and Installation
-There is docker file for this project where contains all dependencies and you build the image with :   
+
+1. There is docker file for this project where contains all dependencies and you build the image with :   
 
 `docker build -t cpp_tutorials .`
 
-then create a container where you mount the checkout code into your container: 
+2. Create a container where you mount the checkout code into your container: 
 
 `docker run --name <continer-name> -v <checked-out-path-on-host>:<path-in-the-container> -it <docker-image-name>`
 
@@ -20,13 +21,23 @@ for instance:
 
 `docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials -it cpp_tutorials`
 
+3. If you have already created a container from the docker image, you can start it with:
 
-if you need to develop GUI applications, you need to run:
+`docker start -i cpp_container`
+
+4. You can remove unnecessary images and containers by:
+
+`docker image prune -a`
+
+`docker container prune` 
+
+
+### GUI application with docker
+1. You need to run:
 
 `docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials --env="DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"  -it cpp_tutorials`
 
-
-and then on the host run the following (every time you run your container):
+2. On the host run the following (every time you run your container):
 
 `export containerId=$(docker ps -l -q)`
 
@@ -34,18 +45,6 @@ and then on the host run the following (every time you run your container):
 
 
 read more [here](https://ros-developer.com/2017/11/08/docker/)
-
-
-if you have already created a container from the docker image, you can start it with:
-
-`docker start -i cpp_container`
-
-you can remove unnecessary images and containers by:
-
-`docker image prune -a`
-
-`docker container prune` 
-
 
 ## [C++ Tutorials](#)
    * [Align](docs/align.md)  
