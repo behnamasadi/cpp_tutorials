@@ -8,6 +8,7 @@
 - [Smart Pointers](#smart-pointers)
   * [unique_ptr](#unique-ptr)
     + [Releasing a unique pointer](#releasing-a-unique-pointer)
+    + [Returing a unique pointer](#returing-a-unique-pointer)
   * [shared_ptr](#shared-ptr)
   * [weak_pointer](#weak-pointer)
     + [Avoiding cyclic references when using shared pointers](#avoiding-cyclic-references-when-using-shared-pointers)
@@ -21,7 +22,6 @@
   * [lvalues references and rvalues references](#lvalues-references-and-rvalues-references)
   * [reference wrapper](#reference-wrapper)
   * [removing reference/ pointer](#removing-reference--pointer)
-
 
 ## Raw pointer
 
@@ -183,10 +183,17 @@ std::cout << "manual_pointer points to " << *manual_pointer << '\n';
 
 delete manual_pointer;
 ```
-
-
-
 Refs: [1](https://www.cplusplus.com/reference/memory/unique_ptr/release/)
+
+
+
+
+### Returing a unique pointer
+
+
+Refs: [1](https://stackoverflow.com/questions/4316727/returning-unique-ptr-from-functions)
+
+
 
 ## shared_ptr
 Shared ownership: shared pointer, It is  mainly meant for multi-threaded resource sharing and gives the guarantee that the object won’t be freed by another thread. The managed object is deleted when the last owning shared_ptr is destroyed. In a typical implementation, a shared_ptr contains only two pointers: 
