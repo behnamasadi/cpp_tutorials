@@ -8,12 +8,13 @@
 This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## Building and Installation
-
-1. There is docker file for this project where contains all dependencies and you build the image with :   
+### 1. Building the Image
+There is docker file for this project where contains all dependencies and you build the image with :   
 
 `docker build -t cpp_tutorials .`
 
-2. Create a container where you mount the checkout code into your container: 
+### 2. Creating the container
+Create a container where you mount the checkout code into your container: 
 
 `docker run --name <continer-name> -v <checked-out-path-on-host>:<path-in-the-container> -it <docker-image-name>`
 
@@ -21,11 +22,13 @@ for instance:
 
 `docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials -it cpp_tutorials`
 
-3. If you have already created a container from the docker image, you can start it with:
+### 3. Starting a exsiting container
+If you have already created a container from the docker image, you can start it with:
 
 `docker start -i cpp_container`
 
-4. You can remove unnecessary images and containers by:
+### 4. Removing  unnecessary images and containers
+You can remove unnecessary images and containers by:
 
 `docker image prune -a`
 
