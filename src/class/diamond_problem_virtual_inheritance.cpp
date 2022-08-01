@@ -1,7 +1,10 @@
 #include <string>
 #include <iostream>
 /*
-        
+
+Ref: https://www.sandordargo.com/blog/2020/12/23/virtual-inheritance
+
+
                base
             /        \ 
          superA     superB  
