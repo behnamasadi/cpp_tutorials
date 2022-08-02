@@ -22,7 +22,7 @@ for instance:
 
 `docker run --name cpp_container -v /home/behnam/workspace/cpp_tutorials:/cpp_tutorials -it cpp_tutorials`
 
-### 3. Starting a exsiting container
+### 3. Starting an existing container
 If you have already created a container from the docker image, you can start it with:
 
 `docker start -i cpp_container`
