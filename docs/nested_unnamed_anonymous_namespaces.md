@@ -1,4 +1,4 @@
-# Unnamed Namespaces
+#  Anonymous (Unnamed) Namespaces
 
 ## Translation unit
 A translation unit (aka compilation unit) is the ultimate input to a C or C++ compiler.  It consists of the contents of a single source file, plus the contents of any header files directly or indirectly included by it, minus conditional preprocessing statements (i.e. `#ifndef`). A single translation unit can be compiled into an object file, library, or executable program.
@@ -60,8 +60,12 @@ It will have **external linkage** if you do that (assuming you didn't declare it
 
 It will also  protects you against ODR violations, if you use the global namespace or a named namespace you may clash with another type/function/variable in another file.
 
-Refs: [1](https://www.ibm.com/docs/en/i/7.3?topic=linkage-program#cplr080), [2](https://stackoverflow.com/questions/357404/why-are-unnamed-namespaces-used-and-what-are-their-benefits), [3](https://www.ibm.com/docs/en/i/7.3?topic=only-unnamed-namespaces-c), [4](https://www.reddit.com/r/cpp/comments/4ukhh5/what_is_the_purpose_of_anonymous_namespaces/)
+Refs: [1](https://www.ibm.com/docs/en/i/7.3?topic=linkage-program#cplr080), [2](https://stackoverflow.com/questions/357404/why-are-unnamed-namespaces-used-and-what-are-their-benefits), [3](https://www.ibm.com/docs/en/i/7.3?topic=only-unnamed-namespaces-c), [4](https://www.reddit.com/r/cpp/comments/4ukhh5/what_is_the_purpose_of_anonymous_namespaces/),
 
+## Benefits of Anonymous (Unnamed) Namespaces
+Writing a non-member in an unnamed namespace has benefits both by making functions internal to a .cc file (moving them out of header files) as well as by making them non-members (moving them out of classes).
+
+Refs: [1](https://abseil.io/tips/186)
 
 # Nested Namespaces, 
 Below is the syntax to use the nested namespace in one line 
