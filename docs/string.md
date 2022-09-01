@@ -408,7 +408,30 @@ You can also use a string object instead
 std::string p1 = "John";
 ```
 
+## C++ string comparison 
 
+`std::string::compare()` returns an int:
+
+- equal to zero if `str1` and `str2` are equal,
+- less than zero if `str1` is less than `str2`,
+- greater than zero if `str1` is greater than `str2`.
+
+```cpp
+if (!str1.compare(str2)) 
+{
+    // 'str1' and 'str2' are equal.
+}
+```
+
+`std::string::compare()` is most useful for quick sort and binary search algorithms. Natural sorts and dichotomic searches can be implemented with only `std::less`.
+
+
+you can use `str1==str2` as well and and it is more readable and it will return the same value, but the compare function provides more information how the strings differ.
+
+
+
+
+Refs: [1](https://stackoverflow.com/questions/9158894/differences-between-c-string-and-compare)
 
 # String to Number Conversion
 ## int, float, double to string
@@ -419,6 +442,7 @@ std::string strNumber=std::to_string(10.3);
 ## float to string
 ```cpp
 float f=std::atof(strNumber.c_str());//10.3
+float f=std::stof(strNumber);//10.3
 ```
 ## int to string
 ```cpp

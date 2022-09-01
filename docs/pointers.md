@@ -8,10 +8,11 @@
 - [Smart Pointers](#smart-pointers)
   * [unique_ptr](#unique-ptr)
     + [Releasing a unique pointer](#releasing-a-unique-pointer)
-    + [Returing a unique pointer](#returing-a-unique-pointer)
+    + [Returning a unique pointer](#returning-a-unique-pointer)
   * [shared_ptr](#shared-ptr)
-  * [weak_pointer](#weak-pointer)
     + [Avoiding cyclic references when using shared pointers](#avoiding-cyclic-references-when-using-shared-pointers)
+  * [weak_pointer](#weak-pointer)
+  * [Checking for null in smart pointers](#checking-for-null-in-smart-pointers)
   * [Pointer casting](#pointer-casting)
   * [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
     + [Pass by value to lend the ownership](#pass-by-value-to-lend-the-ownership)
@@ -22,6 +23,7 @@
   * [lvalues references and rvalues references](#lvalues-references-and-rvalues-references)
   * [reference wrapper](#reference-wrapper)
   * [removing reference/ pointer](#removing-reference--pointer)
+  * [Atomic Smart Pointers](#atomic-smart-pointers)
 
 ## Raw pointer
 
@@ -132,7 +134,7 @@ An object can solely own another object (unique_ptr), or it can share the owners
 
 ## unique_ptr
 Sole ownership: 
-Usecases of sole ownership include having to move around an expensive to copy resource, a resource that is owned by a single subroutine but needs to be dynamically allocated, passing a resource between threads, various implementations of singletons or pimpl and compatibility with C libraries which use pointers.
+Use cases of sole ownership include having to move around an expensive to copy resource, a resource that is owned by a single subroutine but needs to be dynamically allocated, passing a resource between threads, various implementations of singletons or pimpl and compatibility with C libraries which use pointers.
 
 Raw pointers do not establish the unique ownership themselves. A class that uses raw pointers for unique ownership must explicitly implement the move-construction/assignment and disallow copy-construction/assignment. 
 
@@ -188,7 +190,7 @@ Refs: [1](https://www.cplusplus.com/reference/memory/unique_ptr/release/)
 
 
 
-### Returing a unique pointer
+### Returning a unique pointer
 
 
 Refs: [1](https://stackoverflow.com/questions/4316727/returning-unique-ptr-from-functions)
@@ -257,7 +259,9 @@ function to free the space.
 The destructor for `std::vector<T>` ensures that the destructor for T is called for every element stored in the vector.
 
 
+### Avoiding cyclic references when using shared pointers 
 
+Refs: [1](https://stackoverflow.com/questions/12030650/when-is-stdweak-ptr-useful#:~:text=The%20example%20illustrates%20how%20a,(a.k.a.%20a%20circular%20reference).)
 
 ## weak_pointer
 std::weak_ptr is a very good way to solve the **dangling pointer** problem. By just using raw pointers it is impossible to know if the referenced 
@@ -330,10 +334,18 @@ std::cout<<"sharedEntity1 died befor reaching here since person1 is a weak_ptr" 
 ```
 
 
-### Avoiding cyclic references when using shared pointers 
 
+## Checking for null in smart pointers
 
-Refs: [1](https://stackoverflow.com/questions/12030650/when-is-stdweak-ptr-useful#:~:text=The%20example%20illustrates%20how%20a,(a.k.a.%20a%20circular%20reference).)
+```cpp
+ptr != nullptr 
+```
+or 
+
+```cpp
+!ptr
+```
+
 
 ## Pointer casting
 

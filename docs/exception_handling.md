@@ -61,7 +61,7 @@ catch (...)
     2) std::underflow_error  
     3) std::range_error  
     
-
+7) std::ios_base::failure
 ## bad_alloc
 
 This exception is thrown by the allocation functions to when it failures to allocate memory.
@@ -307,6 +307,27 @@ try
 //Other errors
 }
 ```
+
+# 
+
+```cpp
+    std::ifstream f("doesn't exist");
+   f.exceptions ( ifstream::badbit ); // No need to check failbit
+    try
+    {
+        f.exceptions(f.failbit);
+    }
+    catch (const std::ios_base::failure& e)
+    {
+        std::cout << "Caught an ios_base::failure.\n"
+                  << "Explanatory string: " << e.what() << '\n'
+                  << "Error code: " << e.code() << '\n';
+    }
+```
+
+
+Ref: [1](https://en.cppreference.com/w/cpp/io/ios_base/failure)
+
 [code](../src/exception_handling.cpp)
 
 
@@ -324,7 +345,7 @@ catch (Exception e)
 {
     some code
 }
-catch (...)//... will catch any exception
+catch (...)//... Parameter Pack Expansion, will catch any exception
 {
     some code
 }

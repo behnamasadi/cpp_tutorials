@@ -14,10 +14,8 @@
 
 
 # map, set
-`std::map` is red black tree and **NOT** hash table. Both `std::set` and `std::map` are associative containers. The difference is that `std::sets` contain
- only the key, while in `std::map` there is an associated value. Choosing one over the other depends mainly on what the task at hand is. 
- If you want to build a dictionary of all the words that appear in a text, you could use a `std::set<std::string>`, but if you also want to count
- how many times each word appeared (i.e. associate a value to the key) then you would need an `std::map<std::string,int>`. If you don't need to associate that count,
+`std::map` is red black tree and **NOT** hash table. Both `std::set` and `std::map` are associative containers. The difference is that `std::sets` contain  only the key, while in `std::map` there is an associated value. 
+Choosing one over the other depends mainly on what the task at hand is.  If you want to build a dictionary of all the words that appear in a text, you could use a `std::set<std::string>`, but if you also want to count  how many times each word appeared (i.e. associate a value to the key) then you would need an `std::map<std::string,int>`. If you don't need to associate that count,
  it does not make sense to have the int that is unnecessary.
   
 Time complexity of map operations is `O(Log n)` while for `unordered_set`, it is `O(1)` on average.
@@ -46,7 +44,7 @@ single_item.second=14;
 items.insert(single_item);
 ```
 
-keys should be unique:
+if you set a new value for an existing keys, the new value will be set:
 ```cpp
 items["melon"]=3;
 ```
@@ -54,13 +52,27 @@ this will replace the old value:
 ```cpp
 items["melon"]=6;
 ```
-this even won't be added:
+If you try to insert an en existing key, it woulndt be added and it return the false:
 ```cpp
+std::pair<std::map<int,int>::iterator, bool> resultOfInsertion;
+
+
 single_item.first="melon";
 single_item.second=18;
-items.insert(single_item);
-items["water melon"]=6;
+resultOfInsertion=items.insert(single_item);
 
+
+single_item.first="melon";
+single_item.second=20;
+resultOfInsertion=items.insert(single_item);
+
+
+std::cout<<resultOfInsertion.second<<std::endl;
+
+```
+How iterate the map:
+
+```cpp
 for(std::map<std::string,int>::iterator it=items.begin();it!=items.end();++it)
 {
     std::cout<<it->first<< ":"<<it->second <<std::endl;
@@ -87,7 +99,7 @@ this won't add beer again:
 items.insert("beer");
 ```
 
-all available items are: (itesm are stored sorted in set):
+all available items are: (items are stored sorted in set):
 ```cpp
 for(std::set<std::string>::iterator it=items.begin(); it!= items.end();it++ )
 {
@@ -417,7 +429,7 @@ public:
 ```
 
 The `unordered_set` internally implements a hash table to store elements. By default we can store only
-pre definded type as int, string, float etc.
+per-defined type as int, string, float etc.
 Some comparison function need to be designed. Since unordered_set also store implements hash table
 to store elements we should also have to implement hash function to perform hashing related work. here we define the hash function for our class:
 
@@ -520,7 +532,7 @@ if (wordMap.count("a") > 0)
 ```
 
 
-checking exsitance of key in a map using `std::map::find`:
+checking the existence of key in a map using `std::map::find`:
 
 ```
 std::map<std::string, int> items;
