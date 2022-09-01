@@ -44,8 +44,46 @@ if that class is not abstract.
 
 **final**: For marking an override as unoverrideable. That is, derivatives of a class with a final virtual function override cannot have that virtual function override overridden.
 
+
+
+# Making a class abstract without any pure virtual methods
+
+Declare a pure virtual destructor, but give it a definition in the .cpp file. The class will be abstract, but any inheriting classes will not by default be abstract.
+
+
+```cpp
+class Abstract
+{
+public:
+     virtual ~Abstract() = 0;
+};
+```
+in cpp file:
+```cpp
+Abstract::~Abstract() {}
+```
+
+```cpp
+class derived: public Abstract
+{
+        // Notice you don't need to actually overide the base
+        // classes pure virtual method as it has a default
+};
+```
+now in your application:
+```
+int main()
+{
+    // Abstract        a;  // This line fails to compile as Abstract is abstract
+    Valid           v;  // This compiles fine.
+}
+```
+
 Refs: [1](https://www.geeksforgeeks.org/virtual-function-cpp/), [2](https://stackoverflow.com/questions/39932391/should-i-use-virtual-override-or-both-keywords)
 
+
+# Virtual Friend Function Idiom
+Refs: [1](https://stackoverflow.com/questions/12142893/virtual-friend-functions-for-a-base-class)
 
 [source code](../src/class/virtual_function_abstract_class.cpp)
 

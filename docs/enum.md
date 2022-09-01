@@ -112,6 +112,13 @@ for (color c : colorIterator())
 }
 ```
 
-
 Refs: [1](https://stackoverflow.com/questions/261963/how-can-i-iterate-over-an-enum)
+
+
+
+Automatically convert strongly typed enum into int
+
+Refs: [1](https://stackoverflow.com/questions/8357240/how-to-automatically-convert-strongly-typed-enum-into-int)
+
+
 

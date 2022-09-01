@@ -1,8 +1,4 @@
-#include <string>
-#include <iostream>
-#include <memory>
 
-/*
 A class that declares or inherits a virtual function is called a polymorphic class.
 Because dynamic_cast is a run-time cast, the classes must be polymorphic in order for the cast to be legal.
 
@@ -66,7 +62,6 @@ namespace staticcast
     class anOtherClass :public Base{};
 }
 
-
 void staticcastD2B()
 {
     staticcast::Derived* d = new staticcast::Derived;
@@ -120,44 +115,19 @@ void dynamiccastB2D()
     }
 }
 
-
-
-struct Base
-{
-    int a;
-    virtual void whoAmI() const { std::cout << "I am base!\n";}
-    virtual ~Base(){}
-};
-
-struct Derived : Base
-{
-    void whoAmI() const override
-    { std::cout << "I am derived!\n"; }
-    ~Derived(){}
-};
-
-
-void smartPointerBaseToDerive()
-{
-    std::shared_ptr<Base> ptr_to_base(std::make_shared<Derived>());
-
-    // ptr_to_base->whoAmI(); // Error won't compile: Base has no member named 'whoAmI'
-
-    std::static_pointer_cast<Derived>(ptr_to_base)->whoAmI(); // OK
-    // (constructs a temporary shared_ptr, then calls operator->)
-
-    static_cast<Derived*>(ptr_to_base.get())->whoAmI(); // also OK
-    // (direct cast, does not construct a temporary shared_ptr)
-
-
-
-}
-
-
-
 int main()
 {
     //staticcastD2B();
     //dynamiccastD2B();
     dynamiccastB2D();
 }
+
+
+
+
+
+
+
+Refs: [1](https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast),[2](https://doc.bccnsoft.com/docs/cppreference2015/en/cpp/memory/shared_ptr/pointer_cast.html), [3](https://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived)
+
+
