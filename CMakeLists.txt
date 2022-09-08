@@ -422,6 +422,10 @@ add_executable(memory_checking src/memory_checking.cpp)
 target_link_libraries(memory_checking)
 
 
+add_executable(tricky_questions src/tricky_questions.cpp)
+target_link_libraries(tricky_questions)
+
+
 find_package(PkgConfig)
 
 if(EXISTS "$ENV{HOME}/usr/lib/pkgconfig")
