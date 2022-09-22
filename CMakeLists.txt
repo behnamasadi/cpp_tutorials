@@ -394,6 +394,9 @@ target_link_libraries(type_dispatch_integral_constant_true_false_type)
 add_executable(set_argv_argc  src/set_argv_argc.cpp)
 target_link_libraries(set_argv_argc)
 
+add_executable(arguments_parser  src/arguments_parser.cpp)
+target_link_libraries(arguments_parser)
+
 
 add_executable(aggregate-copy-default-direct-value-zero src/{}-operator-aggregate-copy-default-direct-value-zero.cpp)
 target_link_libraries(aggregate-copy-default-direct-value-zero)
