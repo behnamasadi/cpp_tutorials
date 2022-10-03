@@ -3,7 +3,7 @@
 
 
 
-code[](src/arrays.cpp)
+[code](src/arrays.cpp)
 
 # std::array
 

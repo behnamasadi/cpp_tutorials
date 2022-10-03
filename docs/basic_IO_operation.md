@@ -519,6 +519,24 @@ for(auto i:wordsFrquency)
 	std::cout<<i.first<<":" <<i.second <<std::endl;
 ```
 
+using string:
+```cpp
+  std::string
+  std::string words ="sdasdweae"
+  for(auto c:words)
+  {
+      std::string s(1, c);
+      f[s]++;
+  }
+    
+  for(auto c:f)
+    std::cout<< c.first <<"," <<c.second<<std::endl;
+```        
+
+
+
+
+
 Hex Decimal Stream:
 
 ```cpp

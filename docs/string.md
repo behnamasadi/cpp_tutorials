@@ -20,6 +20,7 @@
 - [String to Number Conversion](#string-to-number-conversion)
   * [int, float, double to string](#int--float--double-to-string)
 - [Number to String Conversion](#number-to-string-conversion)
+  * [char to a string](#char-to-a-string)
   * [float to string](#float-to-string)
   * [int to string](#int-to-string)
   * [double to string](#double-to-string)
@@ -439,15 +440,37 @@ Refs: [1](https://stackoverflow.com/questions/9158894/differences-between-c-stri
 std::string strNumber=std::to_string(10.3);
 ```
 # Number to String Conversion
-## float to string
-```cpp
-float f=std::atof(strNumber.c_str());//10.3
-float f=std::stof(strNumber);//10.3
+
+## char to a string
+
+```
+char c = 'A';
+std::string s(1, c);
+```    
+or
+
+```
+char c = 'A';
+std::string s;
+
+s.push_back(c);
+```
+or
+```
+std::stringstream ss;
+ss << c;
+ss >> s;                // or, use `s = ss.str()`
 ```
 ## int to string
 ```cpp
 int i =std::stoi(strNumber.c_str());//10
 ```
+## float to string
+```cpp
+float f=std::atof(strNumber.c_str());//10.3
+float f=std::stof(strNumber);//10.3
+```
+
 ## double to string
 ```cpp
 double d =std::stod(strNumber.c_str() );//10.3

@@ -4,6 +4,23 @@
 #include <random>
 #include <vector>
 
+//The std::exchange can be used when implementing
+// move assignment operators and move constructors:
+struct S1
+{
+  int n;
+
+  S1(S1&& other) noexcept : n{std::exchange(other.n, 0)}
+  {}
+
+  S1& operator=(S1&& other) noexcept
+  {
+    if(this != &other)
+        n = std::exchange(other.n, 0); // move n, while leaving zero in other.n
+    return *this;
+  }
+};
+
 
 struct S
 {

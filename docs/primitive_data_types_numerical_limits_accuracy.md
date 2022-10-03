@@ -137,6 +137,13 @@ std::cout<<sizeof(char) <<std::endl;
 std::cout<<sizeof(std::byte) <<std::endl;
 ```
 
+Most modern std::string implementations save very small strings directly on the stack in a statically sized char array instead of using dynamic heap storage. This is known as Small (or Short) String Optimisation (SSO) 
+
+```cpp
+std::cout<<sizeof(std::string("a")) <<std::endl;//32
+
+```
+
 
 
 size of empty class:
