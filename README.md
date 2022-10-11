@@ -68,7 +68,7 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [Const, Constexpr and Mutable](docs/const_constexpr_mutable.md)    
    * [Data Types, Numerical Limits, Precision](docs/primitive_data_types_numerical_limits_accuracy.md)    
    * [Data Types Conversions, Casting](docs/type_conversions_casting.md)  
-   * [Dynamic Memory Allocation (C Style)](src/dynamic_memory_allocation.cpp)  
+   * [Dynamic Memory Allocation in C](docs/dynamic_memory_allocation.md)  
    * [Debugging Core Dumps](docs/debugging_core_dumps.md)  
    * [Enum](docs/enum.md)  
    * [Error Handling](docs/error_handling.md)  
@@ -195,4 +195,10 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
    * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
    * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
+   
+## [C++ Pckage Manager](#)   
+   * [Conan](docs/conan.md)  
+
+
+  
 
