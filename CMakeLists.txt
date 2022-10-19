@@ -410,6 +410,10 @@ target_link_libraries(default-initialized)
 add_executable(scope_resolution_operator src/scope_resolution_operator.cpp)
 target_link_libraries(scope_resolution_operator)
 
+add_executable(random_number_generation src/random_number_generation.cpp)
+target_link_libraries(random_number_generation)
+
+
 
 #set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 #set(CMAKE_CXX_FLAGS_DEBUG "-g")
