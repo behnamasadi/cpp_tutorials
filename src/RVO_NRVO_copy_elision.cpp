@@ -16,7 +16,8 @@ Then you will get
 "copy constructor"
 
 =================Copy elision (Copy omission) ====================
-it is a compiler optimization technique that avoids unnecessary copying of objects.
+it is a compiler optimization technique that avoids unnecessary copying of
+objects.
 
 This line:
     string s="hello";
@@ -28,35 +29,29 @@ should be broken down by the compiler as
 However, most of the C++ compilers avoid such overheads of creating a temporary
 object and then copying it.
 */
-struct S
-{
-    S() {std::cout<<"constructor" <<std::endl;}
+struct S {
+  S() { std::cout << "constructor" << std::endl; }
 
-    S(S const &rhs) {std::cout<<"copy constructor" <<std::endl;}
+  S(S const &rhs) { std::cout << "copy constructor" << std::endl; }
 };
 
-//Return Value Optimization
-S RVO()
-{
-    return S();
+// Return Value Optimization
+S RVO() { return S(); }
+
+// Named Return Value Optimization
+S NRVO() {
+  S s;
+  return s;
 }
 
-//Named Return Value Optimization
-S NRVO()
-{   S s;
-    return s;
-}
-
-struct string
-{
-    string(const char* str="\0") {std::cout<<"constructor" <<std::endl;}
-    string (const string &rhs ){std::cout<<"copy constructor" <<std::endl;}
+struct string {
+  string(const char *str = "\0") { std::cout << "constructor" << std::endl; }
+  string(const string &rhs) { std::cout << "copy constructor" << std::endl; }
 };
 
-int main()
-{
-    S s1=RVO();
-    S s2=NRVO();
+int main() {
+  S s1 = RVO();
+  S s2 = NRVO();
 
-    string s="hello";
+  string s = "hello";
 }

@@ -4,12 +4,7 @@
 #include "a.hpp"
 #include <iostream>
 
-
-
-class C:public A
-{
+class C : public A {
 public:
-
-
 };
 #endif

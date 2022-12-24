@@ -1,7 +1,7 @@
-//https://www.youtube.com/watch?v=eKODykkIZTE&t=108s
+// https://www.youtube.com/watch?v=eKODykkIZTE&t=108s
 #include <benchmark/benchmark.h>
 
-static void BM_StringCreation(benchmark::State& state) {
+static void BM_StringCreation(benchmark::State &state) {
   for (auto _ : state)
     std::string empty_string;
 }
@@ -9,7 +9,7 @@ static void BM_StringCreation(benchmark::State& state) {
 BENCHMARK(BM_StringCreation);
 
 // Define another benchmark
-static void BM_StringCopy(benchmark::State& state) {
+static void BM_StringCopy(benchmark::State &state) {
   std::string x = "hello";
   for (auto _ : state)
     std::string copy(x);

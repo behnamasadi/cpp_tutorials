@@ -1,15 +1,14 @@
 #ifndef A_H
 #define A_H
 
-#include <iostream>
 #include "b.hpp"
+#include <iostream>
 
 class B;
-class A
-{
+class A {
 public:
-    B *m_b;
-    void getName();
-    void memberName();
+  B *m_b;
+  void getName();
+  void memberName();
 };
 #endif

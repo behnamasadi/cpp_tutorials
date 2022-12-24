@@ -6,7 +6,4 @@ https://stackoverflow.com/questions/58694521/what-is-stdfalse-type-or-stdtrue-ty
 
 
 */
-int main()
-{
-
-}
+int main() {}

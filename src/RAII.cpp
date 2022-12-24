@@ -1,13 +1,11 @@
 #include <iostream>
-#include <thread>
 #include <mutex>
+#include <thread>
 
 /*
-RAII (Resource Acquisition is Initialization) tries to solve the problems like these:
-Problems:
-1)Problem #1
-    int array=new int[size];
-array goes out of scope without being deleted, memory leak
+RAII (Resource Acquisition is Initialization) tries to solve the problems like
+these: Problems: 1)Problem #1 int array=new int[size]; array goes out of scope
+without being deleted, memory leak
 
 2)Problem #2
 std::mutex global_mu;
@@ -23,16 +21,16 @@ std::thread t1(func1);
 t1 goes out of scope and it is joinable but std::terminte is called;
 
 
-RAII is when you acquire "resources" in constructor and release them in destructor;
+RAII is when you acquire "resources" in constructor and release them in
+destructor;
 
 Whats is a resource?
 1) must be acquired before use
 2) in limited supply
 example:
 heap: you should use malloc befprehand, heap is also limited
-files: you should open files before use, the number of files on your mahine is limited
-socket:
-mutex:
+files: you should open files before use, the number of files on your mahine is
+limited socket: mutex:
 
 Example of RAII from standard c++:
 std::vector, std::string, std::unique_ptr, std::lock_gaurd
@@ -40,7 +38,7 @@ std::vector, std::string, std::unique_ptr, std::lock_gaurd
 Refs: https://medium.com/swlh/what-is-raii-e016d00269f9
 */
 
-std::mutex  globalMutex;
+std::mutex globalMutex;
 void lockMutexBad(bool shouldThrow) {
   std::cout << "Locking mutex manually..." << std::endl;
   globalMutex.lock();
@@ -59,16 +57,14 @@ void lockMutexBad(bool shouldThrow) {
 }
 
 void lockMutexBadExample() {
-    try
-    {
-        //tis call will llock the mutex without unlocking that
-        lockMutexBad(true);
-    } catch (...)
-    {
-        std::cout << "Caught exception" << std::endl;
-    }
-    //this call will stuck in the deadlcok
-    lockMutexBad(false);
+  try {
+    // tis call will llock the mutex without unlocking that
+    lockMutexBad(true);
+  } catch (...) {
+    std::cout << "Caught exception" << std::endl;
+  }
+  // this call will stuck in the deadlcok
+  lockMutexBad(false);
 }
 
 void lockMutexGood(bool shouldThrow) {
@@ -83,21 +79,17 @@ void lockMutexGood(bool shouldThrow) {
 }
 
 void lockMutexGoodExample() {
-    try
-    {
-        lockMutexGood(true);
-    } catch (...)
-    {
-        std::cout << "Caught exception" << std::endl;
-    }
-    lockMutexGood(false);
+  try {
+    lockMutexGood(true);
+  } catch (...) {
+    std::cout << "Caught exception" << std::endl;
+  }
+  lockMutexGood(false);
 }
 
+int main() {
+  std::thread t1(lockMutexBadExample);
 
-int main()
-{
-    std::thread t1(lockMutexBadExample);
-
-    t1.join();
-    return 0;
+  t1.join();
+  return 0;
 }
