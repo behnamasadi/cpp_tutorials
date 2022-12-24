@@ -6,12 +6,10 @@
 
 class A;
 
-class B
-{
+class B {
 public:
-    A* m_a;
-    void getName();
-    void memberName();
-
+  A *m_a;
+  void getName();
+  void memberName();
 };
 #endif

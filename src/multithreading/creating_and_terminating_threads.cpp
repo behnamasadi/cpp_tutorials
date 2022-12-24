@@ -1,120 +1,94 @@
-#include <thread>
-#include <iostream>
-#include <string>
-#include <future>
 #include <functional>
-#include <mutex>
+#include <future>
 #include <iostream>
+#include <mutex>
+#include <string>
+#include <thread>
 
 // A callable object
-void functionPointer(int n)
-{
-    std::cout<<++n <<std::endl;
-}
+void functionPointer(int n) { std::cout << ++n << std::endl; }
 
-void functionPointerByRef(std::string &msg)
-{
-    msg="New value!";
-}
+void functionPointerByRef(std::string &msg) { msg = "New value!"; }
 
 // A callable object
-class callableObject1
-{
+class callableObject1 {
 public:
-    void operator ()(int n)
-    {
-        std::cout<<++n <<std::endl;
-    }
+  void operator()(int n) { std::cout << ++n << std::endl; }
 };
 
-class callableObject2
-{
+class callableObject2 {
 public:
-    void operator()()
-    {
-
-    }
+  void operator()() {}
 };
 
-
-class myClass
-{
+class myClass {
 public:
-    void f(int x, char c){}
-    long g(double x){return 0;}
-    int operator()(int n){return 0;}
+  void f(int x, char c) {}
+  long g(double x) { return 0; }
+  int operator()(int n) { return 0; }
 };
 
+void foo(int x) {}
 
-void foo(int x)
-{}
+int main() {
+  int n = 12;
 
+  // function pointer
+  std::thread t1(functionPointer, n);
+  std::thread t2{functionPointer, n};
 
-int main()
-{
-    int n=12;
+  // function object
+  std::thread t3(callableObject1(), n);
 
-    // function pointer
-    std::thread t1(functionPointer,n );
-    std::thread t2{functionPointer,n };
+  // This will not compile and cause most vexing parse
+  // std::thread t4(callableObject2());
 
+  // first solution
+  std::thread t4((callableObject2()));
 
-    // function object
-    std::thread t3(callableObject1(),n);
+  // second solution
+  callableObject2 threadObj;
+  std::thread t5(threadObj);
 
+  // lambda expression
+  auto lambdaExpression = [](int n) { std::cout << ++n << std::endl; };
+  std::thread t6(lambdaExpression, n);
 
-    // This will not compile and cause most vexing parse
-    // std::thread t4(callableObject2());
+  t1.join();
+  t2.join();
+  t3.join();
+  t4.join();
+  t5.join();
+  t6.join();
 
-    // first solution
-    std::thread t4((callableObject2()));
+  std::string msg = "Old Value";
+  std::thread t7(functionPointerByRef, std::ref(msg));
+  t7.join();
+  std::cout << msg << std::endl;
 
-    // second solution
-    callableObject2 threadObj ;
-    std::thread t5(threadObj);
+  std::thread::hardware_concurrency();
 
-    //lambda expression
-    auto lambdaExpression = [](int n) {std::cout<<++n <<std::endl;};
-    std::thread t6(lambdaExpression,n);
+  unsigned int con_threads;
+  // calculating number of concurrent threads  supported in the hardware
+  // implementation
+  con_threads = std::thread::hardware_concurrency();
+  std::cout << "Number of concurrent threads supported are: " << con_threads
+            << std::endl;
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-    t5.join();
-    t6.join();
-
-
-    std::string msg="Old Value";
-    std::thread  t7(functionPointerByRef, std::ref(msg));
-    t7.join();
-    std::cout<< msg<<std::endl;
-
-    std::thread::hardware_concurrency();
-
-
-    unsigned int con_threads;
-    // calculating number of concurrent threads  supported in the hardware implementation
-    con_threads = std::thread::hardware_concurrency();
-    std::cout << "Number of concurrent threads supported are: " << con_threads << std::endl;
-
-
-{
+  {
     myClass myObject;
-    std::thread t1(myObject,6);
-    std::thread t2(std::ref(myObject),6);
-    std::thread t3(myClass(),6);
-    std::thread t4([](int n) {std::cout<<++n <<std::endl;},6 );
-    std::thread t5(foo,7);
-    std::thread t6(&myClass::f, myObject,8,'w');
-    std::thread t7(&myClass::f, &myObject,8,'w');
-    std::thread t8(&myClass::f, std::move(myObject),8,'w');
+    std::thread t1(myObject, 6);
+    std::thread t2(std::ref(myObject), 6);
+    std::thread t3(myClass(), 6);
+    std::thread t4([](int n) { std::cout << ++n << std::endl; }, 6);
+    std::thread t5(foo, 7);
+    std::thread t6(&myClass::f, myObject, 8, 'w');
+    std::thread t7(&myClass::f, &myObject, 8, 'w');
+    std::thread t8(&myClass::f, std::move(myObject), 8, 'w');
 
-
-    std::async(std::launch::async,myObject,6);
-    std::bind(myObject,6);
+    std::async(std::launch::async, myObject, 6);
+    std::bind(myObject, 6);
     std::once_flag flag;
-    std::call_once(flag,myObject,6);
-}
-
+    std::call_once(flag, myObject, 6);
+  }
 }

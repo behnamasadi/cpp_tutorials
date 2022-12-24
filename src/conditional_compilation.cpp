@@ -5,24 +5,20 @@
  *      Author: behnam
  */
 
-//Please have look at preprocessor.txt
+// Please have look at preprocessor.txt
 
 #include <iostream>
 using namespace std;
 
-int ConditionalCompilation()
-{
-	#define PRINT_JOE
+int ConditionalCompilation() {
+#define PRINT_JOE
 
-	#ifdef PRINT_JOE
-	cout << "Joe" << endl;
-	#endif
+#ifdef PRINT_JOE
+  cout << "Joe" << endl;
+#endif
 
-	#ifdef PRINT_BOB
-	cout << "Bob" << endl;
-	#endif
-	return 0;
+#ifdef PRINT_BOB
+  cout << "Bob" << endl;
+#endif
+  return 0;
 }
-
-
-

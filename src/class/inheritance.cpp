@@ -5,18 +5,20 @@
  *      Author: behnam
  */
 
-class Base
-{
+class Base {
 public:
-    int m_nPublic; // can be accessed by anybody
+  int m_nPublic; // can be accessed by anybody
 private:
-    int m_nPrivate; // can only be accessed by Base member functions (but not derived classes)
+  int m_nPrivate; // can only be accessed by Base member functions (but not
+                  // derived classes)
 protected:
-    int m_nProtected; // can be accessed by Base member functions, or derived classes.
+  int m_nProtected; // can be accessed by Base member functions, or derived
+                    // classes.
 };
-//http://www.learncpp.com/cpp-tutorial/115-inheritance-and-access-specifiers/
-//There are three different ways for classes to inherit from other classes: public, private, and protected.
-//If you do not choose an inheritance type, C++ defaults to private inheritance
+// http://www.learncpp.com/cpp-tutorial/115-inheritance-and-access-specifiers/
+// There are three different ways for classes to inherit from other classes:
+// public, private, and protected. If you do not choose an inheritance type, C++
+// defaults to private inheritance
 
 /* Inherit from Base publicly
  Public inheritance is by far the most commonly used type of inheritance.
@@ -38,31 +40,27 @@ class Def: Base // Defaults to private inheritance
 {
 };
 */
-class Derived: public Base
-{
+class Derived : public Base {
 public:
-    Derived()
-    {
-        // Derived's access to Base members is not influenced by the type of inheritance used,
-        // so the following is always true:
+  Derived() {
+    // Derived's access to Base members is not influenced by the type of
+    // inheritance used, so the following is always true:
 
-        m_nPublic = 1; // allowed: can access public base members from derived class
-        //m_nPrivate = 2; // not allowed: can not access private base members from derived class
-        m_nProtected = 3; // allowed: can access protected base members from derived class
-    }
+    m_nPublic = 1; // allowed: can access public base members from derived class
+    // m_nPrivate = 2; // not allowed: can not access private base members from
+    // derived class
+    m_nProtected =
+        3; // allowed: can access protected base members from derived class
+  }
 };
 
-//you can't inherit from this class
-class CBase final
-{
-};
+// you can't inherit from this class
+class CBase final {};
 
-int main()
-{
-    Base cBase;
-    cBase.m_nPublic = 1; // allowed: can access public members from outside class
-    //cBase.m_nPrivate = 2; // not allowed: can not access private members from outside class
-    //cBase.m_nProtected = 3; // not allowed: can not access protected members from outside class
-
-
+int main() {
+  Base cBase;
+  cBase.m_nPublic = 1; // allowed: can access public members from outside class
+  // cBase.m_nPrivate = 2; // not allowed: can not access private members from
+  // outside class cBase.m_nProtected = 3; // not allowed: can not access
+  // protected members from outside class
 }

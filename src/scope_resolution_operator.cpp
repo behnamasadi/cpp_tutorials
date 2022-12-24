@@ -8,13 +8,9 @@
 
 int n = 12; // A global variable
 
-int main()
-{
-  	int n = 13; // A local variable
+int main() {
+  int n = 13; // A local variable
 
-	std::cout << ::n << '\n'; // Print the global variable: 12
-	std::cout << n   << '\n'; // Print the local variable: 13
+  std::cout << ::n << '\n'; // Print the global variable: 12
+  std::cout << n << '\n';   // Print the local variable: 13
 }
-
-
-

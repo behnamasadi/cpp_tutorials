@@ -1,23 +1,22 @@
-#include <string>
 #include <memory>
+#include <string>
 
-class Studentpimpl
-{
+class Studentpimpl {
 private:
-    class Impl;
-    std::unique_ptr<Impl> pimpl;
-public:
+  class Impl;
+  std::unique_ptr<Impl> pimpl;
 
-    Studentpimpl(int id, std::string name);
-    Studentpimpl();
-    
-    ~Studentpimpl();
-    std::string getName();
-    int getID();
-    void setName(std::string name);
-    void setID(int ID);
-    //copy constructor i.e. ==> Studentpimpl std1=std2; 
-    Studentpimpl(const Studentpimpl &other);
-    //assignment operator i.e. ==> std1=std2
-    Studentpimpl& operator=(Studentpimpl  &rhs);
+public:
+  Studentpimpl(int id, std::string name);
+  Studentpimpl();
+
+  ~Studentpimpl();
+  std::string getName();
+  int getID();
+  void setName(std::string name);
+  void setID(int ID);
+  // copy constructor i.e. ==> Studentpimpl std1=std2;
+  Studentpimpl(const Studentpimpl &other);
+  // assignment operator i.e. ==> std1=std2
+  Studentpimpl &operator=(Studentpimpl &rhs);
 };
