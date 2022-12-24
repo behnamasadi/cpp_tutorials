@@ -169,8 +169,9 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [Run-Time Type Information(RTTI)](src/RTTI.cpp)  
    * [Curiously Recurring Template Pattern (CRTP)](src/CRTP.cpp)  
    * [Copy Elision, Return value optimization (RVO,NRVO)](src/RVO_NRVO_copy_elision.cpp)  
-   * [Double Dispatch](src/)
-   * [Most vexing parse](src/most_vexing_parse.cpp)
+   * [Double Dispatch](src/)  
+   * [Most vexing parse](src/most_vexing_parse.cpp)  
+   * [Metaprogramming](src/metaprogramming.md)  
    * [Pointer to implementation (PIMPL)](src/pimpl/)  
    * [Return Type Resolver](src/return_type_resolver.cpp)
    * [Resource Acquisition Is Initialization (RAII)](src/RAII.cpp)  
@@ -196,8 +197,11 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
    * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
    
-## [C++ Pckage Manager](#)   
+## [C++ Package Manager](#)   
    * [Conan](docs/conan.md)  
+   * [vcpkg](docs/vcpkg.md)  
+   
+   
 
 
   

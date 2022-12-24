@@ -432,6 +432,9 @@ target_link_libraries(memory_checking)
 add_executable(tricky_questions src/tricky_questions.cpp)
 target_link_libraries(tricky_questions)
 
+add_executable(metaprogramming src/metaprogramming.cpp)
+target_link_libraries(metaprogramming)
+
 
 find_package(PkgConfig)
 
