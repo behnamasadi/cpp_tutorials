@@ -185,6 +185,7 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [Virtual Method Table(VTABLE), Virtual Table Pointer(VPTR)](docs/VTABLE_and_VPTR.md)  
    * [Virtual address space](docs/virtual_address_space.md)
    * [Tricky Questions](src/tricky_questions.cpp)  
+   * [Type Erasure](https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Type_Erasure)  
    * [Undefined behavior, Unspecified and Implementation-Defined](doc/undefined_unspecified_implementation_defined.md)     
    
    
