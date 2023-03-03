@@ -6,6 +6,8 @@ set(CMAKE_BUILD_TYPE Debug)
 #option(USE_CLANG "build application with clang" ON) # OFF is the default
 option(USE_CLANG "build application with clang" OFF)
 
+
+
 if(USE_CLANG)
         set (CMAKE_C_COMPILER             "/usr/bin/clang")
         #set (CMAKE_C_FLAGS                "-Wall -std=c99")
@@ -32,10 +34,12 @@ endif()
 
 
 project(cpp_tutorials)
+set(CMAKE_VERBOSE_MAKEFILE "erbose output from Makefile " OFF)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_BUILD_TYPE debug)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 
 
 
@@ -58,6 +62,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     
 endif()
 
+message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
 
 add_executable(pointers  src/pointers/pointers.cpp )
 target_link_libraries( pointers)
@@ -434,6 +439,24 @@ target_link_libraries(tricky_questions)
 
 add_executable(metaprogramming src/metaprogramming.cpp)
 target_link_libraries(metaprogramming)
+
+
+if( ${CMAKE_GNU_COMPILER_ID}   ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
+	add_executable(printing_with_format src/printing_with_format.cpp)
+	target_link_libraries(printing_with_format)
+endif()
+
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 14 )
+	add_executable(printing_with_format src/printing_with_format.cpp)
+	target_link_libraries(printing_with_format)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
+	add_executable(printing_with_format src/printing_with_format.cpp)
+	target_link_libraries(printing_with_format)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 19)
+	add_executable(printing_with_format src/printing_with_format.cpp)
+	target_link_libraries(printing_with_format)
+endif()
 
 
 find_package(PkgConfig)
