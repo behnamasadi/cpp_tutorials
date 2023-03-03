@@ -26,6 +26,7 @@
   * [Reading line by line](#reading-line-by-line)
 - [Stringstream](#stringstream)
 - [Formatting cout](#formatting-cout)
+- [Printing with Format](#printing-with-format)
 - [Fast IO Operation](#fast-io-operation)
 - [cin, cout examples](#cin--cout-examples)
   * [cin extract operator >>](#cin-extract-operator---)
@@ -599,9 +600,15 @@ std::cout.fill('*');
 std::cout.unsetf(std::ios::showbase);
 ```
 
+# Printing with Format
 
+```cpp
+std::format("{} {}!", "Hello", "world"); //produces "Hello world!"
+```
 
+Please [check](https://stackoverflow.com/questions/60348039/how-to-use-c20-format-in-cmake-project) compiler version for the support.
 
+Refs: [1](https://en.cppreference.com/w/cpp/utility/format/format), [2](https://stackoverflow.com/questions/60348039/how-to-use-c20-format-in-cmake-project)
 
 # Fast IO Operation
 
