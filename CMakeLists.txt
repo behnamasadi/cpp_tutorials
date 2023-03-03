@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+
 set(CMAKE_BUILD_TYPE Debug)
-
-
-
-#option(USE_CLANG "build application with clang" ON) # OFF is the default
-option(USE_CLANG "build application with clang" OFF)
-
-
+option(USE_CLANG "build application with clang" OFF)# OFF is the default
 
 if(USE_CLANG)
         set (CMAKE_C_COMPILER             "/usr/bin/clang")
@@ -29,9 +24,6 @@ if(USE_CLANG)
         set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
         set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
 endif()
-
-
-
 
 project(cpp_tutorials)
 set(CMAKE_VERBOSE_MAKEFILE "erbose output from Makefile " OFF)
@@ -453,7 +445,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ${CMAKE_CXX_COMPILER_VERSION} GRE
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
 	add_executable(printing_with_format src/printing_with_format.cpp)
 	target_link_libraries(printing_with_format)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 19)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 1900)
 	add_executable(printing_with_format src/printing_with_format.cpp)
 	target_link_libraries(printing_with_format)
 endif()
@@ -464,19 +456,19 @@ find_package(PkgConfig)
 if(EXISTS "$ENV{HOME}/usr/lib/pkgconfig")
         set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 endif()
-MESSAGE("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
+message("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
 
 message("\n########################################## tinyxml2 ##########################################\n")
 pkg_check_modules(TINYXML2 tinyxml2)
 if(${TINYXML2_FOUND})
-    MESSAGE("TINYXML2_FOUND:" ${TINYXML2_FOUND})
-    MESSAGE("TINYXML2_VERSION:" ${TINYXML2_VERSION})
-    MESSAGE("TINYXML2_LIBRARIES:" ${TINYXML2_LIBRARIES})
-    MESSAGE("TINYXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
-    MESSAGE("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
-    INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
-    LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
+    message("TINYXML2_FOUND:" ${TINYXML2_FOUND})
+    message("TINYXML2_VERSION:" ${TINYXML2_VERSION})
+    message("TINYXML2_LIBRARIES:" ${TINYXML2_LIBRARIES})
+    message("TINYXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
+    message("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
+    include_directories(${TINYXML2_INCLUDE_DIRS})
+    link_directories(${TINYXML2_LIBRARY_DIRS})
     add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
     target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
 else()
@@ -487,38 +479,38 @@ endif()
 message("\n########################################## yaml-cpp ##########################################\n")
 
 set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
-FIND_PACKAGE(yaml-cpp)
-IF(${yaml-cpp_FOUND})
-    MESSAGE("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
-    MESSAGE("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
+find_package(yaml-cpp)
+if(${yaml-cpp_FOUND})
+    message("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
+    message("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
     add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
     target_link_libraries(yaml-cpp_example yaml-cpp)
-ENDIF()
+endif()
 
 pkg_check_modules(BENCHMARK benchmark)
 if(${BENCHMARK_FOUND})
-    MESSAGE("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
-    MESSAGE("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
-    MESSAGE("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
-    MESSAGE("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
-    MESSAGE("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
-    INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
-    LINK_DIRECTORIES(${TINYXML2_LIBRARY_DIRS})
+    message("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
+    message("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
+    message("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
+    message("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
+    message("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
+    include_directories(${TINYXML2_INCLUDE_DIRS})
+    link_directories(${TINYXML2_LIBRARY_DIRS})
     add_executable(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
     target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
 endif()
 
 
-OPTION(TESTING "Enable testing" OFF)
-IF(testing_enabled)
-        ADD_SUBDIRECTORY(tests)
-ENDIF()
+option(TESTING "Enable testing" OFF)
+if(testing_enabled)
+        add_subdirectory(tests)
+endif()
 
 
-MESSAGE(${CMAKE_CURRENT_SOURCE_DIR})
-IF(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
-        ADD_SUBDIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
-ENDIF()
+message(${CMAKE_CURRENT_SOURCE_DIR})
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
+endif()
 
 
 
