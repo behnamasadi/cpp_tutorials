@@ -8,7 +8,7 @@ later be called through that function pointer.
 */
 
 ///////////////////////////////////Adder
-///Example////////////////////////////////////
+/// Example////////////////////////////////////
 
 int adder(int a, int b) { return a + b; }
 
@@ -16,7 +16,7 @@ int adder(int a, int b) { return a + b; }
 int (*adder_fn_ptr)(int, int);
 
 /////////////////////////////////Foreach
-///Example////////////////////////////////////
+/// Example////////////////////////////////////
 
 void foreach (std::vector<int> values, void(funcPrint)(int)) {
   for (auto value : values)

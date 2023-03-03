@@ -22,7 +22,7 @@ void print(std::list<int> &list) {
 int main() {
 
   ////////////////////////////////push_back,
-  ///push_front///////////////////////////////
+  /// push_front///////////////////////////////
   std::list<int> list_of_numbers;
   list_of_numbers.push_back(1);
   list_of_numbers.push_back(2);
@@ -33,7 +33,7 @@ int main() {
   print(list_of_numbers);
 
   ////////////////////////////////remove,
-  ///remove_if///////////////////////////////
+  /// remove_if///////////////////////////////
 
   std::cout << "removing second element:" << std::endl;
   std::list<int>::iterator itr = list_of_numbers.begin();
@@ -48,14 +48,14 @@ int main() {
   print(list_of_numbers);
 
   ////////////////////////////////remove,
-  ///remove_if///////////////////////////////
+  /// remove_if///////////////////////////////
   std::cout << "delete all even numbers:" << std::endl;
   auto even = [](int x) { return (x % 2 == 0); };
   list_of_numbers.remove_if(even);
   print(list_of_numbers);
 
   ////////////////////////////////front, back
-  ///element///////////////////////////////
+  /// element///////////////////////////////
 
   std::cout << "front element:" << std::endl;
   std::cout << list_of_numbers.front() << std::endl;
