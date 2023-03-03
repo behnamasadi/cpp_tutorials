@@ -6,4 +6,3 @@
 // your declarations here
 int subtract(int x, int y);
 #endif
-

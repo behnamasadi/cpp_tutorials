@@ -118,7 +118,8 @@ void cStyleString() {
   char name0[10] = {
       'b', 'e', 'h', 'n',
       'a', 'm', '\0'}; // stack variable, compiler output: char name0[10] =
-                       // {'b', 'e', 'h', 'n', 'a', 'm', '\0', '\0', '\0', '\0'};
+                       // {'b', 'e', 'h', 'n', 'a', 'm', '\0', '\0', '\0',
+                       // '\0'};
   char name1[] = {
       'b', 'e', 'h', 'n',
       'a', 'm', '\0'}; // stack variable, compiler output: char name1[7] = {'b',

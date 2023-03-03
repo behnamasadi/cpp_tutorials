@@ -159,7 +159,7 @@ template <class TYPE> void PrintTwice(TYPE data) {
 template <class T> T Add(T n1, T n2) { return n1 + n2; }
 
 ////////////////////////////////Template
-///Specialization////////////////////////////////
+/// Specialization////////////////////////////////
 
 // An Example Program for function template specialization
 
@@ -302,8 +302,8 @@ struct Vector<3> {
 
 int main() {
   //	For the first call of GetAverage, where IntArray is passed, compiler
-  //would instantiate this function as: 	double GetAverage(int tArray[], int
-  //nElements);
+  // would instantiate this function as: 	double GetAverage(int tArray[],
+  // int nElements);
 
   int IntArray[5] = {100, 200, 400, 500, 1000};
   float FloatArray[3] = {1.55f, 5.44f, 12.36f};
@@ -311,7 +311,7 @@ int main() {
   cout << GetAverage(FloatArray, 3);
 
   ////////////////////////////////Template
-  ///Specialization////////////////////////////////
+  /// Specialization////////////////////////////////
   // function template specialization
   add(10, 3);
   add(std::string("a"), std::string("b"));

@@ -532,7 +532,7 @@ void sort() {
   std::shuffle(vec1.begin(), vec1.end(), g);
 
   ///////////////////partial_sort, finding top 3 students,
-  ///sorted///////////////////
+  /// sorted///////////////////
   std::partial_sort(number_set1.begin(), number_set1.begin() + 3,
                     number_set1.end());
 
@@ -541,7 +541,7 @@ void sort() {
   std::cout << "\n";
 
   /////////////////////nth_element, finding top 3 students, not necessarily
-  ///sorted/////////////////////
+  /// sorted/////////////////////
   std::shuffle(vec1.begin(), vec1.end(), g);
   std::nth_element(number_set1.begin(), number_set1.begin() + 3,
                    number_set1.end());
@@ -550,7 +550,7 @@ void sort() {
   std::cout << "\n";
 
   ///////////////////////partion data into two groups, neither of the groups are
-  ///sorted/////////////////////
+  /// sorted/////////////////////
   std::shuffle(number_set1.begin(), number_set1.end(), g);
   std::vector<int>::iterator iterator_to_the_first_element_of_the_second_group =
       std::partition(number_set1.begin(), number_set1.end(),
@@ -574,7 +574,7 @@ void sort() {
   std::cout << "\n";
 
   /////////////////////////stable_partition,partion data into two groups, but it
-  ///preserve the original order///////////////////////
+  /// preserve the original order///////////////////////
   std::shuffle(number_set1.begin(), number_set1.end(), g);
   std::stable_partition(number_set1.begin(), number_set1.end(),
                         [](int x) { return x < 30; });

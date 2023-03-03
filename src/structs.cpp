@@ -38,7 +38,7 @@ int Structsmain()
 // int main()
 {
   //	initializer list. This allows you to initialize some or all the members
-  //of a struct at declaration time.
+  // of a struct at declaration time.
   Employee Joe = {1, 42, 60000.0f};
   Employee sJoe;
   sJoe.nID = 14;
@@ -55,7 +55,7 @@ int Structsmain()
   cout << myDataElement.hasData << endl;
 
   //	example of  "->" operator, when we have pointer to struct or class, for
-  //accessing member we have to use -> operator
+  // accessing member we have to use -> operator
   DataElement RealData;
   DataElement *PointerToRealData = &RealData;
   PointerToRealData->iVal = 1234;

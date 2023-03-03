@@ -258,7 +258,7 @@ void stringstreamExample() {
   }
 
   /////////////////////////////count words
-  ///frquency/////////////////////////////////
+  /// frquency/////////////////////////////////
   std::stringstream wordsFrquencyStream("a b bb c a dd d");
   wordsFrquencyStream.str("a b bb c a dd d");
 
