@@ -425,7 +425,7 @@ void function1()
     }
 }
 ```
-This will solve the problem but we might create other problems. The first problem is if for any reason mutrx doesn't get unclocked, our program will get stock forever. 
+This will solve the problem but we might create other problems. The first problem is if for any reason mutex doesn't get unclocked, our program will get stock forever. 
 
 Here when gaurd goes out of scope, mutex get unlocked automatically:
 ```
@@ -437,7 +437,7 @@ void sharedPrinter(std::string s,int id)
 }
 ```
 But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
-Full example [here](mutex.cpp).
+Full example [here](../src/multithreading/mutex.cpp).
 
 
 # Thread Safe Functions
