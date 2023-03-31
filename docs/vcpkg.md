@@ -3,6 +3,25 @@ First add it as submodule to your peoject:
 
 `git submodule add https://github.com/microsoft/vcpkg`
 
+
+## Building Dependecies with Your CMakeLists
+Now add the following to your CMakeLists
+
+```
+et(CMAKE_BUILD_TYPE Debug)
+
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH "toolchain file")
+endif()
+
+message("${CMAKE_TOOLCHAIN_FILE}")
+project(vcpkg-name)
+
+find_package(<package-name>  REQUIRED)
+```
+## Building and Installing Dependecies 
+Alternatively you can install everything globally/ locally
+
 Then run the following script on windows:
 
 `.\vcpkg\bootstrap-vcpkg.bat`
