@@ -2,8 +2,7 @@
 
 FROM ubuntu:20.04
 
-
-MAINTAINER Behnam Asadi behnam.asadi@gmail.com
+LABEL maintainer="Behnam Asadi behnam.asadi@gmail.com"
 
 
 # this is for timezone config
