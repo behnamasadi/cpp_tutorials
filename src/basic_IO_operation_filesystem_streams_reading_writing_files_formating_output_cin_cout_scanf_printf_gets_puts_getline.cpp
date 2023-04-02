@@ -695,27 +695,4 @@ void fastIO() {
   slower because it forces a flushing stream, which is usually unnecessary
   */
 }
-
-void filesystemEample() {
-
-  const auto FilePath{"FileToCopy"};
-
-  // If any filepath exists
-  if (std::filesystem::exists(FilePath)) {
-    const auto FileSize{std::filesystem::file_size(FilePath)};
-
-    std::filesystem::path tmpPath{"/tmp"};
-
-    // If filepath is available or not
-    if (std::filesystem::space(tmpPath).available > FileSize) {
-
-      // Create Directory
-      std::filesystem::create_directory(tmpPath.append("example"));
-
-      // Copy File to file path
-      std::filesystem::copy_file(FilePath, tmpPath.append("newFile"));
-    }
-  }
-}
-
 int main() {}

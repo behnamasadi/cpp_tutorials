@@ -425,13 +425,20 @@ target_link_libraries(heap_and_stack_memory_layout_of_C_programs)
 add_executable(memory_checking src/memory_checking.cpp)
 target_link_libraries(memory_checking)
 
-
 add_executable(tricky_questions src/tricky_questions.cpp)
 target_link_libraries(tricky_questions)
 
 add_executable(metaprogramming src/metaprogramming.cpp)
 target_link_libraries(metaprogramming)
 
+add_executable(regex_mathch_search src/regex_mathch_search.cpp)
+target_link_libraries(regex_mathch_search)
+
+add_executable(filesystem src/filesystem.cpp)
+target_link_libraries(filesystem)
+
+add_executable(optional src/optional.cpp)
+target_link_libraries(optional)
 
 if( ${CMAKE_GNU_COMPILER_ID}   ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
 	add_executable(printing_with_format src/printing_with_format.cpp)
