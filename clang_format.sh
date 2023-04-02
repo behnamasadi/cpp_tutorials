@@ -2,7 +2,7 @@
 exts="\.\(cpp\|hpp\|cc\|hh\|c\|h\)$"
  
 # The formatter to use
-formatter=`clang-format.exe`
+formatter=`clang-format`
  
 # Check availability of the formatter
 if [ -z "$formatter" ]
