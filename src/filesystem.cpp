@@ -87,9 +87,9 @@ void directoryIterator() {
     std::cout << dir_entry << '\n';
   }
 
-  std::ranges::for_each(
-      std::filesystem::directory_iterator{std::filesystem::current_path()},
-      [](const auto &dir_entry) { std::cout << dir_entry << '\n'; });
+  // std::ranges::for_each(
+  //     std::filesystem::directory_iterator{std::filesystem::current_path()},
+  //     [](const auto &dir_entry) { std::cout << dir_entry << '\n'; });
 
   try {
     std::filesystem::remove_all(std::filesystem::temp_directory_path() /
