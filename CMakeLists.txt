@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE debug)
 option(USE_CLANG "build application with clang" OFF)# OFF is the default
 
 if(USE_CLANG)
