@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 set(CMAKE_BUILD_TYPE debug)
 option(USE_CLANG "build application with clang" OFF)# OFF is the default
 
+
+
+
+
 if(USE_CLANG)
         set (CMAKE_C_COMPILER             "/usr/bin/clang")
         #set (CMAKE_C_FLAGS                "-Wall -std=c99")
@@ -26,13 +30,11 @@ if(USE_CLANG)
 endif()
 
 project(cpp_tutorials)
-set(CMAKE_VERBOSE_MAKEFILE "erbose output from Makefile " OFF)
+set(CMAKE_VERBOSE_MAKEFILE "verbose output from Makefile " OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
-
 
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -59,14 +61,14 @@ message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
 add_executable(pointers  src/pointers/pointers.cpp )
 target_link_libraries( pointers)
 
-add_executable(string  src/string.cpp )
-target_link_libraries( string)
+#add_executable(string  src/string.cpp )
+#target_link_libraries( string)
 
 add_executable(exception_handling  src/exception_handling.cpp)
 target_link_libraries( exception_handling)
 
-add_executable(heap_vs_stack  src/heap_vs_stack.cpp)
-target_link_libraries(heap_vs_stack)
+#add_executable(heap_vs_stack  src/heap_vs_stack.cpp)
+#target_link_libraries(heap_vs_stack)
 
 add_executable(assert  src/assert.cpp)
 target_link_libraries(assert)
@@ -259,8 +261,8 @@ add_executable(mutex src/multithreading/mutex.cpp)
 target_link_libraries(mutex -pthread)
 
 
-add_executable(condition_variable src/multithreading/condition_variable.cpp)
-target_link_libraries(condition_variable -pthread)
+#add_executable(condition_variable src/multithreading/condition_variable.cpp)
+#target_link_libraries(condition_variable -pthread)
 
 
 add_executable(async_future_promise src/multithreading/async_future_promise.cpp)
@@ -346,8 +348,8 @@ target_link_libraries(most_vexing_parse)
 add_executable(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
 target_link_libraries(VTABLE_and_VPTR)
 
-add_executable(allocator src/allocator.cpp)
-target_link_libraries(allocator)
+#add_executable(allocator src/allocator.cpp)
+#target_link_libraries(allocator)
 
 add_executable(noexcept_operator_specifier src/noexcept_operator_specifier.cpp)
 target_link_libraries(noexcept_operator_specifier)
