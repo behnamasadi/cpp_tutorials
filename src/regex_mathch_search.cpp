@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <regex>
 
@@ -26,29 +27,79 @@ findFileWithRegexPattern(const std::string &searchPath,
 }
 
 template <typename T>
-void searchingMapUsingRegex(std::regex regx, std::map<T, T>)
-// https://stackoverflow.com/questions/17253690/finding-in-a-std-map-using-regex
+void mapFindingUsingRegex(std::regex regex, std::map<T, T> map) {
+  // https://stackoverflow.com/questions/17253690/finding-in-a-std-map-using-regex
+  return;
+}
+
+template <typename T>
+std::vector<T>::iterator vectorFindingRegex(std::regex regex,
+                                            std::vector<T> vec) {
+  return std::find_if(vec.begin(), vec.end(), [regex](T item) {
+    std::cout << regex_search(item, regex);
+    return regex_search(item, regex);
+  });
 }
 
 int main(int argc, char **argv) {
 
-  std::regex filename_regex("[0-5]?([a-z][A-Z])*");
-  std::string file_names[] = {"kINgtd", "9wpmdcI", "3bghIU"};
+  /*
+  regex_search will successfully match any subsequence of the given sequence,
+  whereas std::regex_match will only return true if the regular expression
+  matches the entire sequence.
+  */
 
-  for (auto const &file_name : file_names) {
-    if (std::regex_match(file_name, filename_regex)) {
-      std::cout << file_name << std::endl;
-    }
-  }
+  std::regex filename_regex("[0-5]+([a-z][A-Z])*");
+  std::vector<std::string> file_names = {"eybI7", "3bghIU", "kINgtd",
+                                         "9wpmdcI"};
 
-  std::smatch file_name_match;
+  /*
 
-  for (auto const &file_name : file_names) {
-
-    if (std::regex_search(file_name, file_name_match, filename_regex)) {
-      if (std::regex_match(file_name, filename_regex)) {
-        std::cout << file_name_match.prefix() << std::endl;
+    for (auto const &file_name : file_names) {
+      if (std::regex_search(file_name, filename_regex)) {
+        std::cout << file_name << std::endl;
       }
     }
+
+    std::smatch file_name_match;
+
+    for (auto const &file_name : file_names) {
+
+      if (std::regex_search(file_name, file_name_match, filename_regex)) {
+        if (std::regex_match(file_name, filename_regex)) {
+          std::cout << file_name_match.prefix() << std::endl;
+        }
+      }
+    }
+  */
+  // std::cout << vectorFindingRegex(filename_regex, file_names) -
+  //                  file_names.begin();
+
+  // std::vector<std::string>::iterator find_it = std::find_if(
+  //     file_names.begin(), file_names.end(), [filename_regex](std::string
+  //     item) {
+  //       std::cout << std::regex_search(item, filename_regex);
+  //       return std::regex_search(item, filename_regex);
+  //     });
+
+  if (auto it = std::find_if(file_names.begin(), file_names.end(),
+                             [filename_regex](std::string item) {
+                               return std::regex_search(item, filename_regex);
+                             });
+      it != file_names.end()) {
+    std::cout << "The first valid regex is " << *it
+              << " and the index is: " << it - file_names.begin() << std::endl;
+  } else {
+    std::cout << "No matching regex found" << std::endl;
+  }
+
+  const std::string s = "/home/toto/FILE_mysymbol_EVENT.DAT";
+  std::regex rgx(".*FILE_(\\w+)_EVENT\\.DAT.*");
+  std::smatch match;
+
+  if (std::regex_search(s.begin(), s.end(), match, rgx)) {
+    std::cout << "match: " << match[1] << '\n';
+    std::cout << "match: " << match.suffix().str() << '\n';
+    std::cout << "match: " << match.prefix().str() << '\n';
   }
 }
