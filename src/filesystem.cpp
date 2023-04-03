@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-void lexicallyNormalRelativePath() {
+void lexicalNormalRelativePath() {
 
   std::filesystem::path foo =
       std::filesystem::path(std::filesystem::current_path());
@@ -56,7 +56,6 @@ void directoryIterator() {
 
   for (auto const &iter :
        std::filesystem::directory_iterator{std::filesystem::current_path()}) {
-
     /*
     Socket (S_IFSOCK)
     Symbolic link (S_IFLNK)
@@ -108,9 +107,39 @@ void directoryIterator() {
   }
 }
 
+template <typename TP> std::time_t to_time_t(TP tp) {
+  using namespace std::chrono;
+  auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now() +
+                                                      system_clock::now());
+  return system_clock::to_time_t(sctp);
+}
+
 int main(int argc, char **argv) {
   //
 
   // directoryIterator();
-  lexicallyNormalRelativePath();
+  // lexicallyNormalRelativePath();
+
+  // fs::remove(p);
+
+  for (auto const &iter :
+       std::filesystem::directory_iterator{std::filesystem::current_path()}) {
+    if (std::filesystem::is_regular_file(iter)) {
+      std::cout << iter.path().filename().extension() << std::endl;
+      std::cout << iter.path().filename() << std::endl;
+      std::cout << "size = " << std::filesystem::file_size(iter) << '\n';
+
+      std::cout << "last_write_time = "
+                << std::filesystem::last_write_time(iter) << '\n';
+    }
+  }
+
+  std::filesystem::file_time_type file_time =
+      std::filesystem::last_write_time(__FILE__);
+  std::time_t tt = to_time_t(file_time);
+  std::tm *gmt = std::gmtime(&tt);
+  std::stringstream buffer;
+  buffer << std::put_time(gmt, "%A, %d %B %Y %H:%M");
+  std::string formattedFileTime = buffer.str();
+  std::cout << formattedFileTime << '\n';
 }

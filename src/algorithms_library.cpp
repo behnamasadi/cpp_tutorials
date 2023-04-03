@@ -807,6 +807,14 @@ void for_eachExample() {
   printArray(my_vec);
 }
 
+// https://stackoverflow.com/questions/28644245/string-validation-in-stdvector
+// std::none_of checks if no element in a range satisfies a condition
+bool validate(const std::vector<std::string> &in) {
+  return std::none_of(std::begin(in), std::end(in), [](std::string const &s) {
+    return s.find('c') == std::string::npos;
+  });
+}
+
 int main(int argc, char **argv) {
 
   for_eachExample();
