@@ -34,6 +34,7 @@ void cTime() {
   time_t epoch = std::time(NULL);
 
   std::cout << "seconds since the epoch began: " << epoch << std::endl;
+
   tm *t = gmtime(&epoch);
 
   std::cout << "current date and time: " << 1900 + t->tm_year << "/"
@@ -77,6 +78,41 @@ int main() {
   //     std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
   // std::cout << t_c << std::endl;
+
+  // std::chrono::nanoseconds is : typedef duration<signed int, std::nano>
+  // nanoseconds;
+
+  // timePoint = std::chrono::system_clock::now();
+
+  // std::chrono::system_clock::to_time_t(timePoint);
+
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>
+      timePoint = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+          std::chrono::system_clock::now());
+
+  std::cout << timePoint << std::endl;
+  // std::cout << std::chrono::system_clock::to_time_t(timePoint) << std::endl;
+
+  std::cout << timePoint.time_since_epoch() << std::endl;
+
+  {
+    const auto now = std::chrono::system_clock::now();
+    time_t time = std::chrono::system_clock::to_time_t(now);
+    std::cout << time << "\n";
+    std::cout << std::chrono::duration_cast<std::chrono::seconds>(
+                     now.time_since_epoch())
+                     .count()
+              << "\n";
+    std::cout << std::chrono::system_clock::from_time_t(time)
+                     .time_since_epoch()
+                     .count()
+              << "\n";
+    std::cout << std::chrono::system_clock::time_point(
+                     std::chrono::seconds(time))
+                     .time_since_epoch()
+                     .count()
+              << "\n";
+  }
 
   return 0;
 }
