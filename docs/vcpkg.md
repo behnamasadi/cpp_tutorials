@@ -4,21 +4,41 @@ First add it as submodule to your peoject:
 `git submodule add https://github.com/microsoft/vcpkg`
 
 
-## Building Dependecies with Your CMakeLists
+## Building Dependecies with Your CMakeLists.txt
 Now add the following to your CMakeLists
 
 ```
+cmake_minimum_required(VERSION 3.16.3)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH "toolchain file")
 endif()
 
-message("${CMAKE_TOOLCHAIN_FILE}")
-project(vcpkg-name)
+message("toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+project(your-project-name)
 
-find_package(<package-name>  REQUIRED)
+find_package(vtk  9.2)
 ```
+
+After that, create the folloiwng file  `vcpkg.json` next to your `CMakeLists.txt`: 
+
+```
+{
+  "name": "your-project-name",
+  "version-string": "1.1.0",
+  "dependencies": [
+    "vtk"
+  ]
+}
+```
+Now you can run:
+```
+cmake -B [build directory] -S . -DCMAKE_TOOLCHAIN_FILE=[path to vcpkg]/scripts/buildsystems/vcpkg.cmake
+```
+
+
 ## Building and Installing Dependecies 
 Alternatively you can install everything globally/ locally
 
