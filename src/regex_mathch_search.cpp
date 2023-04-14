@@ -191,3 +191,11 @@ _ : underscore
 * : zero or more of the given characters
 $ : end of string
 */
+
+/*
+https://en.cppreference.com/w/cpp/regex
+https://en.cppreference.com/w/cpp/regex/sub_match
+https://cplusplus.com/reference/regex/sub_match/str/
+https://stackoverflow.com/questions/39946618/c-regex-how-to-use-sub-matches
+https://learn.microsoft.com/en-us/cpp/standard-library/sub-match-class?view=msvc-170
+*/

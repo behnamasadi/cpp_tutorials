@@ -1,22 +1,23 @@
 - [Exception Handling](#exception-handling)
-- [C++ Standard Exceptions](#c---standard-exceptions)
-  * [bad_alloc](#bad-alloc)
-    + [nothrow](#nothrow)
-  * [bad_cast](#bad-cast)
-  * [bad_typeid](#bad-typeid)
-  * [logic_error](#logic-error)
-  * [domain_error](#domain-error)
-  * [invalid_argument](#invalid-argument)
-  * [length_error](#length-error)
-  * [out_of_range](#out-of-range)
-  * [overflow_error](#overflow-error)
-  * [range_error](#range-error)
+- [C++ Standard Exceptions](#c-standard-exceptions)
+  - [bad\_alloc](#bad_alloc)
+    - [nothrow](#nothrow)
+  - [bad\_cast](#bad_cast)
+  - [bad\_typeid](#bad_typeid)
+  - [logic\_error](#logic_error)
+  - [domain\_error](#domain_error)
+  - [invalid\_argument](#invalid_argument)
+  - [length\_error](#length_error)
+  - [out\_of\_range](#out_of_range)
+  - [overflow\_error](#overflow_error)
+  - [range\_error](#range_error)
 - [User defined exceptions](#user-defined-exceptions)
+- [](#)
 - [Catching All Exceptions With Parameter Pack Expansion ...](#catching-all-exceptions-with-parameter-pack-expansion-)
 - [noexcept](#noexcept)
-  * [noexcept specifier](#noexcept-specifier)
-  * [noexcept operator](#noexcept-operator)
-  * [when should we use noexcept](#when-should-we-use-noexcept)
+  - [noexcept specifier](#noexcept-specifier)
+  - [noexcept operator](#noexcept-operator)
+  - [when should we use noexcept](#when-should-we-use-noexcept)
 
 
 
@@ -364,8 +365,8 @@ This means if a function specified with noexcept it shouldn't throw exception (e
 The bodies of called functions are not examined to check if they actually throw exception or not, and `noexcept` can yield false negatives. 
 In the case of excpetion `std::sterminate` will be called
 ## noexcept operator
-It tests if a function noexcept specification evalute to true or false at compile time.
-noexcept(some compile time expression) and this returns a boolan
+It tests if a function noexcept specification evaluate to true or false at compile time.
+noexcept(some compile time expression) and this returns a boolean
 
 examples:
 
@@ -441,4 +442,4 @@ Declaring a function noexcept helps optimizers by reducing the number of alterna
 
 
 
-Refs: [1](https://akrzemi1.wordpress.com/2014/04/24/noexcept-what-for/), [2](https://stackoverflow.com/questions/10787766/when-should-i-really-use-noexcept), [3](https://stackoverflow.com/questions/33210169/how-to-use-noexcept-in-c-or-how-does-it-work), [4](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rf-constexpr)
+Refs: [1](https://akrzemi1.wordpress.com/2014/04/24/noexcept-what-for/), [2](https://stackoverflow.com/questions/10787766/when-should-i-really-use-noexcept), [3](https://stackoverflow.com/questions/33210169/how-to-use-noexcept-in-c-or-how-does-it-work), [4](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rf-constexpr), [5](https://www.modernescpp.com/index.php/c-core-guidelines-the-noexcept-specifier-and-operator#:~:text=throw()%20is%20equivalent%20to%20noexcept,be%20used%20for%20function%20overloading.)

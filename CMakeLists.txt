@@ -442,6 +442,9 @@ target_link_libraries(filesystem)
 add_executable(optional src/optional.cpp)
 target_link_libraries(optional)
 
+add_executable(conditional_compilation src/conditional_compilation.cpp)
+target_link_libraries(conditional_compilation)
+
 if( ${CMAKE_GNU_COMPILER_ID}   ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
 	add_executable(printing_with_format src/printing_with_format.cpp)
 	target_link_libraries(printing_with_format)
