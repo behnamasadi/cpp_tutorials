@@ -5,12 +5,10 @@
  *      Author: behnam
  */
 
-// Please have look at preprocessor.txt
-
 #include <iostream>
 using namespace std;
 
-int ConditionalCompilation() {
+int main() {
 #define PRINT_JOE
 
 #ifdef PRINT_JOE
@@ -19,6 +17,16 @@ int ConditionalCompilation() {
 
 #ifdef PRINT_BOB
   cout << "Bob" << endl;
+#endif
+
+#define FOO 30
+
+#if FOO > 5
+  cout << "FOO is >5 " << endl;
+#elif FOO == 30
+  cout << "FOO == 30 " << endl;
+#else
+  cout << "FOO is something else " << endl;
 #endif
   return 0;
 }
