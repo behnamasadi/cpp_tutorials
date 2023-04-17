@@ -1,4 +1,3 @@
-
 - [Thread](#thread)
 - [Creation and Termination](#creation-and-termination)
   - [Function pointer](#function-pointer)
@@ -28,10 +27,16 @@
     - [lock\_guard vs scoped\_lock vs unique\_lock](#lock_guard-vs-scoped_lock-vs-unique_lock)
   - [Condition Variable](#condition-variable)
   - [Semaphores vs Mutexes vs Condition Variable](#semaphores-vs-mutexes-vs-condition-variable)
-- [Async, Future and Promise](#async-future-and-promise)
-- [Packaged Task](#packaged-task)
+- [std::future](#stdfuture)
+  - [std::async](#stdasync)
+    - [launch policy](#launch-policy)
+  - [packaged\_task](#packaged_task)
+  - [promise](#promise)
+  - [When to use promise over async or packaged\_task](#when-to-use-promise-over-async-or-packaged_task)
+- [std::atomic](#stdatomic)
 - [Threadsafe Code](#threadsafe-code)
   - [How to make an application thread safe](#how-to-make-an-application-thread-safe)
+
 # Thread
 It is most effective on multi-processor or multi-core systems where the process flow can be scheduled to run on another processor 
 thus gaining speed through parallel or distributed processing. Thread can be initiated faster because there is less for the 
@@ -391,6 +396,8 @@ Message from function1: -69Message from function2: 69
 
 Message from function2: 70
 ```
+Refs: [1]([3](https://thispointer.com//c11-multithreading-part-4-data-sharing-and-race-conditions/),)
+
 
 Full example [here](../src/multithreading/race_condition.cpp).
 
@@ -713,40 +720,50 @@ std::condition_variable cond;
 // shared variable
 int result = 0;
 
-// this will modify the shared vairbale
+
+// I) The thread that modify the shared variable must do the followings::
+
 void worker() {
-  // Acquiring a mutex
+  // 1. Acquiring a mutex
   std::scoped_lock<std::mutex> lock(mu);
-  // some heavy processing operations, migh take time...
+  // 2. Modify the shared variable while the lock is owned, some heavy processing operations, might take time...
   std::cout << "worker is working..." << std::endl;
 
   std::this_thread::sleep_for(std::chrono::seconds(5));
 
   result = 10;
-  std::cout << "result is ready..." << std::endl;
+  std::cout << "worker has reached the end, result is ready..." << std::endl;
 
-  //
+  //3. Call notify_one (or notify_all ) on the std::condition_variable
   cond.notify_one();
 }
 
-// this function is waiting for shared vairbale to be prepared
+// II) Any thread/ function that is waiting for shared variable must do the followings:
 void waitingForWorker() {
-  // Acquiring a mutex
+  // 1. Acquire a std::unique_lock<std::mutex> on the mutex used to protect the shared variable
   std::unique_lock<std::mutex> lock(mu);
 
+
+  //2. Call wait, wait_for, or wait_until
   cond.wait(lock, [] {
-    if (result != 0)
-      return true;
-    else
-      return false;
+    std::cout << "result is: " << result << std::endl;
+    //if you don't return true, the waitingForWorker thread will run forever
+    return true;
   });
 
-  std::cout << "processing result..." << result << std::endl;
+  // or just 
+ //cond.wait(lock);
+
+    // this will be that last line of the code 
+    std::cout << "end of waitingForWorker" << std::endl;
+
 }
 
 int main() {
   std::thread t1(worker);
+  std::cout << "before calling waitingForWorker" << std::endl;
   std::thread t2(waitingForWorker);
+  std::cout << "after waitingForWorker has been called " << std::endl;
   t1.join();
   t2.join();
   return 0;
@@ -754,7 +771,7 @@ int main() {
 ```
 
 
-
+An other example, we only want to withdraw after we added some money, so `withdrawMoney` is waiting for `addMoney`:
 
 
 ```cpp
@@ -762,6 +779,15 @@ std::condition_variable cond;
 std::mutex mu;
 
 int balance = 0;
+
+
+void addMoney(int amount)
+{
+	std::unique_lock<std::mutex> lock(mu);
+	balance = balance + amount;
+	std::cout << "Amount added, new balance is: " << balance << std::endl;
+	cond.notify_one();
+}
 
 void withdrawMoney(int amount) 
 {
@@ -771,13 +797,7 @@ void withdrawMoney(int amount)
 	std::cout<<"Amount withdrawn, new balance is: "<< balance <<std::endl;
 }
 
-void addMoney(int amount)
-{
-	std::unique_lock<std::mutex> lock(mu);
-	balance = balance + amount;
-	std::cout << "Amount added, new balance is: " << balance << std::endl;
-	cond.notify_one();
-}
+
 
 int main()
 {
@@ -823,7 +843,157 @@ Full example [here](../src/multithreading/condition_variable.cpp).
 Refs: [1](https://barrgroup.com/embedded-systems/how-to/rtos-mutex-semaphore), [2](https://stackoverflow.com/questions/2350544/in-what-situation-do-you-use-a-semaphore-over-a-mutex-in-c/2350628#2350628), [3](https://stackoverflow.com/questions/4742196/advantages-of-using-condition-variables-over-mutex), [4](https://cs61.seas.harvard.edu/site/2018/Synch3/)
 
 
-# Async, Future and Promise
+# std::future
+`future` facilities **asynchronous** access to values set by providers:
+1. `std::async`
+2. `std::packaged_task`
+3. `std::promise` 
+
+
+## std::async 
+The function template  `std::async` asynchronously runs the function `f`  and returns a `std::future` that holds the result of that function call.
+
+### launch policy
+1. `std::launch::async`:  passed function will be executed in separate thread.
+2. `std::launch::deferred`: function will be called when other thread will call get() on future to access the shared state.
+3. `std::launch::async | std::launch::deferred`: default behavior, with this launch policy it can run asynchronously or not depending on the load on system (we have no control over it.)
+
+
+```cpp
+std::future<int> future_function= std::async(std::launch::deferred, factorial,input);
+
+```
+We can ask `std::async` to create a thread for the function call or not. If we add `std::launch::deferred` to the list of parameters, it won't
+create a thread and just create a function call.
+
+
+If you want to make sure a separate thread will be created use `std::launch::async` in the parameters list:
+
+```cpp
+std::async(std::launch::async, factorial,input);
+```
+
+
+```cpp
+std::string whoisLookup(std::string domain) {
+
+  std::cout << "thread ID of whoisLookup func is: "
+            << std::this_thread::get_id() << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+
+  return "foo";
+}
+
+int main() {
+  std::string domain = "www.google.com";
+
+  std::cout << "thread ID of main calling whoisLookup func is: "
+            << std::this_thread::get_id() << std::endl;
+
+  std::cout << "calling an async call" << std::endl;
+  std::future<std::string> whoisresult =
+      std::async(std::launch::async, whoisLookup, domain);
+
+  std::cout << "continue after async call" << std::endl;
+  std::cout
+      << "Will block till data is available in future<std::string> object."
+      << std::endl;
+
+  std::cout << "waiting..." << std::endl;
+  std::future_status status;
+  do {
+
+    switch (status = whoisresult.wait_for(std::chrono::seconds(1)); status) {
+    case std::future_status::deferred:
+      std::cout << "deferred" << std::endl;
+      break;
+    case std::future_status::timeout:
+      std::cout << "timeout" << std::endl;
+      break;
+    case std::future_status::ready:
+      std::cout << "ready" << std::endl;
+      break;
+      break;
+    }
+
+  } while (status != std::future_status::ready);
+
+  std::cout << "the result of future object is: " << whoisresult.get()
+            << std::endl;
+  std::cout << "end" << std::endl;
+}
+```
+
+
+
+
+## packaged_task
+It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
+invoked asynchronously.
+```cpp
+int main() {
+  std::string domain = "www.google.com";
+
+  std::cout << "thread ID of main calling whoisLookup func is: "
+            << std::this_thread::get_id() << std::endl;
+
+  std::packaged_task<std::string(std::string)> task([](std::string domain) {
+    std::cout << "thread ID of lambda package task is: "
+              << std::this_thread::get_id() << std::endl;
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    return "foo";
+  });
+
+  std::cout << "getting future object from task" << std::endl;
+  std::future<std::string> whoisresult = task.get_future();
+
+  std::cout << "calling the task" << std::endl;
+  // task(domain);
+
+//The thread starts running immediately. 
+  std::thread thr(std::move(task), domain);
+
+  std::cout << "continue after calling task" << std::endl;
+  std::cout
+      << "Will block till data is available in future<std::string> object."
+      << std::endl;
+
+  std::cout << "waiting..." << std::endl;
+  std::future_status status;
+  do {
+
+    switch (status = whoisresult.wait_for(std::chrono::seconds(1)); status) {
+    case std::future_status::deferred:
+      std::cout << "deferred" << std::endl;
+      break;
+    case std::future_status::timeout:
+      std::cout << "timeout" << std::endl;
+      break;
+    case std::future_status::ready:
+      std::cout << "ready" << std::endl;
+      break;
+      break;
+    }
+
+  } while (status != std::future_status::ready);
+  thr.join();
+  std::cout << "the result of future object is: " << whoisresult.get()
+            << std::endl;
+  std::cout << "end" << std::endl;
+}
+```
+
+
+
+
+Full example [here](../src/multithreading/packaged_task.cpp).
+
+Refs: [1](https://stackoverflow.com/questions/11004273/what-is-stdpromise#:~:text=You%20want%20to%20pass%20something,This%20is%20the%20promise%20.), [2](https://en.cppreference.com/w/cpp/thread/packaged_task), [3](https://codereview.stackexchange.com/questions/221617/thread-pool-c-implementation), [4](https://www.youtube.com/watch?v=eWTGtp3HXiw), [5](https://vorbrodt.blog/2019/02/12/simple-thread-pool/)
+ 
+
+## promise
+
 Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:
 
 ```cpp
@@ -869,18 +1039,7 @@ int main()
 ```
  
 `future_thread.get()` function will wait for child thread to get finished and the return the value. If you call `future_thread.get()` again, your program will crash.
-We can ask `std::async` to create a thread for the function call or not. If we add `std::launch::deferred` to the list of parameters, it won't
-create a thread and just create a function call.
 
-```cpp
-std::future<int> future_function= std::async(std::launch::deferred, factorial,input);
-
-```
-If you want to make sure a seperate thread will be created use `std::launch::async` in the parameters list:
-
-```cpp
-std::async(std::launch::async, factorial,input);
-```
 
 We can also set a parameter from parent thread to child thread not in the creation time but in the future:
 
@@ -940,44 +1099,27 @@ int main()
     std::future<int> future_promise_factorial3= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
 }
 ```
-Full example [here]../src/multithreading/(async_future_promise.cpp).
-
-
-# Packaged Task
-It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
-invoked asynchronously.
-Full example [here](../src/multithreading/packaged_task.cpp).
-
-
-
-Refs: [1](https://codereview.stackexchange.com/questions/221617/thread-pool-c-implementation),
-[2](https://www.youtube.com/watch?v=eWTGtp3HXiw), [3](https://vorbrodt.blog/2019/02/12/simple-thread-pool/)
- 
-
+Full example [here](../src/multithreading/(async_future_promise.cpp).
 
 		
-Ref:    [1](http://www.yolinux.com/TUTORIALS/LinuxTutorialPosixThreads.html), 
-	[2](http://www.computersciencelab.com/MultithreadingTut1.htm), 
-	[3](https://thispointer.com//c11-multithreading-part-4-data-sharing-and-race-conditions/), 
-	[4](https://www.youtube.com/watch?v=s5PCh_FaMfM), 
-	[5](https://www.youtube.com/watch?v=pWTtPnwialI), 
-	[6](https://www.modernescpp.com/index.php/thread-safe-initialization-of-data), 
-	[7](https://www.youtube.com/watch?v=qlH4-oHnBb8), 
-	[8](https://www.youtube.com/watch?v=dz9Tk6KCMlQ), 
-	[9](https://www.youtube.com/watch?v=xD5PB_g1rIE), 
-	[10](https://en.wikipedia.org/wiki/Paging#Ferranti_Atlas), 
-	[11](https://en.wikipedia.org/wiki/Virtual_address_space), 
-	[12](https://en.wikipedia.org/wiki/Page_(computer_memory)), 
-	[13](https://en.wikipedia.org/wiki/Page_replacement_algorithm),
-	[14](https://www.geeksforgeeks.org/multilevel-feedback-queue-scheduling-mlfq-cpu-scheduling/),
-	[15](https://www.geeksforgeeks.org/cpu-scheduling-in-operating-systems/),
-	[16](https://stackoverflow.com/questions/11770571/how-do-mutexes-really-work)
+Ref: [1](https://stackoverflow.com/questions/11004273/what-is-stdpromise#:~:text=You%20want%20to%20pass%20something,This%20is%20the%20promise%20.)
+
+
+## When to use promise over async or packaged_task
+Refs: [1](https://stackoverflow.com/questions/17729924/when-to-use-promise-over-async-or-packaged-task)
+
+
+
+# std::atomic
+
+
 
 # Threadsafe Code
 A class is thread-safe if it behaves correctly when accessed from multiple threads, regardless of the scheduling or interleaving of the execution of those threads by the runtime environment, and with no additional synchronization or other coordination on the part of the calling code
+
+Refs: [1](https://www.youtube.com/watch?v=pWTtPnwialI), [2](https://www.youtube.com/watch?v=s5PCh_FaMfM), 
+
 ## How to make an application thread safe
-
-
 
 Let say we have the following stack data structure:
 ```
