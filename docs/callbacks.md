@@ -1,128 +1,74 @@
-- [Callbacks](#callbacks)
-  * [Function pointers (including pointers to member functions)](#function-pointers--including-pointers-to-member-functions-)
-  * [std::function](#std--function)
-  * [Lambda expressions](#lambda-expressions)
-  * [Bind expressions](#bind-expressions)
-  * [Function objects (classes with overloaded function call operator operator())](#function-objects--classes-with-overloaded-function-call-operator-operator---)
-- [Sending a function as parameter to an other function](#sending-a-function-as-parameter-to-an-other-function)
-
-
 # Callbacks
 
-A callback is a callable  accepted by a class or function, used to customize the current logic depending on that callback. `std::invoke` is a generic way to activate any callable. `std::invoke` takes something callable, and arguments to call it with, and does the call. `std::invoke( f, args... )` is a slight generalization of typing `f(args...)` that also handles a few additional cases.
-
-## Function pointers (including pointers to member functions)
-## std::function 
-Class template std::function is a general-purpose polymorphic function wrapper. Instances of std::function can store, copy, and invoke any Callable target:
-1. functions
-2. lambda expressions
-3. bind expressions
-4. functors
+A callback function is a callable passed as an argument to a class or function, used to customize the current logic depending on that callback. 
+For instance imagine you have a class for modeling a robot and you want to give this freedom to user to define and use different motion planner. You can ask the user to pass the solver function to the robot class so the robot class use that one for moving around.
 
 ```cpp
-void print(int value)
-{
-    std::cout<< value<<std::endl;
+typedef std::function<std::vector<double>(double, double)> CallbackFunction;
+
+class robot {
+
+public:
+  CallbackFunction m_callback;
+
+  void makeMotion(std::vector<double> trajectory) {
+    std::cout << "robot is traversing the generated trajectory:" << std::endl;
+    for (const auto &p : trajectory)
+      std::cout << p << std::endl;
+  }
+
+  void move(double start, double goal) {
+
+    std::vector<double> trajectory = m_callback(start, goal);
+    makeMotion(trajectory);
+  }
+};
+```
+
+Now we can have different solvers:
+
+```cpp
+std::vector<double> planer1(double start, double goal) {
+  return {start, (start + goal) / 2, goal};
+}
+std::vector<double> planer2(double start, double goal) {
+  return {start, start + (start + goal) / 3, 2 * (start + goal) / 3, goal};
 }
 ```
-
-storing a functions:
-```cpp
-std::function<void(int)> funcPrint=print;
-funcPrint(3);
-```
-
-store a bind expressions:
+Now we can assign and use different solvers:
 
 ```cpp
-std::function<void (int)> funcPrint=std::bind(&print,std::placeholders::_1);
-std::function<void (int)> f(funcPrint);
-f(3);
+robot myrobot1;
+myrobot1.m_callback = planer1;
+myrobot1.move(start, goal);
 ```
-
-store lambda expressions:
-```cpp
-auto lambda=[](int value){std::cout<< value<<std::endl;};
-std::function<void(int)>f(lambda);
-f(3);
-```
-
-store a functors:
-```cpp
-void (*printfunctor)(int);
-printfunctor=print;
-std::function<void(int)>f(printfunctor);
-f(3);
-```
-
-## Lambda expressions
-## Bind expressions
-`std::bind` works as a Functional Adaptor i.e. it takes a function as input and returns a new function Object as an output with with one or more of the arguments of passed function bound or rearranged (partial function application).
-
-first example:
-```cpp
-void print(int firstParam, int secondParam)
-{
-	std::cout << "First Param is: " << firstParam << " Second Param is: " << secondParam << std::endl;
-}
-```
-in the main:
-```cpp
-int firstParam=3;
-int secondParam=5;
-auto MyPrinter=std::bind(&print,firstParam,secondParam);
-MyPrinter();
-```
-You can use `std::placeholders::_` to set the order of the parameters:
+  
+or 
 
 ```cpp
-auto reversePrintFunc = std::bind(&print, std::placeholders::_2, std::placeholders::_1);
+std::function<std::vector<double>(double, double)> planer2_ptr =
+      std::bind(&planer2, std::placeholders::_1, std::placeholders::_2);
 
-int firstParam = 3;
-int secondParam = 5;
-
-print(firstParam, secondParam);
-reversePrintFunc(firstParam, secondParam);
-
+myrobot1.m_callback = planer2_ptr;
+myrobot1.move(start, goal);
 ```
-You can use it like a lambda expression:
 
-
-```cpp
-std::vector<int> vec={1,2,3};
-std::vector<int> values(vec.size(),0);
-
-// raise every value in vec to the power of 3
-auto f=std::bind(&std::pow<int,int>,std::placeholders::_1,3);
-std::transform(vec.begin(), vec.end(), values.begin(), f);
-        
-for(auto value:values)
-    std::cout<< value<<std::endl;
-```
-an other example:
-
-```cpp
-int param=3;
-auto printer=std::bind(&printTemplate<int>,param);
-```
 or
+
 ```cpp
-auto printer=std::bind(&printTemplate<int>,std::placeholders::_1);
+ auto planer_lambda = [](double start, double goal) {
+    return std::vector<double>(10, 2);
+  };
+
+  myrobot1.m_callback = planer_lambda;
+  myrobot1.move(start, goal);
 ```
-an calling it:
-```cpp
-std::function<void (int)>f(printer);
-f(param);
-```
+[code](../src/callbacks.cpp)
 
+  
 
-Refs: [1](//https://www.youtube.com/watch?v=ZlHi8txU4aQ)
+Refs: [1](https://stackoverflow.com/questions/2298242/callback-functions-in-c) 
 
-[code](../src/bind.cpp)
-
-
-Refs: [1](https://stackoverflow.com/questions/2298242/callback-functions-in-c), [2](https://stackoverflow.com/questions/6610046/stdfunction-and-stdbind-what-are-they-and-when-should-they-be-used), [2](https://en.wikipedia.org/wiki/Partial_application)
-[source code](../src/callbacks.cpp)
 
 
 

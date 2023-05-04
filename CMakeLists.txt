@@ -1,32 +1,29 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 set(CMAKE_BUILD_TYPE debug)
-option(USE_CLANG "build application with clang" OFF)# OFF is the default
-
-
-
-
+option(USE_CLANG "build application with clang" OFF) # OFF is the default
 
 if(USE_CLANG)
-        set (CMAKE_C_COMPILER             "/usr/bin/clang")
-        #set (CMAKE_C_FLAGS                "-Wall -std=c99")
-        set (CMAKE_C_FLAGS_DEBUG          "-g")
-        set (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-        set (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
-        set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+    set(CMAKE_C_COMPILER "/usr/bin/clang")
 
-        set (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
-        set (CMAKE_CXX_FLAGS                "-Wall")
-        set (CMAKE_CXX_FLAGS_DEBUG          "-g")
-        set (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-        set (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
-        set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+    # set (CMAKE_C_FLAGS                "-Wall -std=c99")
+    set(CMAKE_C_FLAGS_DEBUG "-g")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "-O4 -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
 
-        set (CMAKE_AR      "/usr/bin/llvm-ar")
-        set (CMAKE_LINKER  "/usr/bin/llvm-ld")
-        set (CMAKE_NM      "/usr/bin/llvm-nm")
-        set (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-        set (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+    set(CMAKE_CXX_FLAGS "-Wall")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O4 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+
+    set(CMAKE_AR "/usr/bin/llvm-ar")
+    set(CMAKE_LINKER "/usr/bin/llvm-ld")
+    set(CMAKE_NM "/usr/bin/llvm-nm")
+    set(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+    set(CMAKE_RANLIB "/usr/bin/llvm-ranlib")
 endif()
 
 project(cpp_tutorials)
@@ -36,67 +33,63 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE debug)
 
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  message("using Clang") 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message("using GCC") 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message("using Clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message("using GCC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  message("using Intel C++") 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  message("using Visual Studio C++") 
-  #set warning level into errors 
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message("using Intel C++")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message("using Visual Studio C++")
+
+    # set warning level into errors
     if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-            string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     endif()
-    
 endif()
 
-message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
+message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
 
-add_executable(pointers  src/pointers/pointers.cpp )
-target_link_libraries( pointers)
+add_executable(pointers src/pointers/pointers.cpp)
+target_link_libraries(pointers)
 
-#add_executable(string  src/string.cpp )
-#target_link_libraries( string)
+# add_executable(string  src/string.cpp )
+# target_link_libraries( string)
+add_executable(exception_handling src/exception_handling.cpp)
+target_link_libraries(exception_handling)
 
-add_executable(exception_handling  src/exception_handling.cpp)
-target_link_libraries( exception_handling)
-
-#add_executable(heap_vs_stack  src/heap_vs_stack.cpp)
-#target_link_libraries(heap_vs_stack)
-
-add_executable(assert  src/assert.cpp)
+# add_executable(heap_vs_stack  src/heap_vs_stack.cpp)
+# target_link_libraries(heap_vs_stack)
+add_executable(assert src/assert.cpp)
 target_link_libraries(assert)
 
-add_executable(return_abort_exit  src/return_abort_exit.cpp)
+add_executable(return_abort_exit src/return_abort_exit.cpp)
 target_link_libraries(return_abort_exit)
 
-add_executable(rvalue_lvalue  src/rvalue_lvalue.cpp)
+add_executable(rvalue_lvalue src/rvalue_lvalue.cpp)
 target_link_libraries(rvalue_lvalue)
 
-add_executable(primitive_data_types_numerical_limits_accuracy  src/primitive_data_types_numerical_limits_accuracy.cpp)
+add_executable(primitive_data_types_numerical_limits_accuracy src/primitive_data_types_numerical_limits_accuracy.cpp)
 target_link_libraries(primitive_data_types_numerical_limits_accuracy)
 
-add_executable(arrays  src/arrays.cpp)
+add_executable(arrays src/arrays.cpp)
 target_link_libraries(arrays)
 
 add_executable(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
 target_link_libraries(dynamic_memory_allocation)
 
-#ADD_LIBRARY(add MODULE src/add.cpp)
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_library(add SHARED  src/add.cpp)
-    add_executable(loadeding_libraries src/loadeding_libraries.cpp )
+# ADD_LIBRARY(add MODULE src/add.cpp)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_library(add SHARED src/add.cpp)
+    add_executable(loadeding_libraries src/loadeding_libraries.cpp)
     target_link_libraries(loadeding_libraries dl)
 endif()
 
-
-add_executable(template src/template.cpp )
+add_executable(template src/template.cpp)
 target_link_libraries(template)
 
 ADD_DEFINITIONS(-DLOGING=0)
@@ -106,13 +99,10 @@ target_link_libraries(macro)
 add_executable(inline_functions src/inline_functions.cpp)
 target_link_libraries(inline_functions)
 
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	add_executable(align src/align.cpp)
-	target_link_libraries(align)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_executable(align src/align.cpp)
+    target_link_libraries(align)
 endif()
-
-
 
 add_executable(algorithms_library src/algorithms_library.cpp)
 target_link_libraries(algorithms_library)
@@ -147,13 +137,13 @@ target_link_libraries(private_public_protected_inheritance)
 add_executable(cast_Base_to_Derived_to_Base src/class/cast_Base_to_Derived_to_Base.cpp)
 target_link_libraries(cast_Base_to_Derived_to_Base)
 
-add_executable(operator_overloading  src/class/operator_overloading.cpp )
-target_link_libraries( operator_overloading)
+add_executable(operator_overloading src/class/operator_overloading.cpp)
+target_link_libraries(operator_overloading)
 
-add_executable(default_0_delete_meaning  src/class/default_0_delete_meaning.cpp)
+add_executable(default_0_delete_meaning src/class/default_0_delete_meaning.cpp)
 target_link_libraries(default_0_delete_meaning)
 
-add_executable(object_slicing  src/class/object_slicing.cpp)
+add_executable(object_slicing src/class/object_slicing.cpp)
 target_link_libraries(object_slicing)
 
 add_executable(circular_dependency
@@ -163,7 +153,7 @@ add_executable(circular_dependency
     src/class/Circular_Dependency/c.cpp)
 target_link_libraries(circular_dependency)
 
-add_executable(static_member_function  src/class/static_member_function.cpp)
+add_executable(static_member_function src/class/static_member_function.cpp)
 target_link_libraries(static_member_function)
 
 add_executable(constructor_initialization_list src/class/constructor_initialization_list.cpp)
@@ -178,14 +168,13 @@ target_link_libraries(switch_case)
 add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
 target_link_libraries(set_map_pair_tuple)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_executable(signals src/signals.cpp)
     target_link_libraries(signals)
 
     add_executable(system_call src/system_call.cpp)
     target_link_libraries(system_call)
 endif()
-
 
 add_executable(error_handling src/error_handling.cpp)
 target_link_libraries(error_handling)
@@ -205,8 +194,7 @@ target_link_libraries(containers)
 add_executable(iterator_loop src/iterator_loop.cpp)
 target_link_libraries(iterator_loop)
 
-
-############################# Advance C++ Concepts/ Idiom #############################
+# ############################ Advance C++ Concepts/ Idiom #############################
 add_executable(RTTI src/RTTI.cpp)
 target_link_libraries(RTTI)
 
@@ -243,8 +231,7 @@ target_link_libraries(stack_overflow)
 add_executable(stack_unwinding src/stack_unwinding.cpp)
 target_link_libraries(stack_unwinding)
 
-############################# Multithreading #############################
-
+# ############################ Multithreading #############################
 add_executable(creating_and_terminating_threads src/multithreading/creating_and_terminating_threads.cpp)
 target_link_libraries(creating_and_terminating_threads -pthread)
 
@@ -260,11 +247,8 @@ target_link_libraries(join_detach_threads -pthread)
 add_executable(mutex src/multithreading/mutex.cpp)
 target_link_libraries(mutex -pthread)
 
-
-#add_executable(condition_variable src/multithreading/condition_variable.cpp)
-#target_link_libraries(condition_variable -pthread)
-
-
+# add_executable(condition_variable src/multithreading/condition_variable.cpp)
+# target_link_libraries(condition_variable -pthread)
 add_executable(async_future_promise src/multithreading/async_future_promise.cpp)
 target_link_libraries(async_future_promise -pthread)
 
@@ -289,9 +273,8 @@ target_link_libraries(lock_guard -pthread)
 add_executable(thread_pool src/multithreading/thread_pool.cpp)
 target_link_libraries(thread_pool -pthread)
 
-#add_executable(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
-#target_link_libraries(inter_process_communicationshared_memory -pthread)
-
+# add_executable(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
+# target_link_libraries(inter_process_communicationshared_memory -pthread)
 add_executable(function_pointer src/function_pointer.cpp)
 target_link_libraries(function_pointer)
 
@@ -307,24 +290,23 @@ target_link_libraries(lambda)
 add_executable(unions src/unions.cpp)
 target_link_libraries(unions)
 
-add_executable(date_time src/date_time.cpp)
-target_link_libraries(date_time)
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+# add_executable(date_time src/date_time.cpp)
+# target_link_libraries(date_time)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_executable(fork src/fork.cpp)
     target_link_libraries(fork)
 endif()
 
 add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
-target_link_libraries(basic_IO_operation_streams )
+target_link_libraries(basic_IO_operation_streams)
 
-add_executable(explicit_constructor  src/class/explicit_constructor.cpp)
+add_executable(explicit_constructor src/class/explicit_constructor.cpp)
 target_link_libraries(explicit_constructor)
 
-add_executable(const_constexpr_mutable  src/const_constexpr_mutable.cpp)
+add_executable(const_constexpr_mutable src/const_constexpr_mutable.cpp)
 target_link_libraries(const_constexpr_mutable)
 
-add_executable(literals  src/literals.cpp)
+add_executable(literals src/literals.cpp)
 target_link_libraries(literals)
 
 add_executable(ternary src/ternary.cpp)
@@ -348,9 +330,8 @@ target_link_libraries(most_vexing_parse)
 add_executable(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
 target_link_libraries(VTABLE_and_VPTR)
 
-#add_executable(allocator src/allocator.cpp)
-#target_link_libraries(allocator)
-
+# add_executable(allocator src/allocator.cpp)
+# target_link_libraries(allocator)
 add_executable(noexcept_operator_specifier src/noexcept_operator_specifier.cpp)
 target_link_libraries(noexcept_operator_specifier)
 
@@ -387,15 +368,14 @@ target_link_libraries(track_memory_allocations)
 add_executable(nested_namespaces src/nested_namespaces.cpp)
 target_link_libraries(nested_namespaces)
 
-add_executable(type_dispatch_integral_constant_true_false_type  src/type_dispatch_integral_constant_true_false_type.cpp)
+add_executable(type_dispatch_integral_constant_true_false_type src/type_dispatch_integral_constant_true_false_type.cpp)
 target_link_libraries(type_dispatch_integral_constant_true_false_type)
 
-add_executable(set_argv_argc  src/set_argv_argc.cpp)
+add_executable(set_argv_argc src/set_argv_argc.cpp)
 target_link_libraries(set_argv_argc)
 
-add_executable(arguments_parser  src/arguments_parser.cpp)
+add_executable(arguments_parser src/arguments_parser.cpp)
 target_link_libraries(arguments_parser)
-
 
 add_executable(aggregate-copy-default-direct-value-zero src/{}-operator-aggregate-copy-default-direct-value-zero.cpp)
 target_link_libraries(aggregate-copy-default-direct-value-zero)
@@ -412,18 +392,16 @@ target_link_libraries(scope_resolution_operator)
 add_executable(random_number_generation src/random_number_generation.cpp)
 target_link_libraries(random_number_generation)
 
-
-
-#set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-#set(CMAKE_CXX_FLAGS_DEBUG "-g")
-#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+# set(CMAKE_CXX_FLAGS_DEBUG "-g")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 add_executable(heap_and_stack_memory_layout_of_C_programs src/heap_and_stack_memory_layout_of_C_programs.cpp)
-#target_compile_options(heap_and_stack_memory_layout_of_C_programs PRIVATE -Wall -Wextra -g -O0)
+
+# target_compile_options(heap_and_stack_memory_layout_of_C_programs PRIVATE -Wall -Wextra -g -O0)
 target_link_libraries(heap_and_stack_memory_layout_of_C_programs)
 
-
-#set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
-#set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+# set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+# set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 add_executable(memory_checking src/memory_checking.cpp)
 target_link_libraries(memory_checking)
 
@@ -436,43 +414,44 @@ target_link_libraries(metaprogramming)
 add_executable(regex_mathch_search src/regex_mathch_search.cpp)
 target_link_libraries(regex_mathch_search)
 
-add_executable(filesystem src/filesystem.cpp)
-target_link_libraries(filesystem)
-
+# add_executable(filesystem src/filesystem.cpp)
+# target_link_libraries(filesystem)
 add_executable(optional src/optional.cpp)
 target_link_libraries(optional)
 
 add_executable(conditional_compilation src/conditional_compilation.cpp)
 target_link_libraries(conditional_compilation)
 
-if( ${CMAKE_GNU_COMPILER_ID}   ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
-	add_executable(printing_with_format src/printing_with_format.cpp)
-	target_link_libraries(printing_with_format)
+add_executable(std_invoke src/std_invoke.cpp)
+target_link_libraries(std_invoke)
+
+if(${CMAKE_GNU_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
+    add_executable(printing_with_format src/printing_with_format.cpp)
+    target_link_libraries(printing_with_format)
 endif()
 
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 14 )
-	add_executable(printing_with_format src/printing_with_format.cpp)
-	target_link_libraries(printing_with_format)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
-	add_executable(printing_with_format src/printing_with_format.cpp)
-	target_link_libraries(printing_with_format)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 1900)
-	add_executable(printing_with_format src/printing_with_format.cpp)
-	target_link_libraries(printing_with_format)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 14)
+    add_executable(printing_with_format src/printing_with_format.cpp)
+    target_link_libraries(printing_with_format)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
+    add_executable(printing_with_format src/printing_with_format.cpp)
+    target_link_libraries(printing_with_format)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 1900)
+    add_executable(printing_with_format src/printing_with_format.cpp)
+    target_link_libraries(printing_with_format)
 endif()
-
 
 find_package(PkgConfig)
 
 if(EXISTS "$ENV{HOME}/usr/lib/pkgconfig")
-        set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
+    set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
 endif()
-message("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
+message("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
 message("\n########################################## tinyxml2 ##########################################\n")
 pkg_check_modules(TINYXML2 tinyxml2)
+
 if(${TINYXML2_FOUND})
     message("TINYXML2_FOUND:" ${TINYXML2_FOUND})
     message("TINYXML2_VERSION:" ${TINYXML2_VERSION})
@@ -484,22 +463,23 @@ if(${TINYXML2_FOUND})
     add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
     target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
 else()
-	message("tinyxml2 not found")
+    message("tinyxml2 not found")
 endif()
-
 
 message("\n########################################## yaml-cpp ##########################################\n")
 
 set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
 find_package(yaml-cpp)
+
 if(${yaml-cpp_FOUND})
     message("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
     message("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
-    add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp )
+    add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp)
     target_link_libraries(yaml-cpp_example yaml-cpp)
 endif()
 
 pkg_check_modules(BENCHMARK benchmark)
+
 if(${BENCHMARK_FOUND})
     message("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
     message("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
@@ -512,20 +492,16 @@ if(${BENCHMARK_FOUND})
     target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
 endif()
 
-
 option(TESTING "Enable testing" OFF)
-if(testing_enabled)
-        add_subdirectory(tests)
-endif()
 
+if(testing_enabled)
+    add_subdirectory(tests)
+endif()
 
 message(${CMAKE_CURRENT_SOURCE_DIR})
+
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
-    #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
+    # add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
     add_executable(sandbox src/sandbox/sandbox.cpp)
-    target_link_libraries(sandbox  )
+    target_link_libraries(sandbox)
 endif()
-
-
-
-
