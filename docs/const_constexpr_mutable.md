@@ -440,4 +440,4 @@ std::is_const_v< std::remove_pointer<int* const> > << '\n';
 ```
 
 # Where to not use const
-Refs [1]([C++ Weekly - Ep 322 - Top 4 Places To Never Use `const`](https://www.youtube.com/watch?v=dGCxMmGvocE))	
+Refs [1](https://www.youtube.com/watch?v=dGCxMmGvocE)	
