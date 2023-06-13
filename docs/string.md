@@ -496,7 +496,16 @@ while ((pos = s.find(delimiter)) != std::string::npos)
         s.erase(0, pos + delimiter.length());
     }
 ```
+## std::string to lower/ upper case
+```
+#include <algorithm>
+#include <cctype>
+#include <string>
 
+std::string my_str = "Foo";
+std::transform(my_str.begin(), my_str.end(), my_str.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+```	
 # string_view
 
 
