@@ -1,8 +1,27 @@
 # Callbacks
 
 A callback function is a callable passed as an argument to a class or function, used to customize the current logic depending on that callback. 
-For instance imagine you have a class for modeling a robot and you want to give this freedom to user to define and use different motion planner. You can ask the user to pass the solver function to the robot class so the robot class use that one for moving around.
+For instance, imagine you have a class for modeling a robot and you want to give this freedom to the user to define and use different motion planners. You can ask the user to pass the solver function to the robot class so the robot class uses that one for moving around.
 
+syntax:
+```cpp
+typedef   void      (*FunctionFunc)  ( );
+           ^                ^         ^
+        return type      type name  arguments
+```
+
+syntax with member function pointers
+```cpp
+int (MyClass::*MyTypedef)( int); //MyTypedef is a variable
+typedef int (MyClass::*MyTypedef)( int); //MyTypedef is a type
+typedef void (Receiver::* Action)();
+```
+so you can have this in your class:
+```cpp
+Action action;
+```
+
+Example:
 ```cpp
 typedef std::function<std::vector<double>(double, double)> CallbackFunction;
 
