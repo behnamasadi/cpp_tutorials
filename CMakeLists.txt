@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-set(CMAKE_BUILD_TYPE debug)
+set(CMAKE_BUILD_TYPE Debug)
+set(DCMAKE_BUILD_TYPE Debug)
 option(USE_CLANG "build application with clang" OFF) # OFF is the default
 
 if(USE_CLANG)
@@ -31,7 +32,8 @@ set(CMAKE_VERBOSE_MAKEFILE "verbose output from Makefile " OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE debug)
+set(CMAKE_BUILD_TYPE Debug)
+set(DCMAKE_BUILD_TYPE Debug)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message("using Clang")
