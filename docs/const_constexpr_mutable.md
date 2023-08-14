@@ -439,3 +439,5 @@ The output is **false**:
 std::is_const_v< std::remove_pointer<int* const> > << '\n';
 ```
 
+# Where to not use const
+Refs [1](https://www.youtube.com/watch?v=dGCxMmGvocE)	
