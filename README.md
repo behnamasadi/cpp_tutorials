@@ -8,7 +8,17 @@
 This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## Building and Installation
+if you need to update your cmake:
 
+Navigate to [CMake's official](https://cmake.org/download/) website to get the link for the latest source tarball
+```
+./bootstrap
+make -j$(nproc)
+sudo make install
+sudo update-alternatives --install /usr/bin/cmake cmake /usr/local/bin/cmake 1 --force
+
+
+```
 ### How to build on your machine 
 configure it:
 
@@ -19,16 +29,23 @@ cmake -G "Ninja Multi-Config"  -S . -B build
 build it:
 
 ```
-cmake --build build
+cmake --build build --config Release
 
 ```
+
+or 
+
+```
+cmake --build build --config Debug
+
+```
+
 or be more specific:
 
 ```
 cmake --build build --target all --config Release
 
 ```
-
 
 ### 1. Building the Image
 There is docker file for this project where contains all dependencies and you build the image with :   
@@ -129,6 +146,7 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [System Call](docs/system_call.md)  
    * [String C/C++, string_view, string literal, string conversion, ASCII, Unicode](docs/string.md)  
    * [Structs](src/structs.cpp)  
+   * [Structured binding declaration](src/structured_binding_declaration.cpp)       
    * [Switch Case](src/switch_case.cpp)  
    * [Template, Expression templates](docs/templates.md)  
    * [Ternary (One Line If)](src/ternary.cpp) 
