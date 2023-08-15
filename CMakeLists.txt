@@ -1,6 +1,12 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+project(cpp_tutorials)
 
-set(CMAKE_BUILD_TYPE debug)
+if(NOT "${CMAKE_GENERATOR}" STREQUAL "Ninja Multi-Config")
+    # message(WARNING "It's recommended to use -G \"Ninja Multi-Config\" for this project.")
+    # OR, if you want to force-stop the configuration:
+    message(FATAL_ERROR "Please use -G \"Ninja Multi-Config\" for this project.")
+endif()
+
 option(USE_CLANG "build application with clang" OFF) # OFF is the default
 
 if(USE_CLANG)
@@ -26,12 +32,8 @@ if(USE_CLANG)
     set(CMAKE_RANLIB "/usr/bin/llvm-ranlib")
 endif()
 
-project(cpp_tutorials)
-set(CMAKE_VERBOSE_MAKEFILE "verbose output from Makefile " OFF)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE debug)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message("using Clang")
@@ -374,8 +376,8 @@ target_link_libraries(type_dispatch_integral_constant_true_false_type)
 add_executable(set_argv_argc src/set_argv_argc.cpp)
 target_link_libraries(set_argv_argc)
 
-add_executable(arguments_parser src/arguments_parser.cpp)
-target_link_libraries(arguments_parser)
+add_executable(arguments_parser_example src/arguments_parser_example.cpp)
+target_link_libraries(arguments_parser_example)
 
 add_executable(aggregate-copy-default-direct-value-zero src/{}-operator-aggregate-copy-default-direct-value-zero.cpp)
 target_link_libraries(aggregate-copy-default-direct-value-zero)
