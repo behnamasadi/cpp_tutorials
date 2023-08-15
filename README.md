@@ -8,6 +8,28 @@
 This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## Building and Installation
+
+### How to build on your machine 
+configure it:
+
+```
+cmake -G "Ninja Multi-Config"  -S . -B build
+```
+
+build it:
+
+```
+cmake --build build
+
+```
+or be more specific:
+
+```
+cmake --build build --target all --config Release
+
+```
+
+
 ### 1. Building the Image
 There is docker file for this project where contains all dependencies and you build the image with :   
 
