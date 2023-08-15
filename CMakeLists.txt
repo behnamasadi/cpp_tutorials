@@ -194,7 +194,7 @@ target_link_libraries(containers)
 add_executable(iterator_loop src/iterator_loop.cpp)
 target_link_libraries(iterator_loop)
 
-# ############################ Advance C++ Concepts/ Idiom #############################
+############################# Advance C++ Concepts/ Idiom #############################
 add_executable(RTTI src/RTTI.cpp)
 target_link_libraries(RTTI)
 
@@ -505,3 +505,4 @@ if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
     add_executable(sandbox src/sandbox/sandbox.cpp)
     target_link_libraries(sandbox)
 endif()
+

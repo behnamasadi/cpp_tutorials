@@ -164,7 +164,7 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [Condition Variable](docs/multithreading.md#condition_variable)  
    * [Future, Promise and async](docs/multithreading.md#async_future_promise)  
    * [Packaged Task](docs/multithreading.md#packaged_task)  
-   * [Thread design pattern](docs/thread_design_pattern.md)  
+   * [Event handling/ Concurrency/ Thread design pattern](docs/thread_design_pattern.md)  
    
    
 
