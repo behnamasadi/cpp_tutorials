@@ -1,7 +1,51 @@
 # Callbacks
 
 A callback function is a callable passed as an argument to a class or function, used to customize the current logic depending on that callback. 
-For instance, imagine you have a class for modeling a robot and you want to give this freedom to the user to define and use different motion planners. You can ask the user to pass the solver function to the robot class so the robot class uses that one for moving around.
+
+Callback functionality can be achieved in several ways:
+
+1. std::function
+2. Function pointers
+3. Lambda expressions
+4. Bind expressions
+5. Function objects (classes with overloaded function call operator operator())
+
+Example: imagine you have a class for modeling a robot and you want to give this freedom to the user to define and use different motion planners. You can ask the user to pass the solver function to the robot class so the robot class uses that one for moving around.
+
+```cpp
+typedef std::function<std::vector<double>(double, double)> CallbackFunction;
+
+class robot {
+
+public:
+  CallbackFunction m_planner;
+  // robot(const CallbackFunction &callback) : m_planner(callback) {}
+
+  void executePlan(std::vector<double> trajectory) {
+    std::cout << "robot is traversing the generated trajectory:" << std::endl;
+    for (const auto &p : trajectory)
+      std::cout << p << std::endl;
+  }
+
+  void move(double start, double goal) {
+
+    std::vector<double> trajectory = m_planner(start, goal);
+    executePlan(trajectory);
+  }
+};
+```
+
+## std::function
+
+```cpp
+std::function<std::vector<double>(double, double)> planer2_ptr =
+      std::bind(&planer2, std::placeholders::_1, std::placeholders::_2);
+
+myrobot.m_callback = planer2_ptr;
+myrobot.move(start, goal);
+```
+
+## Function pointers
 
 syntax:
 ```cpp
@@ -21,67 +65,44 @@ so you can have this in your class:
 Action action;
 ```
 
-Example:
-```cpp
-typedef std::function<std::vector<double>(double, double)> CallbackFunction;
 
-class robot {
-
-public:
-  CallbackFunction m_callback;
-
-  void makeMotion(std::vector<double> trajectory) {
-    std::cout << "robot is traversing the generated trajectory:" << std::endl;
-    for (const auto &p : trajectory)
-      std::cout << p << std::endl;
-  }
-
-  void move(double start, double goal) {
-
-    std::vector<double> trajectory = m_callback(start, goal);
-    makeMotion(trajectory);
-  }
-};
-```
-
-Now we can have different solvers:
+we define the following planners:
 
 ```cpp
 std::vector<double> planer1(double start, double goal) {
   return {start, (start + goal) / 2, goal};
 }
+
 std::vector<double> planer2(double start, double goal) {
-  return {start, start + (start + goal) / 3, 2 * (start + goal) / 3, goal};
+  double step = (goal - start) / 20;
+  std::vector<double> values;
+  for (double value = start; value < goal; value += step)
+    values.push_back(value);
+  return values;
 }
 ```
 Now we can assign and use different solvers:
 
 ```cpp
-robot myrobot1;
-myrobot1.m_callback = planer1;
-myrobot1.move(start, goal);
-```
-  
-or 
-
-```cpp
-std::function<std::vector<double>(double, double)> planer2_ptr =
-      std::bind(&planer2, std::placeholders::_1, std::placeholders::_2);
-
-myrobot1.m_callback = planer2_ptr;
-myrobot1.move(start, goal);
+robot myrobot;
+myrobot.m_callback = planer1;
+myrobot.move(start, goal);
 ```
 
-or
+
+## Lambda expressions
 
 ```cpp
  auto planer_lambda = [](double start, double goal) {
     return std::vector<double>(10, 2);
   };
 
-  myrobot1.m_callback = planer_lambda;
-  myrobot1.move(start, goal);
+myrobot.m_callback = planer_lambda;
+myrobot.move(start, goal);
 ```
+
+## Bind expressions
+
 [code](../src/callbacks.cpp)
 
   
