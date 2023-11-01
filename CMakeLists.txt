@@ -334,6 +334,9 @@ add_executable(std_invoke src/std_invoke.cpp)
 
 add_executable(structured_binding_declaration src/structured_binding_declaration.cpp)
 
+add_executable(asynchronous_programming src/asynchronous_programming.cpp)
+
+
 
 if(${CMAKE_GNU_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
     add_executable(printing_with_format src/printing_with_format.cpp)
