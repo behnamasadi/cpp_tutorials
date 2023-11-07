@@ -144,7 +144,6 @@ int main(int argc, char **argv) {
   std::cout << formattedFileTime << '\n';
 }
 
-
 /*
 How to add a path with  "\"
 std::string path{R"(C:\Program Files\DB Browser for SQLite\foo.db)"};
