@@ -47,6 +47,21 @@ cmake --build build --target all --config Release
 
 ```
 
+If you prefer `preset` use:
+
+```
+cmake --preset ninja-multi
+```
+and 
+
+```
+cmake --build --preset ninja-multi-debug
+```
+or 
+```
+cmake --build --preset ninja-multi-release
+```
+
 ### 1. Building the Image
 There is docker file for this project where contains all dependencies and you build the image with :   
 
