@@ -183,7 +183,7 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    * [Class Constructor Initializationlist](src/class/constructor_initialization_list.cpp)  
    * [Class Constructor Aggregate/ Copy/ Default/ Direct/ Value/ Uniform/ Zero Initialization, Initializer List](docs/aggregate-copy-default-direct-value-zero.md)  
    * [Copy/ Move Constructor, rvalue, lvalue, move semantic](docs/copy_constructor_move_constructor_rvalue_lvalue_move_semantic.md)  
-   * [Cyclic (Circular) Dependency](src/class/Circular_Dependency)  
+   * [Cyclic (Circular) Dependency](docs/circular_dependencies.md)  
    * [Default(=default), Deleted (=delete) Constructors](docs/default_constructors_=default_0_delete.md)  
    * [Diamond Problem Virtual Inheritance](src/class/diamond_problem_virtual_inheritance.cpp)  
    * [Explicit Constructor, Converting Constructor](docs/explicit_constructor.md)  
@@ -225,11 +225,12 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
    
    
 
-## [Advance C++ Concepts/ Idiom](#)
+## [Advance C++ Concepts and Idioms](#)
 
    * [Argument-dependent lookup](src/argument_dependent_lookup.cpp)  
    * [Buffer overflow](src/buffer_overflow.cpp)  
    * [Copy and Swap](docs/copy-and-swap_idiom.md)  
+   * [Creating and Debugging Dump File](docs/creating_and_debugging_dump_file.md)     
    * [Static Casting, Dynamic Casting](src/cast.cpp)  
    * [Run-Time Type Information(RTTI)](src/RTTI.cpp)  
    * [Curiously Recurring Template Pattern (CRTP)](src/CRTP.cpp)  
