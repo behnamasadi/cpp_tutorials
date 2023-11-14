@@ -32,8 +32,9 @@ if(USE_CLANG)
     set(CMAKE_RANLIB "/usr/bin/llvm-ranlib")
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20) # Replace 20 with the version number of the latest C++ standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message("using Clang")
