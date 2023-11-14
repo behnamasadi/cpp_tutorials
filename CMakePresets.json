@@ -11,7 +11,7 @@
       "displayName": "Ninja Multi-Config",
       "description": "Use Ninja with multiple configurations",
       "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "binaryDir": "${sourceDir}/build/",
       "cacheVariables": {
         "CMAKE_POLICY_DEFAULT_CMP0048": "NEW",
         "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"

@@ -123,12 +123,6 @@ add_executable(default_0_delete_meaning src/class/default_0_delete_meaning.cpp)
 
 add_executable(object_slicing src/class/object_slicing.cpp)
 
-add_executable(circular_dependency
-    src/class/Circular_Dependency/circular_dependency.cpp
-    src/class/Circular_Dependency/a.cpp
-    src/class/Circular_Dependency/b.cpp
-    src/class/Circular_Dependency/c.cpp)
-
 add_executable(static_member_function src/class/static_member_function.cpp)
 
 add_executable(constructor_initialization_list src/class/constructor_initialization_list.cpp)
@@ -335,7 +329,12 @@ add_executable(std_invoke src/std_invoke.cpp)
 add_executable(structured_binding_declaration src/structured_binding_declaration.cpp)
 
 add_executable(asynchronous_programming src/asynchronous_programming.cpp)
+target_link_libraries(asynchronous_programming -pthread)
 
+add_executable(circular_dependency src/class/circular_dependency/circular_dependency.cpp src/class/circular_dependency/classA.cpp src/class/circular_dependency/classB.cpp)
+
+
+add_executable(core_dump src/core_dump.cpp)
 
 
 if(${CMAKE_GNU_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
