@@ -1,20 +1,23 @@
 image:
-  - Visual Studio 2019
+  - Visual Studio 2022  # Replace with the latest available Visual Studio version if newer
+
 clone_folder: c:\projects\source
 
 environment:
-    PYTHON: "C:\\Python38-x64\\python.exe"
+  PYTHON: "C:\\Python38-x64\\python.exe"
 
 install:
   - cmd: >-
       set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\Python\Python38\Scripts
       "%PYTHON%" -m pip install --user conan
+      choco install cmake --installargs '"ADD_CMAKE_TO_PATH=System"' --yes
+      choco upgrade cmake --yes
       choco install ninja -y
 
 build_script:
   - cmd: >-
       cmake --preset ninja-multi
-      cmake --build --preset ninja-multi-release
+      cmake --build . --preset ninja-multi-release
 
 test_script:
   - cmd: >-
