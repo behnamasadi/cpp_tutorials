@@ -5,14 +5,19 @@ clone_folder: c:\projects\source
 environment:
     PYTHON: "C:\\Python38-x64\\python.exe"
 
+install:
+  - cmd: >-
+      set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\Python\Python38\Scripts
+      "%PYTHON%" -m pip install --user conan
+      choco install ninja -y
+
 build_script:
-- cmd: >-
-    set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\Python\Python38\Scripts
-    
-    "%PYTHON%" -m pip install --user conan
-    
-    cmake -S c:\projects\source -B ./build -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=Release
-    
-    cmake --build ./build --config "Release"
+  - cmd: >-
+      cmake --preset ninja-multi
+      cmake --build --preset ninja-multi-release
+
 test_script:
-- cmd: cd build && ctest -C Debug
+  - cmd: >-
+      cd build
+      ctest -C Release
+
