@@ -268,7 +268,7 @@ add_executable(callbacks src/callbacks.cpp)
 
 add_executable(template_specialization_tag_dispatch src/template_specialization_tag_dispatch.cpp)
 
-add_executable(copy_move src/class/copy_move.cpp)
+#add_executable(copy_move src/class/copy_move.cpp)
 
 add_executable(forward src/forward.cpp)
 
