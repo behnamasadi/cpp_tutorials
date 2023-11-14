@@ -10,15 +10,15 @@ This repository contains my C++ snippets code on **C++ concepts/ idioms**, **opt
 ## Building and Installation
 if you need to update your cmake:
 
-Navigate to [CMake's official](https://cmake.org/download/) website to get the link for the latest source tarball
+Navigate to [CMake's official](https://cmake.org/download/) website to get the link for the latest source tarball:
+
 ```
 ./bootstrap
 make -j$(nproc)
 sudo make install
 sudo update-alternatives --install /usr/bin/cmake cmake /usr/local/bin/cmake 1 --force
-
-
 ```
+
 ### How to build on your machine 
 configure it:
 
@@ -30,21 +30,18 @@ build it:
 
 ```
 cmake --build build --config Release
-
 ```
 
 or 
 
 ```
 cmake --build build --config Debug
-
 ```
 
 or be more specific:
 
 ```
 cmake --build build --target all --config Release
-
 ```
 
 If you prefer `preset` use:
@@ -84,9 +81,9 @@ If you have already created a container from the docker image, you can start it 
 ### 4. Removing  unnecessary images and containers
 You can remove unnecessary images and containers by:
 
-`docker image prune -a`
+`docker image prune -a`  
 
-`docker container prune` 
+`docker container prune`   
 
 
 ### GUI application with docker
