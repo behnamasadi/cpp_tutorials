@@ -15,6 +15,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake ninja-build
 
+    # Optional: Install/update GCC or Clang if necessary
+    - name: Install latest GCC/Clang
+      run: |
+        sudo apt-get install -y g++-10 # Replace with desired version
+        # For Clang: sudo apt-get install -y clang-10 # Replace with desired version
+
     - name: Configure Project with CMake
       run: cmake --preset ninja-multi
       working-directory: ${{ github.workspace }}
