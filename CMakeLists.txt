@@ -274,7 +274,7 @@ add_executable(forward src/forward.cpp)
 
 add_executable(virtual_destructor_virtual_constructor src/class/virtual_destructor_virtual_constructor.cpp)
 
-add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
+#add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
 
 add_executable(json_example src/third_party_tools/jason/nlohmann/json_example.cpp)
 
