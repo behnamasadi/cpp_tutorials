@@ -266,6 +266,8 @@ read more [here](https://ros-developer.com/2017/11/08/docker/)
 ## [C++ Package Manager](#)   
    * [Conan](docs/conan.md)  
    * [vcpkg](docs/vcpkg.md)  
+   * [Chocolatey](https://chocolatey.org/install)
+   * [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
    
    
 
