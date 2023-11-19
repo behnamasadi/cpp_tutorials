@@ -10,6 +10,12 @@ git submodule add https://github.com/microsoft/vcpkg
 ./vcpkg/vcpkg search opencv
 ```
 
+## List of dependencies that will be built 
+
+```
+./vcpkg/vcpkg depend-info opencv4
+```
+
 ## Install the Specific Version
 
 ```
