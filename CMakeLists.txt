@@ -407,10 +407,8 @@ if(testing_enabled)
     add_subdirectory(tests)
 endif()
 
-message(${CMAKE_CURRENT_SOURCE_DIR})
 
-if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
-    # add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox")
-    add_executable(sandbox src/sandbox/sandbox.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox.cpp")
+    add_executable(sandbox src/sandbox.cpp)
 endif()
 

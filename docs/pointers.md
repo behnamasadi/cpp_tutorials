@@ -8,22 +8,19 @@
 - [Smart Pointers](#smart-pointers)
   * [unique_ptr](#unique-ptr)
     + [Releasing a unique pointer](#releasing-a-unique-pointer)
-    + [Returning a unique pointer](#returning-a-unique-pointer)
   * [shared_ptr](#shared-ptr)
     + [Avoiding cyclic references when using shared pointers](#avoiding-cyclic-references-when-using-shared-pointers)
   * [weak_pointer](#weak-pointer)
   * [Checking for null in smart pointers](#checking-for-null-in-smart-pointers)
   * [Pointer casting](#pointer-casting)
-  * [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
-    + [Pass by value to lend the ownership](#pass-by-value-to-lend-the-ownership)
-    + [Passing by reference to manipulate the ownership](#passing-by-reference-to-manipulate-the-ownership)
-    + [Passing simple raw pointers/references](#passing-simple-raw-pointers-references)
-  * [Return smart pointers from functions](#return-smart-pointers-from-functions)
-  * [Reference](#reference)
+- [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
+- [Reference](#reference)
   * [lvalues references and rvalues references](#lvalues-references-and-rvalues-references)
   * [reference wrapper](#reference-wrapper)
-  * [removing reference/ pointer](#removing-reference--pointer)
-  * [Atomic Smart Pointers](#atomic-smart-pointers)
+  * [Removing reference/ pointer](#removing-reference--pointer)
+- [Atomic Smart Pointers](#atomic-smart-pointers)
+- [Smart Pointers Class Member](#smart-pointers-class-member)
+
 
 ## Raw pointer
 
@@ -82,8 +79,7 @@ to avoid this, allway define the pointer as following:
 
 ```cpp
       int *ptr=nullptr; 
-```  
-
+```
 
 ### Dangling pointer
 A dangling pointer is a (non-NULL) pointer which points to unallocated (already freed) memory area.
@@ -189,14 +185,6 @@ Refs: [1](https://www.cplusplus.com/reference/memory/unique_ptr/release/)
 
 
 
-
-### Returning a unique pointer
-
-
-Refs: [1](https://stackoverflow.com/questions/4316727/returning-unique-ptr-from-functions)
-
-
-
 ## shared_ptr
 Shared ownership: shared pointer, It is  mainly meant for multi-threaded resource sharing and gives the guarantee that the object won’t be freed by another thread. The managed object is deleted when the last owning shared_ptr is destroyed. In a typical implementation, a shared_ptr contains only two pointers: 
 1. A raw pointer to the managed object (can be returned by calling get()) 
@@ -224,11 +212,9 @@ Several shared_ptr instances can share the management of an object's lifetime th
                                        |Pointer to allocator, deleter|
                                        |-----------------------------|
 ```
-
+you can use `.use_count()` to access number of references.
 
 Refs: [1](https://www.nextptr.com/tutorial/ta1358374985/shared_ptr-basics-and-internals-with-examples)
-
-
 
 
 There are several ways to create a shared pointer:
@@ -358,101 +344,10 @@ std::shared_ptr<manager> d = std::static_pointer_cast<manager>(b);
 
 ```
 
+# Passing smart pointers to functions
+Read the full [here](passing_returning_smart_pointers_to_from_functions.md)
 
-
-## Passing smart pointers to functions
-
-According to the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#r30-take-smart-pointers-as-parameters-only-to-explicitly-express-lifetime-semantics) a function should take a smart pointer as parameter only if it examines/manipulates the smart pointer itself, i.e:
-counting the references of a std::shared_ptr, increasing them by making a copy, change of ownership (moving data from a std::unique_ptr to another one).
-
-Smart pointers can be passed to functions in following ways
-```cpp
-void f(std::unique_ptr<Object>);    // (1)
-void f(std::shared_ptr<Object>);    // (2)
-void f(std::weak_ptr<Object>);      // (3)
-void f(std::unique_ptr<Object>&);   // (4)
-void f(std::shared_ptr<Object>&);   // (5) also const &
-void f(Object&);                    // (6) also const &
-void f(Object*);                    // (7) also const *
-```
-
-
-### Pass by value to lend the ownership
-Cases in (1), (2), (3), Pass smart pointers by value to lend their ownership to the function, that is when the function wants its own copy of 
-the smart pointer in order to operate on it.
-
-
-1) A std::unique_ptr can't be passed by value because it can't be copied, so it is usually moved around with the special function std::move from the Standard Library. This is move semantics in action:
-
-```cpp
-std::unique_ptr<Object> up = std::make_unique<Object>();
-function(std::move(up)); // Usage of (1)
-```
-After the call `up` is a hollow object. This is known as a sink: the ownership of the dynamically-allocated resource flows down an imaginary sink from one point to another;
-
-2) There's no need to move anything with std::shared_ptr: it can be passed by value (i.e. can be copied). Just remember that its reference count increases when you do it
-
-
-3) std::weak_ptr can be passed by value as well. Do it when the function needs to create a new std::shared_ptr out of it, which would increase the reference count:
-```cpp
-void f(std::weak_ptr<Object> wp)
-{
-  if (std::shared_ptr<Object> sp = wp.lock())
-      sp->doSomething();
-}
-```
-
-### Passing by reference to manipulate the ownership
-
-Pass by reference when the function is supposed to modify the ownership of existing smart pointers. More specifically:
-1) pass a non-const reference to `std::unique_ptr` if the function might modify it, e.g. delete it, make it refer to a different object and so on.
-
-2) the same applies to std::shared_ptr, but you can pass a const reference if the function will only read from it (e.g. get the number of references) 
-or it will make a local copy out of it and share ownership.
-
-### Passing simple raw pointers/references
-
-Go with a simpler raw pointer (can be null) or a reference (can't be null) when your function just needs to inspect the underlying object or do something with it without messing with the smart pointer. Both std::unique_ptr and std::shared_ptr have the get() member function that returns the stored pointer. For example:
-
-```cpp
-std::unique_ptr<Object> pu = std::make_unique<Object>();
-function(*pu.get());  // Usage of (6)
-function(pu.get());   // Usage of (7)
-```
-A `std::weak_ptr` must be converted to a `std::shared_ptr` first in order to take the stored pointer.
-
-## Return smart pointers from functions
-return smart pointers if the caller wants to manipulate the smart pointer itself, return raw pointers/references if the caller just needs a handle to 
-the underlying object.
-If you really need to return smart pointers from a function, always return by value.
-
-```cpp
-std::unique_ptr<Object> getUnique();
-std::shared_ptr<Object> getShared();
-std::weak_ptr<Object>   getWeak();
-```
-
-There are at least three good reasons for this:
-
-
-1) Once again, smart pointers are powered by move semantics: the dynamically-allocated resource they hold is moved around, not wastefully copied.
-
-2) modern compilers play the Return Value Optimization (RVO) trick. They are able to detect that you are returning an object by value, and they apply a sort of return shortcut to avoid useless copies. Starting from C++17, this is guaranteed by the standard. So even the smart pointer itself will be optimized out.
-
-3) returning `std::shared_ptr` by reference doesn't properly increment the reference count, which opens up the risk of deleting something at the wrong time.
-
-Thanks to point 2. you don't need move anything when returning a std::unique_ptr:
-```cpp
-std::unique_ptr<Object> getUnique()
-{
-    std::unique_ptr<Object> p = std::make_unique<Object>();
-    return p; 
-    // also return std::make_unique<Object>();
-}
-```
-
-
-## Reference
+# Reference
 
 Basically pointers can be reassigned to different location in memory but references can only stick to one variable. 
 reference is like an alias for an existing variable, it shares the same address as the original variable.
@@ -543,7 +438,7 @@ std::unique_ptr empolyee1= std::make_unique<person>();
 people.push_back(empolyee1 );
 ```
 
-## removing reference/ pointer 
+## Removing reference/ pointer 
 
 ```cpp
 std::cout<< std::is_same<int, std::remove_pointer<int>::type>();
@@ -551,7 +446,11 @@ std::cout<< std::is_same<int, std::remove_reference<int &>::type>();
 ```
 
 
-## Atomic Smart Pointers
+# Atomic Smart Pointers
 
 Refs: [1](https://www.modernescpp.com/index.php/atomic-smart-pointers)
+
+# Smart Pointers Class Member
+Read the full [here](smart_pointers_class_member.md)
+
 
