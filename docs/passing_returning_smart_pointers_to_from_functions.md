@@ -227,6 +227,48 @@ int main() {
 }
 ```
 
+
+#### 3. std::shared_ptr copied or moved ?
+
+
+when returning a `std::shared_ptr` from a function, whether the pointer is copied or moved depends on a few factors, primarily related to the function's return type and the context in which the return statement is used. Here's how it generally works:
+
+1. **Copy Semantics**: If a `std::shared_ptr` is returned from a function and the return statement uses an lvalue (an object that has a name or is identifiable), the copy constructor of `std::shared_ptr` is invoked. This increases the reference count of the managed object.
+
+   ```cpp
+   std::shared_ptr<MyObject> createObject() {
+       std::shared_ptr<MyObject> ptr = std::make_shared<MyObject>();
+       return ptr; // Copy constructor is called
+   }
+   ```
+
+2. **Move Semantics**: If the return statement uses an rvalue (temporary objects or objects that are about to be destroyed), the move constructor of `std::shared_ptr` is invoked. This transfers ownership without increasing the reference count.
+
+   ```cpp
+   std::shared_ptr<MyObject> createObject() {
+       return std::make_shared<MyObject>(); // Move constructor is called
+   }
+   ```
+
+3. **Return Value Optimization (RVO)**: Modern C++ compilers often apply an optimization called Return Value Optimization or RVO. RVO allows the compiler to construct the return value directly in the memory location where the function's return value would be stored, thereby eliminating the need for a copy or move. This optimization is particularly common when returning a temporary `std::shared_ptr` object.
+
+4. **Named Return Value Optimization (NRVO)**: Similar to RVO, NRVO applies when returning a named local object. The compiler may optimize away the copy or move operation, constructing the object directly in the location it will be used.
+
+5. **Explicit Move**: You can also explicitly use `std::move` to indicate that you want to use move semantics. This is useful when you have an lvalue that you want to treat as an rvalue.
+
+   ```cpp
+   std::shared_ptr<MyObject> createObject() {
+       std::shared_ptr<MyObject> ptr = std::make_shared<MyObject>();
+       return std::move(ptr); // Explicit move
+   }
+   ```
+
+In summary, whether a `std::shared_ptr` is copied or moved when returned from a function depends on whether the returned object is an lvalue or rvalue, and compiler optimizations like RVO and NRVO can also play a significant role in how the return is handled.
+
+
+
+
+
 ### Bad Practices
 
 #### 1. Passing by Reference to Modify the `std::shared_ptr`
@@ -405,5 +447,9 @@ In summary, when working with `std::weak_ptr`, it's important to:
 - Use it when you need to observe an object but don't want to extend its lifetime. 
 
 `std::weak_ptr` is particularly useful in avoiding circular references that can lead to memory leaks. However, its correct use requires careful consideration of the object's lifecycle to ensure safe and predictable code behavior.
+
+
+
+
 
 
