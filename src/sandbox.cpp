@@ -10,81 +10,79 @@
 #include <unordered_set>
 #include <vector>
 
-struct S {
-  int m_id;
-  S(int id) {
-    m_id = id;
-    std::cout << "ctor " << m_id << std::endl;
+struct ResourceHolder {
+
+  // Constructor
+  ResourceHolder(size_t size) : data(new int[size]), size(size) {
+    std::cout << "ctor " << size << std::endl;
   }
 
-  ~S() { std::cout << "dtor " << m_id << std::endl; }
+  // Destructor
+  ~ResourceHolder() { delete[] data; }
 
-  S(S &&rhs) { std::cout << "move ctor " << m_id << std::endl; }
+  // Copy Constructor
+  ResourceHolder(const ResourceHolder &other)
+      : data(new int[other.size]), size(other.size) {
+    std::cout << "copy constructor operator " << size << std::endl;
+    std::copy(other.data, other.data + size, data);
+  }
 
-  S &operator=(S &&rhs) {
-    std::cout << "move assignment operator " << m_id << std::endl;
+  // Copy Assignment Operator
+  ResourceHolder &operator=(const ResourceHolder &other) {
+    if (this != &other) {
+      std::cout << "copy assignment operator " << size << std::endl;
+      delete[] data;
+      size = other.size;
+      data = new int[size];
+      std::copy(other.data, other.data + size, data);
+    }
     return *this;
   }
+
+  // Move Constructor
+  ResourceHolder(ResourceHolder &&other) noexcept
+      : data(other.data), size(other.size) {
+    std::cout << "move constructor operator " << size << std::endl;
+    other.data = nullptr;
+    other.size = 0;
+  }
+
+  // Move Assignment Operator
+  ResourceHolder &operator=(ResourceHolder &&other) noexcept {
+    if (this != &other) {
+      std::cout << "move assignment operator " << size << std::endl;
+      delete[] data;
+      data = other.data;
+      size = other.size;
+      other.data = nullptr;
+      other.size = 0;
+    }
+    return *this;
+  }
+
+  int *data;
+  size_t size;
 };
 
-template <typename T> void printArray(T array) {
-  for (const auto &element : array)
-    std::cout << element << std::endl;
-}
+struct S {
+  std::shared_ptr<ResourceHolder> m_resourceHolder_ptr;
 
-std::unique_ptr<S> createResource() {
-  // Dynamically allocate the resource
-  std::unique_ptr<S> ptr = std::make_unique<S>(10);
-  return ptr; // Safely return the unique_ptr
-}
+  // Constructor to initialize m_resourceHolder_ptr
+  S(size_t size)
+      : m_resourceHolder_ptr(std::make_shared<ResourceHolder>(size)) {}
 
-void takeOwnership(std::unique_ptr<S> ptr) {
-  // Now owns the resource
-}
-
-void processShared(std::shared_ptr<S> s_ptr) {
-  // Do something with ptr
-  // Reference count is maintained automatically
-
-  std::cout << "Reference count: " << s_ptr.use_count() << std::endl;
-}
-
-std::shared_ptr<S> createSharedResource() {
-
-  std::shared_ptr<S> s_ptr = std::make_shared<S>(100);
-
-  std::cout << "Reference count: " << s_ptr.use_count() << std::endl;
-
-  return s_ptr;
-}
-
-std::shared_ptr<S> badIdea() {
-  S local(10);
-  return std::shared_ptr<S>(&local); // Very bad: points to a local variable
-}
+  // The default destructor, copy constructor, move constructor,
+  // copy assignment operator, and move assignment operator
+  // are automatically provided and are suitable for managing the shared_ptr.
+};
 
 int main(int argc, char **argv) {
-  // std::unique_ptr<S> s_ptr = std::make_unique<S>(1);
-  // S s;
+  S s1(1);
 
-  // std::vector<S> vec_s;
+  S s2(2);
 
-  // vec_s.push_back(S(2));
-  // vec_s.push_back(S(3));
+  s2 = s1;
 
-  // std::unique_ptr<S> s_ptr = createResource();
-  // takeOwnership(std::move(s_ptr));
-  // std::cout << "----- " << std::endl;
-
-  // std::shared_ptr<S> s_ptr = std::make_shared<S>(10);
-
-  // std::cout << "Reference count: " << s_ptr.use_count() << std::endl;
-  // processShared(s_ptr);
-  // std::cout << "Reference count: " << s_ptr.use_count() << std::endl;
-
-  // auto sharedPtr = createSharedResource();
-  // std::cout << "Reference count: " << sharedPtr.use_count() << std::endl;
-
-  auto sharedPtr = badIdea();
-  std::cout << "sharedPtr->m_id: " << sharedPtr->m_id << std::endl;
+  std::cout << "s2.m_resourceHolder_ptr->size " << s2.m_resourceHolder_ptr->size
+            << std::endl;
 }
