@@ -1,4 +1,70 @@
+Atomic operations in C++ are a set of operations provided by the `<atomic>` header, which allow for manipulation of data in a way that ensures atomicity. Atomicity is the property of an operation to be indivisible or uninterruptible. This means that, when one thread is performing an atomic operation, no other thread can see the operation in an incomplete state.
 
+### Atomic Types in C++
+
+The C++ Standard Library provides several atomic types, including:
+
+1. `std::atomic_bool`: Atomic boolean type.
+2. `std::atomic_char`, `std::atomic_uchar`: Atomic character types.
+3. `std::atomic_int`, `std::atomic_uint`: Atomic integer types.
+4. `std::atomic_long`, `std::atomic_ulong`: Atomic long types.
+5. `std::atomic_llong`, `std::atomic_ullong`: Atomic long long types.
+6. `std::atomic`: Template class for generic atomic operations.
+
+### Examples
+
+Here are some examples to illustrate the use of atomic operations in C++.
+
+#### Example 1: Basic Atomic Integer
+
+```cpp
+#include <iostream>
+#include <atomic>
+#include <thread>
+
+std::atomic_int counter(0);
+
+void increment() {
+    for (int i = 0; i < 10000; ++i) {
+        counter++;
+    }
+}
+
+int main() {
+    std::thread t1(increment);
+    std::thread t2(increment);
+
+    t1.join();
+    t2.join();
+
+    std::cout << "Counter: " << counter << std::endl;
+    return 0;
+}
+```
+
+In this example, two threads `t1` and `t2` increment a shared `atomic_int` counter 10,000 times each. The atomicity of the counter ensures that the increments are correctly applied without any race conditions.
+
+#### Example 2: Compare-and-Swap
+
+```cpp
+#include <iostream>
+#include <atomic>
+
+int main() {
+    std::atomic<int> value(10);
+    int expected = 10;
+
+    if (value.compare_exchange_strong(expected, 20)) {
+        std::cout << "Value changed successfully to " << value << std::endl;
+    } else {
+        std::cout << "Value was not changed. Expected: " << expected << ", but got: " << value << std::endl;
+    }
+
+    return 0;
+}
+```
+
+This example demonstrates the compare-and-swap (CAS) operation. It attempts to change the value from 10 to 20 only if it is currently 10. The `compare_exchange_strong` function
 
 The followings will print `200`, since each thread will increase the counter 100,
 ```cpp

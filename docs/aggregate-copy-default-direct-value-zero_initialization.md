@@ -47,6 +47,146 @@ Certainly! Initialization in C++ is a fundamental concept, involving various met
 
 Each of these initialization types is useful in different scenarios. The choice depends on factors like the type of object being initialized, efficiency considerations, readability of the code, and the version of the C++ standard being used. Uniform Initialization in C++11 and later offers a more consistent and safer approach across different contexts, reducing the complexity of choosing the appropriate initialization form.
 
+# Examples
+
+Certainly! Here are small examples for each type of initialization in C++:
+
+1. **Initialization Lists (Constructor Initialization Lists)**:
+
+```cpp
+#include <iostream>
+
+class MyClass {
+public:
+    MyClass(int a, int b) : x(a), y(b) {}
+    void print() {
+        std::cout << "x: " << x << ", y: " << y << std::endl;
+    }
+private:
+    int x;
+    int y;
+};
+
+int main() {
+    MyClass obj(10, 20);
+    obj.print();
+    return 0;
+}
+```
+
+2. **Aggregate Initialization**:
+
+```cpp
+#include <iostream>
+
+struct Point {
+    int x;
+    int y;
+};
+
+int main() {
+    Point p = {5, 7};
+    std::cout << "x: " << p.x << ", y: " << p.y << std::endl;
+    return 0;
+}
+```
+
+3. **Copy Initialization**:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int a = 5;
+    int b = a; // Copy initialization
+    std::cout << "a: " << a << ", b: " << b << std::endl;
+    return 0;
+}
+```
+
+4. **Default Initialization**:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int a; // Default initialization (value is indeterminate)
+    std::cout << "a: " << a << std::endl;
+    return 0;
+}
+```
+
+5. **Value Initialization**:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int a = int(); // Value initialization (sets to zero)
+    std::cout << "a: " << a << std::endl;
+    return 0;
+}
+```
+
+6. **Uniform Initialization (List Initialization)**:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int a{42}; // Uniform initialization
+    std::cout << "a: " << a << std::endl;
+    return 0;
+}
+```
+
+7. **Direct Initialization**:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int a(5); // Direct initialization
+    std::cout << "a: " << a << std::endl;
+    return 0;
+}
+```
+
+8. **Zero Initialization**:
+
+```cpp
+#include <iostream>
+
+int main() {
+    int a = {}; // Zero initialization (sets to zero)
+    std::cout << "a: " << a << std::endl;
+    return 0;
+}
+```
+
+9. **Brace-Or-Equal Initializers (In-Class Initialization)**:
+
+```cpp
+#include <iostream>
+
+class MyClass {
+public:
+    int x = 10; // In-Class Initialization
+    void print() {
+        std::cout << "x: " << x << std::endl;
+    }
+};
+
+int main() {
+    MyClass obj;
+    obj.print();
+    return 0;
+}
+```
+
+These examples illustrate the use of each initialization type in different contexts.
+
+
 # Initialization Lists
 Using Initialization lists to initialize Fields
 
