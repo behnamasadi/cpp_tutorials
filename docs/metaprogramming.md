@@ -1,9 +1,8 @@
 # Metaprogramming in C++
 
+Metaprogramming in C++ involves using the language's features to write programs that generate other programs or manipulate themselves at compile time. The primary utilities and techniques for metaprogramming in C++ include:
 
-Metaprogramming in C++ is a programming technique in which a program generates or manipulates source code at compile-time, rather than during runtime. It involves writing code that manipulates or generates other code, rather than just executing instructions directly.
-
-One way to achieve metaprogramming in C++ is through the use of template metaprogramming, which is a form of compile-time computation that uses templates and type information to generate code. Template metaprogramming allows you to write code that is executed at compile-time, rather than at runtime, by using templates and the type system to perform operations and generate code.
+1. **Templates**: Templates are the core of C++ metaprogramming. They allow the creation of generic functions and classes that can work with any data type. Template specialization and template metaprogramming can be used to perform computations and type manipulations at compile time.
 
 Here is an example of template metaprogramming in C++:
 
@@ -35,3 +34,30 @@ Metaprogramming can be a powerful tool for optimizing code and writing generic, 
 
 Refs: [1](https://en.cppreference.com/w/cpp/meta)
 [source code](../src/metaprogramming.cpp)
+
+
+
+
+2. **constexpr Functions**: Introduced in C++11, `constexpr` functions allow the execution of functions at compile time if given constant expressions as arguments. This can be used to perform complex calculations during compilation.
+
+3. **Type Traits and Type Manipulation**: The standard library provides a series of type traits (in the `<type_traits>` header) that allow programmers to inspect and manipulate type information at compile time.
+
+4. **SFINAE (Substitution Failure Is Not An Error)**: This principle is used in template metaprogramming to create templates that are only valid for certain types or under certain conditions. It's often used in conjunction with `std::enable_if`.
+
+5. **Variadic Templates**: Available from C++11 onwards, variadic templates allow functions and classes to take an arbitrary number of template parameters, enabling more flexible and generic template-based solutions.
+
+6. **Static Assertions (`static_assert`)**: Used to assert conditions at compile time, helping in validating template parameters and other compile-time constants.
+
+7. **Inline Variables and constexpr Variables**: C++17 introduced inline variables, which, along with `constexpr` variables, can be used to create complex compile-time computations and constants.
+
+8. **Fold Expressions (C++17)**: Simplify certain kinds of variadic template metaprogramming by allowing easy accumulation or combination of values or types.
+
+9. **Concepts (C++20)**: Provide a way to specify constraints on template parameters, making template metaprogramming more readable and easier to debug.
+
+10. **Constexpr If (C++17)**: A compile-time if statement that allows for conditional compilation based on template parameters or other compile-time constants.
+
+11. **Template Lambda Expressions (C++20)**: Enhance the power of lambda expressions in templates, allowing more flexible and dynamic metaprogramming.
+
+Metaprogramming in C++ can be quite complex and is a powerful tool for creating highly efficient and flexible software. It's commonly used in library development, where generic and efficient code is essential.
+
+
