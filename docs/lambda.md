@@ -44,42 +44,43 @@ int main()
 
 ```
 
-## captures
+## Captures
+To access other variables other than what was passed to lambda within it, we can use capture-clause `[]`. You can capture by both **reference** and **value**, which you can specify using & and = respectively:
 
-To access other variables other than what was passed to lambda within it, we can use capture-clause `[]`. You can capture by both reference and value, which you can specify using & and = respectively:
+If you don't specify the default capture mode, no variables from the enclosing scope will be captured automatically. Each variable that you wish to use inside the lambda must be explicitly captured.
 
-### by value
+There are two main default capture modes in C++ lambda expressions:
+
+1. Capture by value `[=]`: This mode captures all local variables used in the lambda by value. It creates a copy of each variable as it exists at the point where the lambda is defined.
+
+2. Capture by reference `[&]`: This mode captures all local variables used in the lambda by reference. The lambda will operate on the actual variables from the enclosing scope, and any modifications inside the lambda will affect the originals.
+
+If neither of these is specified, you must list each variable you want to capture in the capture list. For example:
+
+- `[&x, y]`: captures `x` by reference and `y` by value.
+- `[]`: captures nothing; no access to variables from the enclosing scope unless passed as arguments.
+- `[&var]`: capture var by reference
+- `[&, var]`: specify that the default way of capturing is by reference and we want to capture var
+- `[=]`: it means that all local variables used inside the lambda function are captured by value. 
+- `[=, &var]`: capture the variables in scope by value by default, but capture var using reference instead
+- `[x, y]`: If you specify individual variable names in the capture list without a preceding `&`, those variables are captured by value. For example, `[x, y]` means `x` and `y` are captured by value. Changes to `x` and `y` inside the lambda will not affect the original variables outside the lambda.
+
+### by value and mutable
 `[=]` capture all variables within scope by value:
 
 ```cpp
     int a;
     a=10;
-    auto lambda =[=]()  mutable { std::cout<<++a<<std::endl; };
+    auto lambda = [=] ()  mutable { ++a; std::cout<<a<<std::endl; };
     lambda();
     std::cout<<a <<std::endl;
 ```
 
-### by reference
-
-- `[&]` capture all variables within scope by reference
-
-```cpp
-    int a;
-    a=10;
-    auto lambda =[&](){ std::cout<<++a<<std::endl;b++; };
-    lambda();
-
-```
-
-- `[&var]` capture var by reference
-- `[&, var]` specify that the default way of capturing is by reference and we want to capture var
-- `[=, &var]` capture the variables in scope by value by default, but capture var using reference instead
+When a variable is captured by value in a lambda expression in C++, a copy of the variable is made and used within the lambda. This copy is independent of the original variable. By default, this copy is `const`, meaning it cannot be modified within the lambda.
 
 
+However, when you use the `mutable` keyword with a lambda, it allows this copied variable to be modified within the lambda. It's important to understand that this modification affects only the lambda's internal copy of the variable, not the original variable outside the lambda. The original variable remains unchanged regardless of any modifications made to the copy within the lambda.
 
-
-Refs: [1](https://stackoverflow.com/questions/39789125/what-does-mean-before-function)
-
-
+In this code, lambda has its own internal copy of `a`. When lambda is called, it modifies this copy (due to **mutable**), but the original `a` in the outer scope remains unchanged at `10`.
 
 [source code](../src/lambda.cpp)

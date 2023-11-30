@@ -1,8 +1,20 @@
 # vcpkg
-First add it as submodule to your peoject:
+First add it as submodule to your project:
 
 ```
 git submodule add https://github.com/microsoft/vcpkg
+```
+
+Then run the following script on windows:
+
+```
+.\vcpkg\bootstrap-vcpkg.bat
+```
+
+on the bash:
+
+```
+./vcpkg/bootstrap-vcpkg.sh
 ```
 
 ## Search for the Library
@@ -37,7 +49,7 @@ vcpkg list
 
 
 
-## Building Dependecies with Your CMakeLists.txt
+## Building Dependencies with Your CMakeLists.txt
 Now add the following to your CMakeLists
 ```
 cmake_minimum_required(VERSION 3.16.3)
@@ -64,12 +76,9 @@ After that, create the following file  `vcpkg.json` next to your `CMakeLists.txt
 }
 ```
 Now you can run:
-```
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=./vcpkg//scripts/buildsystems/vcpkg.cmake
-```
 
 ```
-cmake -S . -B build  -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=./vcpkg//scripts/buildsystems/vcpkg.cmake
+cmake -S . -B build  -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
 
 

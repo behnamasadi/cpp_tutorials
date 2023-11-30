@@ -304,7 +304,10 @@ problem solved:
 ```cpp
 auto f1 = [=]() mutable {x = 42;};  
 ```
+When a variable is captured by value in a lambda expression in C++, a copy of the variable is made and used within the lambda. This copy is independent of the original variable. By default, this copy is `const`, meaning it cannot be modified within the lambda.
 
+
+However, when you use the `mutable` keyword with a lambda, it allows this copied variable to be modified within the lambda. It's important to understand that this modification affects only the lambda's internal copy of the variable, not the original variable outside the lambda. The original variable remains unchanged regardless of any modifications made to the copy within the lambda.
  
 Refs: [1](https://www.youtube.com/watch?v=bP9z3H3cVMY), [2](https://stackoverflow.com/questions/105014/does-the-mutable-keyword-have-any-purpose-other-than-allowing-the-variable-to)
 
