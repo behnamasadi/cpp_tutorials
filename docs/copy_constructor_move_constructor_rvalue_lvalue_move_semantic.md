@@ -21,6 +21,20 @@ or
 S(const S& rhs){std::cout<<"copy constructor" <<std::endl;}
 ```
 
+or for instance here, you create a `std::unique_ptr<std::vector<int>>` that points to a new `std::vector<int>` which is constructed using the copy constructor of `std::vector<int>`. This means you are copying `localVector` into a new `std::vector<int>` that is managed by the `std::unique_ptr`.
+
+```cpp
+std::unique_ptr<std::vector<int>> foo() {
+    std::vector<int> localVector;
+    localVector.push_back(2);
+    localVector.push_back(4);
+    localVector.push_back(5);
+
+    return std::make_unique<std::vector<int>>(localVector);
+}
+```
+
+
 # Copy Assignment Operator
 it happens at  `s2 = s1;`
 

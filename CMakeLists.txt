@@ -82,19 +82,24 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_library(add SHARED src/add.cpp)
     add_executable(loadeding_libraries src/loadeding_libraries.cpp)
     target_link_libraries(loadeding_libraries dl)
+
+    add_executable(align src/align.cpp)
+    
+    add_executable(signals src/signals.cpp)
+    add_executable(system_call src/system_call.cpp)
+
+    # add_executable(date_time src/date_time.cpp)
+
+    add_executable(fork src/fork.cpp)
+    
 endif()
 
 add_executable(template src/template.cpp)
 
-
-ADD_DEFINITIONS(-DLOGING=0)
+add_definitions(-DLOGING=0)
 add_executable(macro src/macro.cpp)
 
 add_executable(inline_functions src/inline_functions.cpp)
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_executable(align src/align.cpp)
-endif()
 
 add_executable(algorithms_library src/algorithms_library.cpp)
 
@@ -133,12 +138,6 @@ add_executable(inheritance src/class/inheritance.cpp)
 add_executable(switch_case src/switch_case.cpp)
 
 add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_executable(signals src/signals.cpp)
-
-    add_executable(system_call src/system_call.cpp)
-endif()
 
 add_executable(error_handling src/error_handling.cpp)
 
@@ -232,17 +231,11 @@ add_executable(lambda src/lambda.cpp)
 
 add_executable(unions src/unions.cpp)
 
-# add_executable(date_time src/date_time.cpp)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_executable(fork src/fork.cpp)
-endif()
-
 add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
 
 add_executable(explicit_constructor src/class/explicit_constructor.cpp)
 
 add_executable(const_constexpr_mutable src/const_constexpr_mutable.cpp)
-
 
 add_executable(literals src/literals.cpp)
 
@@ -333,7 +326,6 @@ add_executable(asynchronous_programming src/asynchronous_programming.cpp)
 target_link_libraries(asynchronous_programming -pthread)
 
 add_executable(circular_dependency src/class/circular_dependency/circular_dependency.cpp src/class/circular_dependency/classA.cpp src/class/circular_dependency/classB.cpp)
-
 
 add_executable(core_dump src/core_dump.cpp)
 

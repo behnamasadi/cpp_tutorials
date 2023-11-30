@@ -1,25 +1,4 @@
-- [Guideline for declaring functions](#guideline-for-declaring-functions)
-  * [using constexpr](#using-constexpr)
-  * [Declaring functions as inline](#declaring-functions-as-inline)
-  * [Declare function as noexcept](#declare-function-as-noexcept)
-- [Guideline for parameter passing to functions](#guideline-for-parameter-passing-to-functions)
-  * [Take `T*` or `T&` arguments rather than smart pointers](#take--t---or--t---arguments-rather-than-smart-pointers)
-- [Passing smart pointers to functions](#passing-smart-pointers-to-functions)
-  * [Passing as `const smartptr<T>&`](#passing-as--const-smartptr-t---)
-  * [Passing as `smartptr<T>&`](#passing-as--smartptr-t---)
-  * [Passing as `smartptr<T>`](#passing-as--smartptr-t--)
-  * [Passing as `smartptr<T>&&`](#passing-as--smartptr-t----)
-- [Guideline for value return from functions](#guideline-for-value-return-from-functions)
-- [Returning object from function](#returning-object-from-function)
-  * [Returning a reference](#returning-a-reference)
-  * [Returning a const reference](#returning-a-const-reference)
-  * [Returning a reference to a non-const object](#returning-a-reference-to-a-non-const-object)
-  * [Return smart pointers from functions](#return-smart-pointers-from-functions)
-- [Sending a function as parameter to an other function](#sending-a-function-as-parameter-to-an-other-function)
-- [Function Objects (Functors)](#function-objects--functors-)
-- [Function Pointer](#function-pointer)
-- [Inline Function](#inline-function)
-- [Extern Function](#extern-function)
+
 
 # Guideline for declaring functions
 ## using constexpr
@@ -50,129 +29,14 @@ If a function tiny and time-critical, it is better to declare it as inline. [mor
 ## Take `T*` or `T&` arguments rather than smart pointers
 
 
-# Passing smart pointers to functions
-Smart pointers are all about ownership of what they point to. Who owns this memory and who will be responsible for deleting it.
-
-```cpp
-struct S
-{
-	int m_id;
-	S(int id) 
-	{ 
-		m_id = id;
-		std::cout << "int constructor:"<< m_id << std::endl; }
-	S() { std::cout << "constructor" << std::endl; }
-	~S() { std::cout << "deconstructor" << std::endl; }
-	S(const S& rhs) { std::cout << "copy constructor" << rhs.m_id <<std::endl; }
-	S(S&& rhs) { std::cout << "move constructor" << rhs.m_id <<std::endl; }
-};
-```
-
-## Passing as `const smartptr<T>&`
-
-Passing as `const smartptr<T>&` always work (and you cannot change the pointer, but can change the state of what it points to).
-
-```cpp
-void foo(const std::unique_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-or 
-```cpp
-void foo(const std::shared_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-## Passing as `smartptr<T>&`
-Passing as `smartptr<T>&` always work (and you can change the pointer as well).
-
-```cpp
-void foo(std::unique_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 12;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-or
-
-```cpp
-void foo(std::shared_ptr<S> &s_ptr)
-{
-	s_ptr->m_id = 12;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-## Passing as `smartptr<T>`
-Passing as `smartptr<T>` (by copy) works only if smartptr is copyable. It works with `std::shared_ptr`, but not with `std::unique_ptr`, unless you "move" it on call, like in `foo(atd::move(s_ptr))`, thus nullifying myptr, moving the pointer to the passed parameter. (Note that move is implicit if myptr is temporary). 
-
-```cpp
-void foo(std::unique_ptr<S> s_ptr)
-{
-	s_ptr->m_id = 12;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-you should call the `foo` as following :
-
-`foo(std::move(s_ptr));`
-
-or you should define `foo` as:
-
-```cpp
-void foo(std::shared_ptr<S> s_ptr)
-{
-
-	std::cout << "bar " << s_ptr->m_id << std::endl;
-}
-```
-## Passing as `smartptr<T>&&`
-
-Passing as `smartptr<T>&&` (by move) imposes the pointer to be moved on call, by forcing you to explicitly use `std::move` (but requires "move" to make sense for the particular pointer).
-
-```cpp
-void foo(const std::shared_ptr<S> &&s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-or
-
-```cpp
-void foo(const std::unique_ptr<S> &&s_ptr)
-{
-	s_ptr->m_id = 11;
-	std::cout << "foo " << s_ptr->m_id << std::endl;
-}
-```
-
-should be called:
-
-
-```cpp
-foo(std::move(s_ptr));
-if (s_ptr.get()==nullptr )
-{
-	std::cout << s_ptr->m_id << std::endl;
-}
-```
-
-Refs: [1](https://stackoverflow.com/questions/12519812/how-do-i-pass-smart-pointers-into-functions)
-
-
+# Passing/ returning smart pointers from/to functions
+Please read full article [here](passing_returning_smart_pointers_to_from_functions.md)
 
 # Guideline for value return from functions
 
 Refs: [1](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-functions)
 
-# Returning object from function
+# Returning from function
 ##  Returning a reference
 it's okay to return a reference if the lifetime of the object won't end after the call but never retrun a reference to a local object. Also okay for accessing things where you know the lifetime is being kept open on a higher-level, e.g.:
 ```cpp
@@ -248,6 +112,93 @@ char *myOtherBadFunction()
 
 Refs: [1](https://stackoverflow.com/questions/275214/scope-and-return-values-in-c), [2](https://stackoverflow.com/questions/752658/is-the-practice-of-returning-a-c-reference-variable-evil)
 
+
+
+
+## Returning a reference to a `std::vector`
+Returning a reference to a `std::vector` (or any other local object) that is defined within a function is not a good practice in C++ because it leads to undefined behavior. When a function returns, all its local variables (those defined inside the function) are destroyed. If you return a reference to such a local variable, you end up with a reference to a destroyed (or "dangling") object. Accessing this reference later in your program can cause crashes or unpredictable behavior.
+
+Here's what typically happens when you try to return a local object by reference:
+
+```cpp
+#include <vector>
+
+std::vector<int>& dangerousFunction() {
+    std::vector<int> localVector = {1, 2, 3};
+    return localVector; // Dangerous: localVector is destroyed when the function exits
+}
+
+int main() {
+    std::vector<int>& myVectorRef = dangerousFunction(); // myVectorRef is now a dangling reference
+    // Using myVectorRef here is unsafe and leads to undefined behavior
+}
+```
+
+In the code above, `dangerousFunction` creates a local `std::vector` and returns a reference to it. However, as soon as `dangerousFunction` exits, `localVector` is destroyed, and the reference returned becomes invalid.
+
+### Safe Alternatives
+
+
+**Use Smart Pointers**
+
+The following code is safe, but it's not as efficient as it could be. Here's the breakdown of the function:
+
+```cpp
+std::unique_ptr<std::vector<int>> foo() {
+    std::vector<int> localVector;
+    localVector.push_back(2);
+    localVector.push_back(4);
+    localVector.push_back(5);
+
+    return std::make_unique<std::vector<int>>(localVector);
+}
+```
+
+In this function:
+1. You create a local `std::vector<int>` named `localVector`.
+2. You populate `localVector` with some integers.
+3. Then, you create a `std::unique_ptr<std::vector<int>>` that points to a new `std::vector<int>` which is constructed using the copy constructor of `std::vector<int>`. This means you are copying `localVector` into a new `std::vector<int>` that is managed by the `std::unique_ptr`.
+
+The code is safe in the sense that it won't lead to undefined behavior or memory leaks. The `std::unique_ptr` will manage the memory of the new `std::vector<int>` created on the heap, and this memory will be properly deallocated when the `std::unique_ptr` goes out of scope or is otherwise destroyed.
+
+However, the inefficiency lies in the fact that you are making a copy of `localVector` when you create the `std::unique_ptr`. This is an unnecessary operation, as you could directly allocate the vector on the heap and avoid the copy. A more efficient approach would be to directly create the vector in the heap:
+
+```cpp
+std::unique_ptr<std::vector<int>> foo() {
+    auto ptr = std::make_unique<std::vector<int>>();
+    ptr->push_back(2);
+    ptr->push_back(4);
+    ptr->push_back(5);
+
+    return ptr;
+}
+```
+
+In this revised version, you avoid the extra copy by directly manipulating the vector on the heap. This is generally a better practice when dealing with unique pointers and dynamically allocated objects.
+
+
+
+
+## Returning a std::vector
+
+In C++, when a function returns a `std::vector`, the behavior regarding copying depends on the context and the version of the C++ standard you are using.
+
+1. **C++98 and C++03 (Before Move Semantics):** In these older versions of C++, returning a `std::vector` from a function would typically result in a copy of the vector being made. This is because move semantics were not yet introduced, so the copy constructor would be invoked to create a copy of the vector when returning from the function.
+
+2. **C++11 and Later (With Move Semantics):** Starting with C++11, move semantics were introduced. This means that when you return a `std::vector` from a function, the compiler can utilize the move constructor instead of the copy constructor. The move constructor is more efficient because it transfers the internal data from the original vector to the new one, avoiding the need to copy all the elements. This operation is called Return Value Optimization (RVO) or copy elision.
+
+   - **Automatic Move if RVO Doesn't Apply:** Even if RVO is not applied by the compiler, the vector will still be moved rather than copied, provided that the vector being returned is a local object and the move constructor is available (which it is for `std::vector`).
+
+   - **Named Return Value Optimization (NRVO):** There's also a specific case called NRVO, where the compiler can optimize the return of a named local variable. This optimization depends on the compiler and the specific scenario.
+
+3. **Lambdas and Captured Vectors:** If a lambda function captures a vector and the lambda is returned, it will carry its captured context along with it, which might involve copying the vector, depending on how the lambda captures it (by value or by reference).
+
+4. **Function Parameters and Return-by-Reference:** If the function's purpose is to modify a vector passed by reference and then return it, there is no copying involved, as the function operates on the original vector.
+
+In summary, whether a `std::vector` is copied when returned from a function in C++ depends on the version of C++ and the specific circumstances. With modern C++ (C++11 and later), move semantics usually prevent unnecessary copies, making the operation more efficient.
+
+
+
 ## Returning a const reference
 
 ```cpp
@@ -295,20 +246,7 @@ Refs: [1](https://www.bogotobogo.com/cplusplus/object_returning.php)
 ## Returning a reference to a non-const object
 
 
-## Return smart pointers from functions
-If you want to allocate something that lives beyond the scope of the function, use a smart pointer (or in general, a container):
 
-```cpp
-std::unique_ptr<int> getInt() 
-{
-    return std::make_unique<int>(0);
-}
-```
-and the caller:
-
-```cpp
-std::unique_ptr<int> x = getInt();
-```
 
 
 Refs: [1](https://stackoverflow.com/questions/10643563/how-to-return-smart-pointers-shared-ptr-by-reference-or-by-value)
