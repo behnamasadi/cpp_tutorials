@@ -24,7 +24,7 @@ These rules help manage resource ownership and copying behavior, ensuring resour
 
 
 ## Examples
-Certainly! Let's go through examples for each of the special member functions in C++:
+Let's go through examples for each of the special member functions in C++:
 
 ### 1. Default Constructor
 ```cpp

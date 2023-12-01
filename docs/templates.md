@@ -389,18 +389,85 @@ struct Vector<3> {
 };
 ```
 
+# Templated class in cpp
 
+In C++, it's generally recommended to define templated classes in a header file, not in a .cpp file. The reason for this lies in how the C++ compiler handles templates.
 
+When you use a template class in your code, the compiler generates an instance of the template for the specific types used in your code. This process is called template instantiation. For the compiler to do this, it needs to see the full definition of the template class at the point of instantiation. 
 
-# Tag Dispatch
+If the template definition is in a .cpp file, it will only be available in that translation unit. This means that if you try to use the template in another .cpp file, the compiler won't have access to the necessary code to instantiate the template, leading to a linker error.
 
+By placing the template definition in a header file, you ensure that it is included in every .cpp file that uses the template, allowing the compiler to generate the needed instances.
 
-Refs: [1](https://www.youtube.com/watch?v=Vkck4EU2lOU)
+However, there are techniques to define templates in a .cpp file if you know all the types that will be used with the template ahead of time. This is known as explicit instantiation. In this case, you can define the template in a .cpp file and then explicitly instantiate it for the specific types you need. But this approach is less flexible and generally less common than defining templates in header files.
 
-# SFINAE
+Let's illustrate this with a simple example of a templated class in C++. 
 
+First, I'll show how to correctly place a template class in a header file. Then, I'll demonstrate the less common approach of defining it in a .cpp file with explicit instantiation for specific types.
 
+### Example with Template in Header File
 
-# Separate the definition of templates class and putting it inside a .cpp files
+1. **MyTemplateClass.h**
+   ```cpp
+   #ifndef MY_TEMPLATE_CLASS_H
+   #define MY_TEMPLATE_CLASS_H
 
-Refs: [1](https://stackoverflow.com/questions/115703/storing-c-template-function-definitions-in-a-cpp-file)
+   // Template class definition
+   template <typename T>
+   class MyTemplateClass {
+   public:
+       MyTemplateClass(T value) : value_(value) {}
+
+       T getValue() const {
+           return value_;
+       }
+
+   private:
+       T value_;
+   };
+
+   #endif // MY_TEMPLATE_CLASS_H
+   ```
+
+2. **main.cpp**
+   ```cpp
+   #include <iostream>
+   #include "MyTemplateClass.h"
+
+   int main() {
+       MyTemplateClass<int> intInstance(5);
+       MyTemplateClass<double> doubleInstance(3.14);
+
+       std::cout << "Integer value: " << intInstance.getValue() << std::endl;
+       std::cout << "Double value: " << doubleInstance.getValue() << std::endl;
+
+       return 0;
+   }
+   ```
+
+In this setup, the template class is defined in the header file (`MyTemplateClass.h`). This way, any .cpp file that includes this header will have access to the complete template definition, allowing the compiler to instantiate it for any type used in those .cpp files.
+
+### Example with Explicit Instantiation in CPP File
+
+1. **MyTemplateClass.cpp**
+   ```cpp
+   #include "MyTemplateClass.h"
+
+   // Explicit instantiation of the template for int and double
+   template class MyTemplateClass<int>;
+   template class MyTemplateClass<double>;
+   ```
+
+2. **MyTemplateClass.h**
+   ```cpp
+   // Same as before
+   ```
+
+3. **main.cpp**
+   ```cpp
+   // Same as before
+   ```
+
+In this case, `MyTemplateClass.cpp` contains explicit instantiations of the template class for `int` and `double`. This means that the compiler will generate the template code for these two types in this translation unit. However, if you try to use `MyTemplateClass` with a type other than `int` or `double` in another .cpp file, you will get a linker error unless you add an explicit instantiation for that type as well.
+
+The first approach (defining the template in the header) is more flexible and is the commonly used practice in C++. The second approach (explicit instantiation in the .cpp file) is more restrictive and is generally used in specific scenarios where template instantiation overhead needs to be controlled, or for reducing compilation times in large projects.

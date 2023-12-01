@@ -1,5 +1,93 @@
 # Callbacks
 
+Callbacks in C++ are mechanisms that allow a piece of code to be called at a later time, often in response to some kind of event or condition. They are frequently used in event-driven programming, such as in graphical user interfaces, or for handling asynchronous operations. Here are a few common ways to implement callbacks in C++:
+
+1. **Function Pointers:** This is the most basic form of callback in C++. A function pointer can point to a function with a matching signature and can be passed as an argument to other functions.
+
+   ```cpp
+   void MyCallbackFunction(int a) {
+       // Do something
+   }
+
+   void RegisterCallback(void (*callback)(int)) {
+       // Store the function pointer and call it later
+       callback(10);
+   }
+
+   // Usage
+   RegisterCallback(MyCallbackFunction);
+   ```
+
+2. **Functors (Function Objects):** These are objects that can be used like functions. They are instances of a class that has the `operator()` defined.
+
+   ```cpp
+   class Functor {
+   public:
+       void operator()(int a) {
+           // Do something
+       }
+   };
+
+   void RegisterCallback(Functor functor) {
+       // Call the functor
+       functor(10);
+   }
+
+   // Usage
+   Functor myFunctor;
+   RegisterCallback(myFunctor);
+   ```
+
+3. **Lambdas (since C++11):** These are anonymous functions that can be defined inline and used as callbacks. They are very powerful and flexible.
+
+   ```cpp
+   void RegisterCallback(std::function<void(int)> callback) {
+       // Call the callback
+       callback(10);
+   }
+
+   // Usage
+   RegisterCallback([](int a) {
+       // Do something
+   });
+   ```
+
+4. **std::function (since C++11):** This is a standard library feature that can store and invoke any callable target—functions, lambda expressions, bind expressions, or other function objects.
+
+   ```cpp
+   void RegisterCallback(std::function<void(int)> callback) {
+       // Store and call the callback
+       callback(10);
+   }
+
+   // Usage
+   std::function<void(int)> myCallback = [](int a) { /* Do something */ };
+   RegisterCallback(myCallback);
+   ```
+
+5. **Member Function Pointers:** These are used when you need to call member functions of a class as callbacks.
+
+   ```cpp
+   class MyClass {
+   public:
+       void MyMemberFunction(int a) {
+           // Do something
+       }
+   };
+
+   void RegisterCallback(void (MyClass::*callback)(int), MyClass& obj) {
+       // Call the member function
+       (obj.*callback)(10);
+   }
+
+   // Usage
+   MyClass obj;
+   RegisterCallback(&MyClass::MyMemberFunction, obj);
+   ```
+
+Each of these methods has its own use cases and advantages. The choice depends on factors such as the need for stateful callbacks, the requirement to capture local variables, performance considerations, and the complexity of the callback logic.
+
+
 A callback function is a callable passed as an argument to a class or function, used to customize the current logic depending on that callback. 
 
 Callback functionality can be achieved in several ways:

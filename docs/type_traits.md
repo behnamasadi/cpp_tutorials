@@ -75,7 +75,7 @@ Here are some examples to illustrate these concepts:
 These examples demonstrate how `type_traits` can be used to make compile-time decisions based on type information, which is a powerful technique for template metaprogramming in C++.
 
 ## A real-world scenario
-Certainly! A real-world scenario where type traits can be extremely useful is in the development of a generic container class. Let's consider a scenario where we're implementing a custom container class, and we want it to behave differently based on whether it's storing a pointer type or a non-pointer type. 
+A real-world scenario where type traits can be extremely useful is in the development of a generic container class. Let's consider a scenario where we're implementing a custom container class, and we want it to behave differently based on whether it's storing a pointer type or a non-pointer type. 
 
 For instance, we might want our container to automatically delete objects it owns when it's storing pointers (to manage memory), but do nothing of the sort for non-pointer types. Here's how you might implement this using `type_traits`:
 

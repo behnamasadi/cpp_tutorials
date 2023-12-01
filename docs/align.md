@@ -222,7 +222,7 @@ For dynamic-sized matrices and vectors (like `Eigen::MatrixXd` or `Eigen::Vector
 
 # Cache Lines
 
-Certainly! The concept of memory alignment is deeply intertwined with the architecture of computer memory, particularly cache lines. Understanding this relationship is crucial in high-performance computing, where proper alignment can significantly impact the efficiency of memory access.
+The concept of memory alignment is deeply intertwined with the architecture of computer memory, particularly cache lines. Understanding this relationship is crucial in high-performance computing, where proper alignment can significantly impact the efficiency of memory access.
 
 ### Cache Lines
 
