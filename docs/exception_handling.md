@@ -358,12 +358,66 @@ catch (...)//... Parameter Pack Expansion, will catch any exception
 
 # noexcept 
 
+The `noexcept` specification in C++ is used to indicate that a function is not expected to throw exceptions. This helps in optimizing the code, as the compiler can make certain optimizations knowing that no exceptions will be thrown from that function. However, if an exception is thrown from a `noexcept` function, the program will call `std::terminate`, resulting in a potential program crash.
+
+### When to Use `noexcept`
+
+1. **Performance Critical Functions**: In functions where performance is critical, and you're sure that no exceptions will be thrown, using `noexcept` can improve performance.
+
+2. **Move Constructors and Move Assignments**: It's generally good practice to mark move constructors and move assignments as `noexcept`. This is because many standard library implementations will only use move semantics if these operations are marked as `noexcept`.
+
+3. **Functions Guaranteed Not to Throw**: If you're certain that a function won't throw an exception (like simple getters or setters that don't do any complex operations), marking them as `noexcept` can be a good practice.
+
+### Real-life Scenario
+
+Imagine you're developing a real-time game engine where performance is critical. You have a function that updates the position of a game object based on its velocity and the elapsed time. This function is straightforward and doesn't involve operations that might throw exceptions (like memory allocation, file I/O, etc.).
+
+```cpp
+class GameObject {
+public:
+    // Other members...
+
+    // Update position - noexcept since it's a simple calculation
+    void updatePosition(float elapsedTime) noexcept {
+        position.x += velocity.x * elapsedTime;
+        position.y += velocity.y * elapsedTime;
+        // Other simple calculations...
+    }
+
+    // Other members...
+};
+
+// In the game loop
+gameObject.updatePosition(elapsedTime);
+```
+
+In this scenario, using `noexcept` for `updatePosition` makes sense because:
+1. The function is simple and unlikely to throw exceptions.
+2. The function is likely called very frequently (every frame), so any performance improvement is beneficial.
+3. If an exception does occur here, it likely indicates a severe logic error or a bug that should terminate the program, which is the behavior `noexcept` enforces.
+
+Marking move constructors and move assignments as `noexcept` in C++ is considered good practice for several key reasons:
+
+1. **Optimizations in Standard Library Containers**: Many standard library containers, like `std::vector` and `std::deque`, can perform certain optimizations if they know that move operations do not throw exceptions. For instance, when a `std::vector` resizes, it may choose to move its elements to the new memory location instead of copying them, but only if the move operations are `noexcept`. This can lead to significant performance improvements.
+
+2. **Strong Exception Safety Guarantee**: By marking move operations as `noexcept`, you are ensuring that these operations won't throw exceptions, which aids in providing strong exception safety guarantees. This is particularly important in scenarios where maintaining system state consistency is crucial, and exceptions can lead to partial state changes or leaks.
+
+3. **Better Resource Management and Safety**: In the context of resource management (like memory, file handles, network connections), move semantics allow for efficient transfer of resources. When these operations are `noexcept`, it ensures that the resource transfer is safe and no exceptions will be thrown during the process, preventing resource leaks or undefined states.
+
+4. **Improved Compiler Error Messages**: If you mistakenly use a type in a context that requires a `noexcept` move operation and your type doesn't provide it, the compiler can give a clear and specific error message. This helps in catching potential issues at compile time.
+
+5. **Compatibility with Move-Only Types**: Some types in C++ are move-only (like `std::unique_ptr`). If your class holds move-only members and your move operations are not `noexcept`, this can lead to complications or even prevent your class from being used in certain standard library containers or algorithms.
+
+6. **Semantical Clarity**: Marking move operations as `noexcept` clearly communicates your intent to other developers that these operations are safe and won't throw exceptions. This enhances code readability and maintainability.
+
+In summary, using `noexcept` with move constructors and assignments improves performance and exception safety, ensures better resource management, improves code clarity, and ensures compatibility with certain types and containers in the C++ standard library.
+
 
 ## noexcept specifier
 This means if a function specified with noexcept it shouldn't throw exception (evaluation of its operand can propagate an exception).
 
 The bodies of called functions are not examined to check if they actually throw exception or not, and `noexcept` can yield false negatives. 
-In the case of excpetion `std::sterminate` will be called
+In the case of exception `std::sterminate` will be called
 ## noexcept operator
 It tests if a function noexcept specification evaluate to true or false at compile time.
 noexcept(some compile time expression) and this returns a boolean

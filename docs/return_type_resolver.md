@@ -27,7 +27,7 @@ auto add(T t, U u) -> decltype(t + u) {
 
 In this example, the return type of `add` is resolved based on the types of `t` and `u`. If `t` and `u` are, say, an `int` and a `float`, the return type would be `float`, as that's the result of adding an `int` and a `float` together.
 
-Certainly! `std::enable_if` is a template metaprogramming utility in C++ that can be used to enable or disable a function template based on a compile-time condition. It is a part of the C++ Standard Library's `<type_traits>` header and is commonly used in the context of SFINAE (Substitution Failure Is Not An Error).
+`std::enable_if` is a template metaprogramming utility in C++ that can be used to enable or disable a function template based on a compile-time condition. It is a part of the C++ Standard Library's `<type_traits>` header and is commonly used in the context of SFINAE (Substitution Failure Is Not An Error).
 
 The basic idea is that `std::enable_if` can conditionally enable a function template when a particular trait or condition is true. If the condition is false, the template is not considered a valid candidate for specialization, which effectively removes it from the set of overloads the compiler considers during compilation.
 

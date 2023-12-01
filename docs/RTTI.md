@@ -13,7 +13,7 @@ Run-Time Type Information (RTTI) is a feature provided by some programming langu
 
 5. **Controversy and Alternatives**: While RTTI provides dynamic type information capabilities, its use is sometimes debated among developers. Some argue that excessive use of RTTI may indicate a design problem in the application. Alternatives like visitor patterns, type tags, and dynamic interfaces are often used in place of RTTI to achieve similar functionality with potentially less overhead or more controlled type-handling mechanisms.
 
-Certainly! A common scenario where RTTI is useful involves polymorphic class hierarchies, where you need to perform specific operations based on the actual type of the object at runtime. Let's consider a classic example in C++ involving a base class and multiple derived classes.
+A common scenario where RTTI is useful involves polymorphic class hierarchies, where you need to perform specific operations based on the actual type of the object at runtime. Let's consider a classic example in C++ involving a base class and multiple derived classes.
 
 ### Scenario:
 Imagine we have a class hierarchy for different types of media content, like `Audio`, `Video`, and `Image`, all derived from a base class `Media`. We have a function that takes a pointer to `Media` and needs to perform certain actions depending on whether the actual object is `Audio`, `Video`, or `Image`.

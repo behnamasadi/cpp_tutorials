@@ -74,7 +74,7 @@ In this example, `FileHandler` is a custom class that manages a file resource. T
 
 
 
-Certainly! Let's create some more practical examples of RAII in C++ to illustrate how it can be applied in real-world scenarios.
+Let's create some more practical examples of RAII in C++ to illustrate how it can be applied in real-world scenarios.
 
 ### Example 1: Database Connection Handler
 Imagine you're working on an application that requires database interactions. You can use RAII to manage database connections.

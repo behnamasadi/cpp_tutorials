@@ -47,7 +47,7 @@ The static initialization order fiasco is a problem that occurs when dealing wit
 
 
 ### Local Static Objects
-Certainly! The "Local Static Objects" solution is a widely used approach to avoid the Static Initialization Order Fiasco in C++. This method ensures that a static object is initialized the first time its enclosing function is called. This technique is often referred to as the "construct on first use" idiom. Here's how you can implement it:
+The "Local Static Objects" solution is a widely used approach to avoid the Static Initialization Order Fiasco in C++. This method ensures that a static object is initialized the first time its enclosing function is called. This technique is often referred to as the "construct on first use" idiom. Here's how you can implement it:
 
 ### Basic Concept
 - **Initialization on First Use**: The object is constructed the first time the function is called, which is guaranteed to be after all static initialization is complete.
