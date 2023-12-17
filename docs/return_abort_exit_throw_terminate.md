@@ -1,36 +1,61 @@
 # Program Control Flow and Termination in C++
 
-In C++, the commands `return`, `exit`, `quick_exit`, `_Exit`, `abort`, `throw`, `terminate`, and exit are used to control the flow of execution in a program, especially for terminating functions or the entire program. Let's explore each of these:
+In C++, the commands `return`, `exit`, `quick_exit`, `_Exit`, `abort`, `throw`, and `terminate`, are used to control the flow of execution in a program, especially for terminating functions or the entire program. Let's explore each of these:
 
 # return
-`retrun` is an instruction of the language and primarily used in functions to return a value to the caller and to terminate the execution of the function..
+`retrun` is an instruction of the language and primarily used in functions to return a value to the caller and to terminate the execution of the function.
 
 **Example**: Let's say we have the following code:
 
 ```cpp
-struct Foo
-{
-    std::string id;
-    Foo(std::string id)
-    {
-        this->id= id;
-        std::cout<<id<<" constructor" <<std::endl;
-    }
-    ~Foo()
-    {
-        std::cout<<id <<" destructor" <<std::endl;
-    }
+struct Foo {
+  std::string id;
+  Foo(std::string id) : id(id) {
+
+    std::cout << id << " constructor" << std::endl;
+  }
+  ~Foo() { std::cout << id << " destructor" << std::endl; }
 };
 ```
 
-if run the program and then `echo $?`, it will give you your return value `5` and also we will see the the destructor
+If run the program and then `echo $?`, it will give you your return value `5` and also we will see the the destructor
 ```cpp
-Foo fooObject("3");
+Foo fooObject("normal return");
 return 5;
 ```
 
+In Bash, `echo $?` is used to display the exit status of the last command executed. The exit status is a number that indicates whether the command was successful or not. A value of `0` typically means that the command was successful, while any non-zero value indicates an error or an abnormal condition.
 
-# exit(exit_code)
+### Example of Using `echo $?`:
+
+1. **After a Successful Command**:
+```bash
+$ ls
+file1.txt file2.txt
+$ echo $?
+0
+```
+Here, `ls` successfully lists files, so `echo $?` returns `0`.
+
+2. **After a Failed Command**:
+```bash
+$ ls non_existing_file.txt
+ls: cannot access 'non_existing_file.txt': No such file or directory
+$ echo $?
+2
+```
+
+**In Conditional Statements**:
+```bash
+if some_command; then
+    echo "Success"
+else
+    echo "Failure, exit status was $?"
+fi
+```
+
+
+# exit (exit_code)
 `exit`: It terminates the current process and returns the `exit_code` to the operating system. It performs cleanup operations before terminating (like flushing output buffers and calling destructors of **global/static objects**). `exit` is a [system call](system_call.md). `exit()` will call `atexit()` function. `atexit()` is a function that register a function to be called before termination of your application, for instance for cleaning up a temporary folder or print a memory [dump](generating_and_debugging_dump_file.md). If you run the following program:
 
 **Example**: 
@@ -127,6 +152,7 @@ You can handle an abort signal however you want, but the default behavior is to 
 `abort()` exits your program **without** calling functions registered using `atexit()`.
 `abort` will not perform object destruction. `exit()` does both (only calling  destructor of for your **static** and **global**) before exiting your program. 
 
+
 **Example**: If you run the followings:
 ```cpp
 Foo globalFoo("global object");
@@ -161,6 +187,8 @@ calling `exit()` mean your application should finish all task gracefully.
 # terminate
 
 `terminate` is called by C++ runtime when an exception is not caught. Like `abort`, it terminates the program without performing any cleanup. It can also be called directly.
+
+
 **Example**: It's rarely called directly but is invoked when an exception is thrown and not caught.
 
 ```cpp
