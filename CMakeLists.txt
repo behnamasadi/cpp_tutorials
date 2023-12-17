@@ -352,6 +352,8 @@ message("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
 message("\n########################################## tinyxml2 ##########################################\n")
 pkg_check_modules(TINYXML2 tinyxml2)
+#find_package(TinyXML2 )
+
 
 if(${TINYXML2_FOUND})
     message("TINYXML2_FOUND:" ${TINYXML2_FOUND})
@@ -400,7 +402,7 @@ if(testing_enabled)
 endif()
 
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox.cpp")
-    add_executable(sandbox src/sandbox.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+    add_executable(main src/main.cpp)
 endif()
 
