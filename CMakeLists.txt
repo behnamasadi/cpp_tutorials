@@ -78,21 +78,7 @@ add_executable(arrays src/arrays.cpp)
 add_executable(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
 
 # ADD_LIBRARY(add MODULE src/add.cpp)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_library(add SHARED src/add.cpp)
-    add_executable(loadeding_libraries src/loadeding_libraries.cpp)
-    target_link_libraries(loadeding_libraries dl)
 
-    add_executable(align src/align.cpp)
-    
-    add_executable(signals src/signals.cpp)
-    add_executable(system_call src/system_call.cpp)
-
-    # add_executable(date_time src/date_time.cpp)
-
-    add_executable(fork src/fork.cpp)
-    
-endif()
 
 add_executable(template src/template.cpp)
 
@@ -406,3 +392,21 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_executable(main src/main.cpp)
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_library(add SHARED src/add.cpp)
+    add_executable(loadeding_libraries src/loadeding_libraries.cpp)
+    target_link_libraries(loadeding_libraries dl)
+
+    add_executable(align src/align.cpp)
+    
+
+    set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+    add_executable(signals src/signals.cpp)
+    add_executable(system_call src/system_call.cpp)
+
+    # add_executable(date_time src/date_time.cpp)
+
+    add_executable(fork src/fork.cpp)
+    
+endif()
