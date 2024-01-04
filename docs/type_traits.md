@@ -141,4 +141,58 @@ In this example:
 
 This approach ensures that the container is memory safe without imposing unnecessary overhead on non-pointer types. It's a common pattern in generic programming where the behavior needs to be adjusted based on type properties. Type traits make this kind of template metaprogramming possible and efficient in C++.
 
+
+
+## std::is_copy_constructible` and `std::is_copy_constructible_v
+
+`std::is_copy_constructible` and `std::is_copy_constructible_v` are related but have slightly different usages in the context of C++ type traits. Here's an explanation of each and how they are used:
+
+### `std::is_copy_constructible`
+- `std::is_copy_constructible` is a type trait that is a part of the C++ Standard Library's `<type_traits>` header.
+- It is a template that takes a type as its template parameter and evaluates to a `std::integral_constant` (essentially a compile-time constant).
+- The `value` member of this `integral_constant` will be `true` if the type is copy constructible, and `false` otherwise.
+
+Example usage:
+```cpp
+if (std::is_copy_constructible<MyClass>::value) {
+    // MyClass is copy constructible
+} else {
+    // MyClass is not copy constructible
+}
+```
+
+### `std::is_copy_constructible_v`
+- `std::is_copy_constructible_v` is a shorthand (introduced in C++17) for `std::is_copy_constructible<T>::value`.
+- It's a template variable, not a type, and directly provides a `bool` value.
+- It simplifies the syntax when you just need the boolean result and don't need the full `integral_constant` type.
+
+Example usage:
+```cpp
+if (std::is_copy_constructible_v<MyClass>) {
+    // MyClass is copy constructible
+} else {
+    // MyClass is not copy constructible
+}
+```
+
+### Passing an Object Instance
+It's important to note that both `std::is_copy_constructible` and `std::is_copy_constructible_v` take a type as a template argument, not an object instance. So, you would pass the type of the object, not the object itself. For example, if you have an object `myObject` of type `MyClass`, you would check `std::is_copy_constructible_v<MyClass>`.
+
+Incorrect usage:
+```cpp
+// This is incorrect and will not compile
+if (std::is_copy_constructible_v<myObject>) {
+    // ...
+}
+```
+
+Correct usage:
+```cpp
+// This is the correct way to use it
+if (std::is_copy_constructible_v<MyClass>) {
+    // ...
+}
+```
+
+
 [code](../src/type_traits.cpp)
