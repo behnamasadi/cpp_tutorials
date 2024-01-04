@@ -410,3 +410,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_executable(fork src/fork.cpp)
     
 endif()
+
+add_executable(any src/any.cpp)
+
+add_executable(copy_and_swap src/copy_and_swap.cpp)
