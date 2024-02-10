@@ -19,10 +19,6 @@ To apply the `/showIncludes` flag globally to all targets in your CMake project,
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /showIncludes")
 ```
 
-
-
-
-
 ### Using `-H` with GCC or Clang in CMake
 
 for non-Microsoft compilers like GCC or Clang, you can achieve similar functionality to the MSVC `/showIncludes` flag by using the `-H` option. This option tells the compiler to print the names of header files as they are used during the compilation process. It provides a way to see which headers are included and how they are nested.
