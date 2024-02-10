@@ -413,4 +413,13 @@ endif()
 
 add_executable(any src/any.cpp)
 
+
+option(PRINT_INCLUDES "Printing List of All Included Headers" OFF)
 add_executable(copy_and_swap src/copy_and_swap.cpp)
+if(PRINT_INCLUDES)
+	if(MSVC)
+	    target_compile_options(copy_and_swap PRIVATE "/showIncludes")
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+	    target_compile_options(copy_and_swap PRIVATE "-H")
+	endif()
+endif()
