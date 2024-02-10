@@ -3,3 +3,4 @@ build/*
 *.kdev4
 src/sandbox/*
 CMakeLists.txt.user
+*.vscode/*
