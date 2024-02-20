@@ -22,7 +22,7 @@ jobs:
       run: ls -la
 
     - name: Configure CMake
-      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -B /cpp_tutorials/build -DCMAKE_BUILD_TYPE=Release
+      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
       
     - name: Build with CMake
       run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
