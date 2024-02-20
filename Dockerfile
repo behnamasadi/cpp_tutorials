@@ -11,7 +11,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update
 #-y is for accepting yes when the system asked us for installing the package
-RUN apt-get install -y build-essential cmake pkg-config git
+RUN apt-get install -y build-essential cmake pkg-config git ninja-build
 
 
 # 1) google benchmark
