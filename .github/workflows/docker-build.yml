@@ -1,0 +1,33 @@
+name: cpp_tutorial Project Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+      name: Checkout the repository
+      
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag mycpp_image:latest
+
+    # Debugging: List contents of the GitHub workspace
+    - name: List contents of the repository
+      run: ls -la
+
+    - name: Configure CMake
+      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -B /cpp_tutorials/build -DCMAKE_BUILD_TYPE=Release
+      
+    - name: Build with CMake
+      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
+      
+#    - name: Run tests
+#      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ctest -C Release -S /cpp_tutorials/build
+
+
