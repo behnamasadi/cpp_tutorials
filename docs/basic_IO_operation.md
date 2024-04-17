@@ -306,19 +306,48 @@ Sets c as the stream's fill character.
 std::cout << std::setfill('x') << std::setw(10) << 77 << std::setw(10) << 12 << std::endl;
 ```
 
-3. `setprecision (val)`: It sets val as the new value for the precision of floating-point values.
+3. `setprecision (val)`: After setting `std::fixed`, the output is in fixed-point notation. This is clear from the addition of trailing zeros (dependent on the default precision of 6 digits after the decimal point)..
 
 ```cpp
-double number = 3.1914534559;
+  double number = 3.1914;
 
-std::cout <<"default precision: " <<std::cout.precision()<< "\n";
+  std::cout << "default std::cout.precision(): " << std::cout.precision() << "\n";
 
-std::cout << number << "\n";
-std::cout << std::setprecision(1)<< number <<"\n" ;
-std::cout << std::fixed;
-std::cout << std::setprecision(7) << number << "\n";
+  std::cout << number << "\n";
+  std::cout << "std::setprecision(1): " << std::setprecision(1) << number << "\n";
+
+  std::cout << "std::fixed <<std::setprecision(7): " << std::fixed << std::setprecision(7) << number << "\n";
+```
+which gives you:
+
+```
+default std::cout.precision(): 6
+3.1914
+std::setprecision(1): 3
+std::fixed <<std::setprecision(7): 3.1914000
+```
+you can use it to suppress/disable the scientific numbers:
+
+```cpp
+int n = 10;
+std::cout << "pow(10, n) = " << pow(10, n) << std::endl;
 ```
 
+gives you:
+
+```
+pow(10, n) =  1e+10
+```
+but the following:
+
+```
+std::cout << "std::fixed <<" << std::fixed << pow(10, n) << std::endl;
+```
+gives you:
+
+```
+std::fixed <<10000000000.000000
+```
 
 4. `setbase(val)`: It is used to set the numeric base value for numeric values.
 

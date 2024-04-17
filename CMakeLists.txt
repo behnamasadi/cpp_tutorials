@@ -7,46 +7,11 @@ if(NOT "${CMAKE_GENERATOR}" STREQUAL "Ninja Multi-Config")
     message(FATAL_ERROR "Please use -G \"Ninja Multi-Config\" for this project.")
 endif()
 
-option(USE_CLANG "build application with clang" OFF) # OFF is the default
-
-if(USE_CLANG)
-    set(CMAKE_C_COMPILER "/usr/bin/clang")
-
-    # set (CMAKE_C_FLAGS                "-Wall -std=c99")
-    set(CMAKE_C_FLAGS_DEBUG "-g")
-    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
-    set(CMAKE_C_FLAGS_RELEASE "-O4 -DNDEBUG")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
-
-    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-    set(CMAKE_CXX_FLAGS "-Wall")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O4 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
-
-    set(CMAKE_AR "/usr/bin/llvm-ar")
-    set(CMAKE_LINKER "/usr/bin/llvm-ld")
-    set(CMAKE_NM "/usr/bin/llvm-nm")
-    set(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-    set(CMAKE_RANLIB "/usr/bin/llvm-ranlib")
-endif()
-
 set(CMAKE_CXX_STANDARD 20) # Replace 20 with the version number of the latest C++ standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message("using Clang")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message("using GCC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    message("using Intel C++")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     message("using Visual Studio C++")
 
     # set warning level into errors
@@ -388,9 +353,7 @@ if(testing_enabled)
 endif()
 
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
-    add_executable(main src/main.cpp)
-endif()
+
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_library(add SHARED src/add.cpp)
@@ -422,4 +385,9 @@ if(PRINT_INCLUDES)
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 	    target_compile_options(copy_and_swap PRIVATE "-H")
 	endif()
+endif()
+
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+    add_executable(main src/main.cpp)
 endif()

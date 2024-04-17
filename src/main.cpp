@@ -5,18 +5,20 @@
 #include <memory>
 
 int main() {
-  int array[5] = {0, 1, 2, 3, 4};
+  // double number = 3.1914;
 
-  std::cout << "Original array values:\n";
-  for (int i = 0; i < 5; i++) {
-    std::cout << "array[" << i << "] = " << array[i] << "\n";
-  }
+  // std::cout << "default std::cout.precision(): " << std::cout.precision()
+  //           << "\n";
 
-  // Overflowing the array
-  // Writing beyond the bounds of the array
-  std::cout << "\nWriting beyond the bounds of the array...\n";
-  for (int i = 0; i < 10;
-       i++) { // This loop intentionally goes well beyond the array's bounds
-    array[i] = i;
-  }
+  // std::cout << number << "\n";
+  // std::cout << "std::setprecision(1): " << std::setprecision(1) << number
+  //           << "\n";
+
+  // std::cout << "std::fixed <<std::setprecision(7): " << std::fixed
+  //           << std::setprecision(7) << number << "\n";
+
+  int n = 10;
+
+  std::cout << "Using pow : " << pow(10, n) << std::endl;
+  std::cout << "std::fixed <<" << std::fixed << pow(10, n) << std::endl;
 }
