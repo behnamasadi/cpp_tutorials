@@ -18,13 +18,19 @@ make -j$(nproc)
 sudo make install
 sudo update-alternatives --install /usr/bin/cmake cmake /usr/local/bin/cmake 1 --force
 ```
-
 ### How to build on your machine 
 configure it:
 
 ```
 cmake -G "Ninja Multi-Config"  -S . -B build
 ```
+
+or specify where to install it:
+
+```
+cmake -G "Ninja Multi-Config" -S . -B build -DCMAKE_INSTALL_PREFIX=/path/to/install
+```
+
 
 build it:
 
@@ -99,6 +105,29 @@ You can remove unnecessary images and containers by:
 
 
 read more [here](https://ros-developer.com/2017/11/08/docker/)
+
+
+## Configure VSCode to use Ninja Multi-Config for all cmake projects
+
+To configure VSCode to use CMake with the "Ninja Multi-Config" generator for all CMake projects, you can modify the VSCode settings. Here's how you can do it:
+
+1. Open your VSCode workspace or project.
+2. Press `Ctrl + ,` to open the settings, or navigate to File > Preferences > Settings.
+3. In the settings search bar, type "cmake generator".
+4. Locate the "Cmake: Generator" setting.
+5. Click on "Edit in settings.json" or manually edit your `settings.json` file.
+
+In your `settings.json` file, add or modify the `"cmake.generator"` setting to specify "Ninja Multi-Config" as the default generator for all CMake projects:
+
+```json
+{
+    "cmake.generator": "Ninja Multi-Config"
+}
+```
+
+Save the `settings.json` file.
+
+This change ensures that VSCode uses the "Ninja Multi-Config" generator by default for all CMake projects you work on in that workspace or project.
 
 ## [C++ Tutorials](#)
    * [Align](docs/align.md)  

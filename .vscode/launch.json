@@ -1,24 +1,12 @@
 {
-    "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Current C++ File",
-            "type": "cppdbg",
+            "type": "cmake",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/${fileBasenameNoExtension}",
-            "args": ["foo", "fee", "bar"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
+            "name": "Debug portfile(s)",
+            "cmakeDebugType": "external",
+            "pipeName": "/tmp/vcpkg_ext_portfile_dbg",
+            "preLaunchTask": "Debug vcpkg commands"
         }
     ]
 }
