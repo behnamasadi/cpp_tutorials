@@ -1,4 +1,5 @@
-# vcpkg
+# Set up vcpkg
+
 First add it as submodule to your project:
 
 ```
@@ -17,6 +18,29 @@ on the bash:
 ./vcpkg/bootstrap-vcpkg.sh
 ```
 
+set the path:
+
+```
+export VCPKG_ROOT=/path/to/vcpkg
+export PATH=$VCPKG_ROOT:$PATH
+```
+
+
+### user-wide integration
+Appling user-wide integration:
+
+```
+./vcpkg integrate install
+```
+
+Removing user-wide integration:
+```
+./vcpkg integrate remove
+```
+
+
+
+./vcpkg --debug env --triplet x64-linux bash
 ## Search for the Library
 ```
 ./vcpkg/vcpkg search opencv
@@ -35,18 +59,206 @@ on the bash:
 ```
 - <triplet> refers to the system architecture (like x64-windows, x86-windows, etc.)
 
-## Integrate Installed Libraries
-After installation, you might need to integrate the installed libraries with your build system. For most users, the following command should work
 
-```
-./vcpkg/vcpkg integrate install
-```
 
 ## Verify Installation
 ```
 vcpkg list
 ```
 
+## Set the number of CPU cores (jobs) for vcpkg
+
+On Windows
+
+```
+set VCPKG_MAX_CONCURRENCY=<number-of-jobs>
+```
+
+On Unix-like Systems (Linux, macOS)
+
+```
+export VCPKG_MAX_CONCURRENCY=<number-of-jobs>
+```
+
+### Persisting the Environment Variable
+For PowerShell: Add the following line to your PowerShell profile script (e.g., Microsoft.PowerShell_profile.ps1): 
+
+```
+$env:VCPKG_MAX_CONCURRENCY = 4
+```
+On Unix-like Systems, Add the export command 
+
+```
+export VCPKG_MAX_CONCURRENCY=4
+```
+
+to your shell profile :
+
+```
+source ~/.bashrc  # or the appropriate file for your shell
+```
+
+
+### Set vcpkg to use all available CPU cores automatically
+
+To set `vcpkg` to use all available CPU cores automatically, you can determine the number of cores programmatically and set the `VCPKG_MAX_CONCURRENCY` environment variable accordingly. Here’s how you can achieve this:
+
+### On Windows
+
+1. **Open Command Prompt or PowerShell**.
+2. **Set the environment variable** by determining the number of CPU cores dynamically:
+
+   For Command Prompt:
+
+   ```sh
+   for /f "tokens=*" %i in ('wmic cpu get NumberOfCores /value ^| find "="') do set %i
+   set /a VCPKG_MAX_CONCURRENCY=%NUMBER_OF_CORES%
+   ```
+
+   For PowerShell:
+
+   ```powershell
+   $cores = (Get-WmiObject -Class Win32_Processor).NumberOfCores
+   [System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::Process)
+   ```
+
+3. **Run vcpkg** with your build command:
+
+   ```sh
+   vcpkg install <package_name>
+   ```
+
+### On Unix-like Systems (Linux, macOS)
+
+1. **Open a terminal**.
+2. **Set the environment variable** by determining the number of CPU cores dynamically:
+
+   ```sh
+   export VCPKG_MAX_CONCURRENCY=$(nproc)
+   ```
+
+3. **Run vcpkg** with your build command:
+
+   ```sh
+   vcpkg install <package_name>
+   ```
+
+### Persisting the Configuration
+
+To make this configuration permanent, add the core-determining command to your shell profile file.
+
+#### On Windows (PowerShell)
+
+Add the following lines to your PowerShell profile script (e.g., `Microsoft.PowerShell_profile.ps1`):
+
+```powershell
+$cores = (Get-WmiObject -Class Win32_Processor).NumberOfCores
+[System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::User)
+```
+
+#### On Unix-like Systems
+
+Add the following line to your shell profile file (e.g., `.bashrc`, `.zshrc`, or `.bash_profile`):
+
+```sh
+export VCPKG_MAX_CONCURRENCY=$(nproc)
+```
+
+After adding this line, reload the profile by running:
+
+```sh
+source ~/.bashrc  # or the appropriate file for your shell
+```
+
+By following these steps, you can ensure that `vcpkg` automatically uses all available CPU cores during the build process, optimizing build times according to your system's capabilities.
+
+
+## Determine the Triplet for vcpkg
+
+I apologize for the mistake in the initial instructions. The `vcpkg env` command doesn't directly show the current triplet being used. Instead, let's clarify how you can manage and determine the triplet being used for a project.
+
+### Determine the Triplet for vcpkg
+
+1. **Check the Environment Variable**: `VCPKG_DEFAULT_TRIPLET` if set.
+
+   ```sh
+   echo %VCPKG_DEFAULT_TRIPLET%  # For Windows
+   echo $VCPKG_DEFAULT_TRIPLET   # For Unix-like systems
+   ```
+
+2. **Inspect Project Configuration**: Check if the triplet is specified in any configuration files like `vcpkg.json` or `CMakeLists.txt`.
+
+3. **Check the Command Line**: If you are running vcpkg commands, the triplet might be specified directly in the command.
+
+### Setting Number of Jobs for vcpkg
+
+Now, to set `vcpkg` to use all available CPU cores automatically, follow these steps based on your operating system:
+
+### On Windows
+
+1. **Open Command Prompt or PowerShell**.
+2. **Set the environment variable dynamically**:
+
+   For Command Prompt:
+
+   ```cmd
+   for /f "tokens=2 delims==" %i in ('wmic cpu get NumberOfLogicalProcessors /value') do set VCPKG_MAX_CONCURRENCY=%i
+   ```
+
+   For PowerShell:
+
+   ```powershell
+   $cores = (Get-WmiObject -Class Win32_ComputerSystem).NumberOfLogicalProcessors
+   [System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::Process)
+   ```
+
+3. **Run vcpkg** with your build command:
+
+   ```sh
+   vcpkg install <package_name>
+   ```
+
+### On Unix-like Systems (Linux, macOS)
+
+1. **Open a terminal**.
+2. **Set the environment variable dynamically**:
+
+   ```sh
+   export VCPKG_MAX_CONCURRENCY=$(nproc)
+   ```
+
+3. **Run vcpkg** with your build command:
+
+   ```sh
+   vcpkg install <package_name>
+   ```
+
+### Persisting the Configuration
+
+To make this configuration permanent, add the core-determining command to your shell profile file.
+
+#### On Windows (PowerShell)
+
+Add the following lines to your PowerShell profile script (e.g., `Microsoft.PowerShell_profile.ps1`):
+
+```powershell
+$cores = (Get-WmiObject -Class Win32_ComputerSystem).NumberOfLogicalProcessors
+[System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::User)
+```
+
+#### On Unix-like Systems
+
+Add the following line to your shell profile file (e.g., `.bashrc`, `.zshrc`, or `.bash_profile`):
+
+```sh
+export VCPKG_MAX_CONCURRENCY=$(nproc)
+```
+
+After adding this line, reload the profile by running:
+
+```sh
+source ~/.bashrc  # or the appropriate file for your shell
+```
 
 
 ## Building Dependencies with Your CMakeLists.txt
@@ -353,4 +565,67 @@ and locally they are  stored at:
 `vcpkg\ports\ffmpeg\portfile.cmake`
 
 Refs: [1](https://vcpkg.io/en/getting-started.html)
+
+##  vcpkg Baseline
+
+What is a vcpkg Baseline?
+A baseline in vcpkg refers to a specific set of library versions that are known to work well together. The baseline helps ensure that a consistent set of libraries is used across different environments and projects, reducing the chances of compatibility issues.
+
+## How to find baseline
+Here 
+[https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json)
+For instance:
+
+
+```
+"opencv4": {
+      "baseline": "4.8.0",
+      "port-version": 19
+    }
+```
+
+We select `4.8.0#18` in our `vcpkg.json`   which means `port-version=18`
+
+```
+{
+  "name": "myproject",
+  "version-string": "1.0.0",
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "version>=": "4.8.0#18"
+
+    }
+  ],
+  "builtin-baseline": "d68d1ecd932982ed7ee0cb98d557ef1d52ee9016"
+}
+```
+
+Now if we visit: [https://github.com/microsoft/vcpkg/tree/master/versions/](https://github.com/microsoft/vcpkg/tree/master/versions/) and find `opencv4` in [https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json](https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json) we have:
+
+
+```
+{
+  "versions": [
+    {
+      "git-tree": "85685a5e45ef916a21769da98c8346462ef179d0",
+      "version": "4.8.0",
+      "port-version": 19
+    },
+    {
+      "git-tree": "b69ea5e7ef839490d21d1ef5aed614d19d54e203",
+      "version": "4.8.0",
+      "port-version": 18
+    },
+    {
+      "git-tree": "d68d1ecd932982ed7ee0cb98d557ef1d52ee9016",
+      "version": "4.8.0",
+      "port-version": 17
+    }
+```
+ 
+
+More: [1](https://learn.microsoft.com/en-us/vcpkg/commands/help), [2](https://github.com/microsoft/vcpkg/blob/master/versions/z-/zlib.json), [3](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode), [4](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json), [5](https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json), [7](https://learn.microsoft.com/en-us/vcpkg/users/triplets), [9](https://learn.microsoft.com/en-us/vcpkg/commands/common-options#triplet)
+
+
 
