@@ -21,7 +21,7 @@ on the bash:
 set the path:
 
 ```
-export VCPKG_ROOT=/path/to/vcpkg
+export VCPKG_ROOT=$PWD/vcpkg
 export PATH=$VCPKG_ROOT:$PATH
 ```
 
@@ -38,7 +38,7 @@ Removing user-wide integration:
 ./vcpkg integrate remove
 ```
 
-
+# Dependencies
 
 ./vcpkg --debug env --triplet x64-linux bash
 ## Search for the Library
@@ -46,11 +46,29 @@ Removing user-wide integration:
 ./vcpkg/vcpkg search opencv
 ```
 
-## List of dependencies that will be built 
+## List of dependencies for packages
 
 ```
 ./vcpkg/vcpkg depend-info opencv4
 ```
+
+dependencies tree
+```
+vcpkg depend-info opencv --format=tree
+```
+
+create dot file 
+```
+vcpkg depend-info opencv --format=dot > dep.dot
+```
+
+and postscript:
+
+```
+dot -Tps dep.dot -o outfile.ps
+```
+
+more [here](https://learn.microsoft.com/en-us/vcpkg/commands/depend-info)
 
 ## Install the Specific Version
 
@@ -60,13 +78,25 @@ Removing user-wide integration:
 - <triplet> refers to the system architecture (like x64-windows, x86-windows, etc.)
 
 
+# Manifest mode vs Classic mode 
+
+vcpkg has two operation modes: `classic` mode and `manifest` mode. 
+
+1. In classic mode, vcpkg maintains a central installed tree inside the vcpkg instance built up by individual vcpkg install and vcpkg remove commands. 
+
+2. Manifest mode uses declarative JSON files to describe metadata about your project or package. In any case, the name of this file is vcpkg.json.
+
 
 ## Verify Installation
 ```
 vcpkg list
 ```
 
-## Set the number of CPU cores (jobs) for vcpkg
+# Build type
+`VCPKG_BUILD_TYPE`: By default this value is empty, When this value is empty vcpkg builds release and debug. Set this value to `release`.
+
+
+# Set the number of CPU cores (jobs) for vcpkg
 
 On Windows
 
@@ -80,72 +110,34 @@ On Unix-like Systems (Linux, macOS)
 export VCPKG_MAX_CONCURRENCY=<number-of-jobs>
 ```
 
-### Persisting the Environment Variable
-For PowerShell: Add the following line to your PowerShell profile script (e.g., Microsoft.PowerShell_profile.ps1): 
-
-```
-$env:VCPKG_MAX_CONCURRENCY = 4
-```
-On Unix-like Systems, Add the export command 
-
-```
-export VCPKG_MAX_CONCURRENCY=4
-```
-
-to your shell profile :
-
-```
-source ~/.bashrc  # or the appropriate file for your shell
-```
-
-
 ### Set vcpkg to use all available CPU cores automatically
 
-To set `vcpkg` to use all available CPU cores automatically, you can determine the number of cores programmatically and set the `VCPKG_MAX_CONCURRENCY` environment variable accordingly. Here’s how you can achieve this:
+To set `vcpkg` to use all available CPU cores automatically,  and set the `VCPKG_MAX_CONCURRENCY` environment variable accordingly:
 
 ### On Windows
-
-1. **Open Command Prompt or PowerShell**.
-2. **Set the environment variable** by determining the number of CPU cores dynamically:
-
-   For Command Prompt:
+For Command Prompt:
 
    ```sh
    for /f "tokens=*" %i in ('wmic cpu get NumberOfCores /value ^| find "="') do set %i
    set /a VCPKG_MAX_CONCURRENCY=%NUMBER_OF_CORES%
    ```
 
-   For PowerShell:
+For PowerShell:
 
    ```powershell
    $cores = (Get-WmiObject -Class Win32_Processor).NumberOfCores
    [System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::Process)
    ```
 
-3. **Run vcpkg** with your build command:
-
-   ```sh
-   vcpkg install <package_name>
-   ```
 
 ### On Unix-like Systems (Linux, macOS)
 
-1. **Open a terminal**.
-2. **Set the environment variable** by determining the number of CPU cores dynamically:
 
    ```sh
    export VCPKG_MAX_CONCURRENCY=$(nproc)
    ```
 
-3. **Run vcpkg** with your build command:
-
-   ```sh
-   vcpkg install <package_name>
-   ```
-
 ### Persisting the Configuration
-
-To make this configuration permanent, add the core-determining command to your shell profile file.
 
 #### On Windows (PowerShell)
 
@@ -158,110 +150,93 @@ $cores = (Get-WmiObject -Class Win32_Processor).NumberOfCores
 
 #### On Unix-like Systems
 
-Add the following line to your shell profile file (e.g., `.bashrc`, `.zshrc`, or `.bash_profile`):
+Add the following line to your shell profile file at `~/.bashrc` 
 
 ```sh
 export VCPKG_MAX_CONCURRENCY=$(nproc)
 ```
 
-After adding this line, reload the profile by running:
+reload the profile by running:
 
 ```sh
-source ~/.bashrc  # or the appropriate file for your shell
+source ~/.bashrc  
 ```
 
-By following these steps, you can ensure that `vcpkg` automatically uses all available CPU cores during the build process, optimizing build times according to your system's capabilities.
 
+# Triplet
 
-## Determine the Triplet for vcpkg
+## The Environment Variable
 
-I apologize for the mistake in the initial instructions. The `vcpkg env` command doesn't directly show the current triplet being used. Instead, let's clarify how you can manage and determine the triplet being used for a project.
-
-### Determine the Triplet for vcpkg
-
-1. **Check the Environment Variable**: `VCPKG_DEFAULT_TRIPLET` if set.
-
-   ```sh
-   echo %VCPKG_DEFAULT_TRIPLET%  # For Windows
-   echo $VCPKG_DEFAULT_TRIPLET   # For Unix-like systems
-   ```
-
-2. **Inspect Project Configuration**: Check if the triplet is specified in any configuration files like `vcpkg.json` or `CMakeLists.txt`.
-
-3. **Check the Command Line**: If you are running vcpkg commands, the triplet might be specified directly in the command.
-
-### Setting Number of Jobs for vcpkg
-
-Now, to set `vcpkg` to use all available CPU cores automatically, follow these steps based on your operating system:
-
-### On Windows
-
-1. **Open Command Prompt or PowerShell**.
-2. **Set the environment variable dynamically**:
-
-   For Command Prompt:
-
-   ```cmd
-   for /f "tokens=2 delims==" %i in ('wmic cpu get NumberOfLogicalProcessors /value') do set VCPKG_MAX_CONCURRENCY=%i
-   ```
-
-   For PowerShell:
-
-   ```powershell
-   $cores = (Get-WmiObject -Class Win32_ComputerSystem).NumberOfLogicalProcessors
-   [System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::Process)
-   ```
-
-3. **Run vcpkg** with your build command:
-
-   ```sh
-   vcpkg install <package_name>
-   ```
-
-### On Unix-like Systems (Linux, macOS)
-
-1. **Open a terminal**.
-2. **Set the environment variable dynamically**:
-
-   ```sh
-   export VCPKG_MAX_CONCURRENCY=$(nproc)
-   ```
-
-3. **Run vcpkg** with your build command:
-
-   ```sh
-   vcpkg install <package_name>
-   ```
-
-### Persisting the Configuration
-
-To make this configuration permanent, add the core-determining command to your shell profile file.
-
-#### On Windows (PowerShell)
-
-Add the following lines to your PowerShell profile script (e.g., `Microsoft.PowerShell_profile.ps1`):
-
-```powershell
-$cores = (Get-WmiObject -Class Win32_ComputerSystem).NumberOfLogicalProcessors
-[System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::User)
-```
-
-#### On Unix-like Systems
-
-Add the following line to your shell profile file (e.g., `.bashrc`, `.zshrc`, or `.bash_profile`):
+using `VCPKG_DEFAULT_TRIPLET`:
 
 ```sh
-export VCPKG_MAX_CONCURRENCY=$(nproc)
+echo %VCPKG_DEFAULT_TRIPLET%  # For Windows
+echo $VCPKG_DEFAULT_TRIPLET   # For Unix-like systems
 ```
 
-After adding this line, reload the profile by running:
+## Project Configuration
 
-```sh
-source ~/.bashrc  # or the appropriate file for your shell
+using `VCPKG_TARGET_TRIPLET`: 
+
+```
+cmake ../my/project -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=...
+```
+
+If you use `VCPKG_DEFAULT_TRIPLET` environment variable to control the unqualified triplet in vcpkg command lines you can default `VCPKG_TARGET_TRIPLET` in CMake as follow:
+
+
+```
+if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
+  set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
+endif()
 ```
 
 
-## Building Dependencies with Your CMakeLists.txt
+
+### VCPKG_TARGET_ARCHITECTURE
+
+- **Definition**: `VCPKG_TARGET_ARCHITECTURE` specifies the target CPU architecture.
+- **Usage**: It defines the specific architecture such as x86, x64, arm, or arm64.
+- **Example Values**: 
+  - `x86` for 32-bit Intel/AMD processors
+  - `x64` for 64-bit Intel/AMD processors
+  - `arm` for 32-bit ARM processors
+  - `arm64` for 64-bit ARM processors
+- **Scope**: It focuses solely on the CPU architecture without considering the platform or other environment details.
+
+### VCPKG_TARGET_TRIPLET
+
+- **Definition**: `VCPKG_TARGET_TRIPLET` is a more comprehensive specification that includes not just the CPU architecture but also the operating system, CRT linkage type (static or dynamic), and other relevant build configuration details.
+- **Usage**: It is a composite identifier that allows precise control over the build configuration.
+- **Example Values**:
+  - `x64-windows` for 64-bit Windows builds
+  - `x86-windows-static` for 32-bit Windows builds with static linkage
+  - `arm64-android` for 64-bit ARM builds targeting Android
+  - `x64-linux` for 64-bit Linux builds
+- **Scope**: It covers the complete build environment, including CPU architecture, OS, and linkage type.
+
+### Summary of Differences
+
+- **Detail Level**: 
+  - `VCPKG_TARGET_ARCHITECTURE` is concerned only with the CPU architecture.
+  - `VCPKG_TARGET_TRIPLET` includes CPU architecture along with other factors like OS and linkage type.
+
+- **Usage Context**:
+  - Use `VCPKG_TARGET_ARCHITECTURE` when you need to specify just the CPU architecture.
+  - Use `VCPKG_TARGET_TRIPLET` when you need to specify a complete build environment, ensuring that all aspects of the target platform are correctly configured.
+
+### Example in Practice
+
+Imagine you want to build a library for a 64-bit Windows system using static linkage:
+
+- **VCPKG_TARGET_ARCHITECTURE**: You would set this to `x64`.
+- **VCPKG_TARGET_TRIPLET**: You would set this to `x64-windows-static`.
+
+In this case, the triplet fully defines the build environment, while the architecture alone does not provide enough information to configure the build correctly.
+
+
+
+# Building Dependencies with Your CMakeLists.txt
 Now add the following to your CMakeLists
 ```
 cmake_minimum_required(VERSION 3.16.3)
@@ -292,6 +267,93 @@ Now you can run:
 ```
 cmake -S . -B build  -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
+#  Ports Concept
+
+**Definition:**
+Port files define how a specific library (or a "port" in vcpkg terminology) should be downloaded, built, and installed.  These instructions are primarily written in **CMake language**. 
+
+**Location**: Port files are located in the `ports` directory of your vcpkg installation, with each library having its own subdirectory. For example, the port files for a library named `examplelib` would be in `vcpkg/ports/examplelib/`.
+
+
+A typical port file directory for a library might contain the following:
+
+- **`portfile.cmake`**: This is the main script that vcpkg executes to handle the library. It includes commands for downloading the source code, applying patches, configuring the build process using CMake, building the library, and installing it.
+
+- **`vcpkg.json`**: This file provides metadata about the library, such as its name, version, description, homepage, and a list of its dependencies.
+
+- **Patches**: Sometimes, additional patch files are included to make necessary modifications to the library’s source code to ensure it works well with vcpkg or to fix bugs.
+
+
+
+
+
+
+more [here](https://learn.microsoft.com/en-us/vcpkg/concepts/ports)
+
+
+
+# Registries concepts
+
+Registries are collections of **ports** and their **versions**.
+
+
+The curated registry is the one hosted at [https://github.com/Microsoft/vcpkg](https://github.com/Microsoft/vcpkg)
+
+There are currently two options to implement your own registries: 
+
+1. Git-based registry 
+2. Filesystem-based registry.
+
+more [here](https://learn.microsoft.com/en-us/vcpkg/concepts/registries)
+
+
+## vcpkg-configuration.json
+
+
+more [here](https://learn.microsoft.com/en-us/vcpkg/reference/vcpkg-configuration-json)
+
+
+# Versioning reference
+
+## Version Constraints
+
+### Baselines
+Baselines define a global version floor for what versions will be considered. This enables top-level manifests to keep the entire graph of dependencies up-to-date **without needing to individually specify direct `"version>="` constraints**.
+
+Baselines, like other registry settings, are ignored from ports consumed as a dependency. If a minimum version is required during transitive version resolution the port should use "version>=".
+
+
+
+### version>=
+vcpkg selects the lowest version that matches all constraints, so a **less-than constraint is NOT required**.
+
+
+more [here](https://learn.microsoft.com/en-us/vcpkg/users/versioning)
+
+
+
+
+
+this will give you all baselines:
+
+```
+git rev-list --all
+```
+
+
+
+
+git show $(git rev-list --all | grep 3426db05b996481ca31e95fff3734cf23e0f51bc)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -329,20 +391,7 @@ Note: The "overrides" feature is a powerful tool and should be used cautiously. 
 
 ## Port File
 
-Port files in vcpkg are a crucial part of how the tool manages and installs C++ libraries. These files define how a specific library (or a "port" in vcpkg terminology) should be downloaded, built, and installed. Here’s a detailed explanation:
 
-### 1. **What is a Port File?**
-   
-   - **Definition**: A port file in vcpkg is essentially a set of instructions that vcpkg follows to handle a particular library. These instructions are primarily written in CMake language.
-   - **Location**: Port files are located in the `ports` directory of your vcpkg installation, with each library having its own subdirectory. For example, the port files for a library named `examplelib` would be in `vcpkg/ports/examplelib/`.
-
-### 2. **Contents of a Port File**
-
-   A typical port file directory for a library might contain the following:
-
-   - **`portfile.cmake`**: This is the main script that vcpkg executes to handle the library. It includes commands for downloading the source code, applying patches, configuring the build process using CMake, building the library, and installing it.
-   - **`CONTROL` or `vcpkg.json`**: This file provides metadata about the library, such as its name, version, description, homepage, and a list of its dependencies.
-   - **Patches**: Sometimes, additional patch files are included to make necessary modifications to the library’s source code to ensure it works well with vcpkg or to fix bugs.
 
 ### 3. **Function of Port Files**
 
