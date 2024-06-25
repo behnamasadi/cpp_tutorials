@@ -165,7 +165,22 @@ source ~/.bashrc
 
 # Triplet
 
-## The Environment Variable
+### Setting Triplet in Env: VCPKG_TARGET_TRIPLET
+
+- **Definition**: `VCPKG_TARGET_TRIPLET` is a  specification that includes not just the CPU architecture but also the operating system, CRT linkage type (static or dynamic), and other relevant build configuration details.
+- **Usage**: It is a composite identifier that allows precise control over the build configuration.
+- **Example Values**:
+  - `x64-windows` for 64-bit Windows builds
+  - `x86-windows-static` for 32-bit Windows builds with static linkage
+  - `arm64-android` for 64-bit ARM builds targeting Android
+  - `x64-linux` for 64-bit Linux builds
+
+to get the full list run:
+```
+./vcpkg  --help triplets
+```
+
+
 
 using `VCPKG_DEFAULT_TRIPLET`:
 
@@ -174,7 +189,7 @@ echo %VCPKG_DEFAULT_TRIPLET%  # For Windows
 echo $VCPKG_DEFAULT_TRIPLET   # For Unix-like systems
 ```
 
-## Project Configuration
+### Setting Triplet in CMake
 
 using `VCPKG_TARGET_TRIPLET`: 
 
@@ -204,18 +219,8 @@ endif()
   - `arm64` for 64-bit ARM processors
 - **Scope**: It focuses solely on the CPU architecture without considering the platform or other environment details.
 
-### VCPKG_TARGET_TRIPLET
 
-- **Definition**: `VCPKG_TARGET_TRIPLET` is a more comprehensive specification that includes not just the CPU architecture but also the operating system, CRT linkage type (static or dynamic), and other relevant build configuration details.
-- **Usage**: It is a composite identifier that allows precise control over the build configuration.
-- **Example Values**:
-  - `x64-windows` for 64-bit Windows builds
-  - `x86-windows-static` for 32-bit Windows builds with static linkage
-  - `arm64-android` for 64-bit ARM builds targeting Android
-  - `x64-linux` for 64-bit Linux builds
-- **Scope**: It covers the complete build environment, including CPU architecture, OS, and linkage type.
-
-### Summary of Differences
+### Differences VCPKG_TARGET_ARCHITECTURE and VCPKG_TARGET_TRIPLET
 
 - **Detail Level**: 
   - `VCPKG_TARGET_ARCHITECTURE` is concerned only with the CPU architecture.
@@ -225,19 +230,17 @@ endif()
   - Use `VCPKG_TARGET_ARCHITECTURE` when you need to specify just the CPU architecture.
   - Use `VCPKG_TARGET_TRIPLET` when you need to specify a complete build environment, ensuring that all aspects of the target platform are correctly configured.
 
-### Example in Practice
+Example in Practice:
 
 Imagine you want to build a library for a 64-bit Windows system using static linkage:
 
 - **VCPKG_TARGET_ARCHITECTURE**: You would set this to `x64`.
 - **VCPKG_TARGET_TRIPLET**: You would set this to `x64-windows-static`.
 
-In this case, the triplet fully defines the build environment, while the architecture alone does not provide enough information to configure the build correctly.
 
+# Adding vcpkg toolchain to Your CMakeLists.txt
 
-
-# Building Dependencies with Your CMakeLists.txt
-Now add the following to your CMakeLists
+Add the following to your CMakeLists
 ```
 cmake_minimum_required(VERSION 3.16.3)
 
@@ -248,7 +251,10 @@ endif()
 message("toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 project(your-project-name)
 
-find_package(vtk  9.2)
+find_package(ZLIB REQUIRED)
+message("ZLIB_FOUND: "${ZLIB_FOUND})
+message("ZLIB_VERSION: "${ZLIB_VERSION})
+
 ```
 
 After that, create the following file  `vcpkg.json` next to your `CMakeLists.txt`: 
@@ -258,7 +264,7 @@ After that, create the following file  `vcpkg.json` next to your `CMakeLists.txt
   "name": "your-project-name",
   "version-string": "1.1.0",
   "dependencies": [
-    "vtk"
+     { "name": "zlib" }
   ]
 }
 ```
@@ -267,6 +273,13 @@ Now you can run:
 ```
 cmake -S . -B build  -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
+
+which by the time of this article it gives you:
+
+```
+ZLIB_VERSION: 1.3.1
+```
+
 #  Ports Concept
 
 **Definition:**
@@ -333,8 +346,22 @@ more [here](https://learn.microsoft.com/en-us/vcpkg/users/versioning)
 
 
 
+If you need version `1.2.11#9` of `zlib`, your `vcpkg` would look like:
 
-this will give you all baselines:
+```
+{
+  "name": "your-project-name",
+  "version-string": "1.1.0",
+  "dependencies": [
+     { "name": "zlib", "version>=": "1.2.11#9" }
+  ],
+  "builtin-baseline":"3426db05b996481ca31e95fff3734cf23e0f51bc"
+}
+```
+
+and you have to specify `builtin-baseline`, how to get that?
+
+First: in vcpk root directory, this will give you all baselines:
 
 ```
 git rev-list --all
@@ -343,16 +370,25 @@ git rev-list --all
 
 
 
+
+
+
+
+Get all commits where `zlib` has been committed inm 
+```
+git log -p --pretty=format:"%H" -- versions/baseline.json | grep -B 10 -A 10 '"zlib"'
+```
+
+```
+git log -p -- versions/baseline.json | grep -B 4 -A 10 "zlib"
+```
+
+
+
+
+Then use the commit corresponding to your 
+
 git show $(git rev-list --all | grep 3426db05b996481ca31e95fff3734cf23e0f51bc)
-
-
-
-
-
-
-
-
-
 
 
 
