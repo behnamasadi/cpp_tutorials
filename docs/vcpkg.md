@@ -6,7 +6,7 @@ First add it as submodule to your project:
 git submodule add https://github.com/microsoft/vcpkg
 ```
 
-Then run the following script on windows:
+Then run the following script on Windows:
 
 ```
 .\vcpkg\bootstrap-vcpkg.bat
@@ -17,6 +17,8 @@ on the bash:
 ```
 ./vcpkg/bootstrap-vcpkg.sh
 ```
+The bootstrap script performs prerequisite checks and downloads the vcpkg executable.
+
 
 set the path:
 
@@ -24,7 +26,7 @@ set the path:
 export VCPKG_ROOT=$PWD/vcpkg
 export PATH=$VCPKG_ROOT:$PATH
 ```
-
+Setting `VCPKG_ROOT` tells vcpkg where your vcpkg instance is located.
 
 ### user-wide integration
 Appling user-wide integration:
