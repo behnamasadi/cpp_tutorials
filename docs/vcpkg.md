@@ -135,9 +135,9 @@ For PowerShell:
 ### On Unix-like Systems (Linux, macOS)
 
 
-   ```sh
-   export VCPKG_MAX_CONCURRENCY=$(nproc)
-   ```
+```sh
+export VCPKG_MAX_CONCURRENCY=$(nproc)
+```
 
 ### Persisting the Configuration
 
@@ -242,7 +242,7 @@ Imagine you want to build a library for a 64-bit Windows system using static lin
 
 # Adding vcpkg toolchain to Your CMakeLists.txt
 
-Add the following to your CMakeLists
+Add the following to your CMakeLists.txt
 ```
 cmake_minimum_required(VERSION 3.16.3)
 
@@ -255,6 +255,9 @@ project(your-project-name)
 
 find_package(ZLIB REQUIRED)
 message("ZLIB_FOUND: "${ZLIB_FOUND})
+message("ZLIB_VERSION_MAJOR: "${ZLIB_VERSION_MAJOR})
+message("ZLIB_VERSION_MINOR: "${ZLIB_VERSION_MINOR})
+message("ZLIB_VERSION_PATCH: "${ZLIB_VERSION_PATCH})
 message("ZLIB_VERSION: "${ZLIB_VERSION})
 
 ```
@@ -376,7 +379,7 @@ git rev-list --all
 
 
 
-Get all commits where `zlib` has been committed inm 
+Get all commits where `zlib` has been committed in
 ```
 git log -p --pretty=format:"%H" -- versions/baseline.json | grep -B 10 -A 10 '"zlib"'
 ```
@@ -715,4 +718,6 @@ Now if we visit: [https://github.com/microsoft/vcpkg/tree/master/versions/](http
 More: [1](https://learn.microsoft.com/en-us/vcpkg/commands/help), [2](https://github.com/microsoft/vcpkg/blob/master/versions/z-/zlib.json), [3](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode), [4](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json), [5](https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json), [7](https://learn.microsoft.com/en-us/vcpkg/users/triplets), [9](https://learn.microsoft.com/en-us/vcpkg/commands/common-options#triplet)
 
 
+
+cmake -S . -B build   -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 
