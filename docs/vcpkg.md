@@ -721,3 +721,11 @@ More: [1](https://learn.microsoft.com/en-us/vcpkg/commands/help), [2](https://gi
 
 cmake -S . -B build   -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 
+## Asset caching
+Asset caching allows vcpkg to use alternative download endpoints to acquire a package's assets (such as source code and build tools) from a configured mirror location. If the asset is not available in the mirror location, vcpkg will download it from its original source and then store a copy in the mirror for future use.
+
+Asset caching is configured via:
+- The `X_VCPKG_ASSET_SOURCES` environment variable
+- The `--x-asset-sources` command-line option.
+### Set up a vcpkg asset cache
+[more](https://learn.microsoft.com/en-us/vcpkg/consume/asset-caching?pivots=shell-cmd)
