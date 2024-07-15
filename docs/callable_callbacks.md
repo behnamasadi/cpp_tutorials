@@ -11,10 +11,16 @@ Used for: Event handling, asynchronous operations, decoupling function logic.
 
 * [1. Function Pointers](#1-function-pointers)
 * [2. Functor (Function Objects)](#2-functor--function-objects-)
-* [3. std::function and std::bind](#3-std--function-and-std--bind)
+* [3. std::function, std::placeholders, and std::bind](#3-std--function--std--placeholders--and-std--bind)
 * [4. Lambda Functions](#4-lambda-functions)
 * [5. Member Function Pointers](#5-member-function-pointers)
 * [6. Signals and Slots](#6-signals-and-slots)
+* [7. std::invoke](#7-std--invoke)
+* [8. Packaged Tasks](#8-packaged-tasks)
+* [9. Coroutines](#9-coroutines)
+* [10. Auto-generated operator() from a Captureless Lambda](#10-auto-generated-operator---from-a-captureless-lambda)
+
+
 
 
 A callback is a function passed as an argument to another function, which can then call this function. 
@@ -157,6 +163,7 @@ int main() {
     return 0;
 }
 ```
+
 Another example:
 
 
@@ -186,6 +193,7 @@ int main() {
 }
 ```
 [code](../src/bind.cpp)
+
 
 ## 4. Lambda Functions
 **Lambda Functions**: Anonymous functions introduced in C++11. They provide a convenient and readable way to write inline callbacks. It provides a concise way to define callbacks inline.
@@ -298,7 +306,7 @@ int main(int argc, char *argv[]) {
 [code](../src/callbacks.cpp)
 
 
-##7. std::invoke
+## 7. std::invoke
 `std::invoke` is a generic way to activate any callable. `std::invoke` takes something callable, and arguments to call it with, and does the call.
 
 ```cpp
@@ -327,7 +335,7 @@ will give you: `+3`
 will give you: `-3` and `3`.
 
 
-##8. Packaged Tasks
+## 8. Packaged Tasks
 **Packaged Tasks**: These are template classes that encapsulate a callable object and allow its result to be retrieved asynchronously.
 
 

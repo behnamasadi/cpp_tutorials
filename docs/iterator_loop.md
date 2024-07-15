@@ -54,7 +54,7 @@ for (i1=v1.begin();i1!=v1.end();++i1){}
 
 Refs: [1](https://www.geeksforgeeks.org/introduction-iterators-c/)
 
-# range based for-loops
+## range based for-loops
 
 Range-for is as fast as possible since it caches the end iterator, uses pre-increment and only dereferences the iterator once.
 ```cpp
@@ -77,7 +77,7 @@ Choose `auto x` when you want to work with copies.
 for (auto x : vecStudent);
 ```
 
-# regular for loops with iterators
+## regular for loops with iterators
 `begin()` vs `cbegin()`
 
 `begin()` returns an iterator to beginning while `cbegin()` returns a `const_iterator` to beginning.
@@ -88,9 +88,31 @@ The basic difference between these two is iterator (i.e begin()) lets you change
 for (auto a = vecStudent.cbegin(); a != vecStudent.cend(); ++a)
 ```
 
-# for_each
+## for_each
 ```cpp
 std::for_each(vecStudent.begin(), vecStudent.end(), [](Student &n){ n; });
 ```
 Refs: [1](http://www.cplusplus.com/reference/iterator/), [2](https://en.cppreference.com/w/cpp/language/range-for), [3](https://en.wikipedia.org/wiki/Loop_optimization)
 [source code](../src/iterator_loop.cpp)
+
+
+
+## std::next
+
+```cpp
+  std::vector<int> v{4, 5, 6, 1, 3};
+
+  auto it = v.begin();
+  auto nx = std::next(it, 3);
+  std::cout << *it << ' ' << *nx << '\n';
+
+  std::cout << std::distance(it, nx) << '\n';
+
+  std::advance(it, 3);
+  std::cout << *it << '\n';
+
+  it = v.end();
+  nx = std::next(it, -2);
+  std::cout << ' ' << *nx << '\n';
+```  
+

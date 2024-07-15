@@ -1,5 +1,8 @@
+# Asynchronous Calls
 In C++, asynchronous programming can be achieved using various mechanisms such as threads, `std::async`, `std::future`, and `std::promise`. One common way to create asynchronous calls is through `std::async` which runs a function asynchronously (potentially in a new thread) and returns a `std::future` that will hold the result of that function call once it completes.
 
+
+## std::launch::async, std::future
 Here is an example demonstrating an asynchronous call in C++ using `std::async`:
 
 ```c++
@@ -101,3 +104,118 @@ Explanation:
 - After the first lambda has finished its work and has waited for the second lambda, the main thread continues and waits for the first asynchronous task to complete by calling `work_future.get()`.
 
 By capturing by value, we ensure that each lambda has its own independent copy of the parameters, which is usually the safest way to pass parameters to asynchronous calls to avoid any potential data races or undefined behavior due to accessing shared data from multiple threads.
+
+
+
+
+## Parallelization with ascync
+
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <future>
+#include <thread>
+#include <iterator>
+
+// Function to sum a chunk of the vector
+template <typename Iterator>
+long long sum_chunk(Iterator begin, Iterator end) {
+    return std::accumulate(begin, end, 0LL);
+}
+
+int main() {
+    // Example vector
+    std::vector<int> vec(1000000, 1);  // Vector of 1 million elements, each initialized to 1
+
+    // Determine the number of chunks based on hardware concurrency
+    unsigned int num_chunks = std::thread::hardware_concurrency();
+    if (num_chunks == 0) num_chunks = 2; // Fallback in case hardware_concurrency returns 0
+
+    std::vector<std::future<long long>> futures;
+    size_t chunk_size = vec.size() / num_chunks;
+    auto begin = vec.begin();
+
+    // Launch async tasks for each chunk
+    for (unsigned int i = 0; i < num_chunks; ++i) {
+        auto end = (i == num_chunks - 1) ? vec.end() : std::next(begin, chunk_size);
+        futures.push_back(std::async(std::launch::async, sum_chunk<std::vector<int>::iterator>, begin, end));
+        begin = end;
+    }
+
+    // Collect the results from each chunk
+    long long total_sum = 0;
+    for (auto& future : futures) {
+        total_sum += future.get();
+    }
+
+    std::cout << "Total sum: " << total_sum << std::endl;
+
+    return 0;
+}
+```
+
+
+## Parallelization with std::packaged_task
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <thread>
+#include <future>
+#include <iterator>
+#include <functional>
+
+// Function to sum a chunk of the vector
+template <typename Iterator>
+long long sum_chunk(Iterator begin, Iterator end) {
+    return std::accumulate(begin, end, 0LL);
+}
+
+int main() {
+    // Example vector
+    std::vector<int> vec(1000000, 1);  // Vector of 1 million elements, each initialized to 1
+
+    // Determine the number of chunks based on hardware concurrency
+    unsigned int num_chunks = std::thread::hardware_concurrency();
+    if (num_chunks == 0) num_chunks = 2; // Fallback in case hardware_concurrency returns 0
+
+    std::vector<std::future<long long>> futures;
+    std::vector<std::thread> threads;
+    size_t chunk_size = vec.size() / num_chunks;
+    auto begin = vec.begin();
+
+    // Launch tasks for each chunk using std::packaged_task
+    for (unsigned int i = 0; i < num_chunks; ++i) {
+        auto end = (i == num_chunks - 1) ? vec.end() : std::next(begin, chunk_size);
+        
+        std::packaged_task<long long(std::vector<int>::iterator, std::vector<int>::iterator)> task(sum_chunk<std::vector<int>::iterator>);
+        futures.push_back(task.get_future());
+        
+        // Move the task to a new thread and execute it
+        threads.emplace_back(std::move(task), begin, end);
+        
+        begin = end;
+    }
+
+    // Collect the results from each chunk
+    long long total_sum = 0;
+    for (auto& future : futures) {
+        total_sum += future.get();
+    }
+
+    // Join all threads
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    std::cout << "Total sum: " << total_sum << std::endl;
+
+    return 0;
+}
+
+```
+
+

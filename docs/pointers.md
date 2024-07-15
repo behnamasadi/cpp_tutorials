@@ -438,6 +438,48 @@ std::unique_ptr empolyee1= std::make_unique<person>();
 people.push_back(empolyee1 );
 ```
 
+## std::ref, std::cref
+Function templates ref and cref are helper functions that generate an object of type `std::reference_wrapper`
+
+
+```cpp
+void inc(int a, int &b, const int &c) {
+  std::cout << "In function: " << a << ' ' << b << ' ' << c << '\n';
+
+  a++;
+  b++;
+  return;
+}
+
+
+  int a, b, c;
+
+  a = 1;
+  b = 10;
+  c = 100;
+  std::cout << "before bind: " << a << ' ' << b << ' ' << c << '\n';
+  auto f = std::bind(inc, a, std::ref(b), std::cref(c));
+  a = 5;
+  b = 50;
+  c = 500;
+  std::cout << "before call: " << a << ' ' << b << ' ' << c << '\n';
+  f();
+  std::cout << "after call: " << a << ' ' << b << ' ' << c << '\n';
+```
+
+the output is:
+
+
+```
+before bind: 1 10 100
+before call: 5 50 500
+In function: 1 50 500
+after call: 5 51 500
+```
+
+
+
+
 ## Removing reference/ pointer 
 
 ```cpp
