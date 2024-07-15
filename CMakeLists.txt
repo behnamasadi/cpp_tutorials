@@ -24,7 +24,7 @@ message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
 
 add_executable(pointers src/pointers/pointers.cpp)
 
-#add_executable(string  src/string.cpp )
+add_executable(string  src/string.cpp )
 
 add_executable(exception_handling src/exception_handling.cpp)
 
@@ -280,6 +280,7 @@ add_executable(circular_dependency src/class/circular_dependency/circular_depend
 
 add_executable(core_dump src/core_dump.cpp)
 
+#add_executable(packaged_task src/packaged_task.cpp)
 
 if(${CMAKE_GNU_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
     add_executable(printing_with_format src/printing_with_format.cpp)
@@ -353,6 +354,7 @@ if(testing_enabled)
 endif()
 
 
+option(SANITIZE "Add sanitizer flags" OFF)
 
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -362,17 +364,20 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
     add_executable(align src/align.cpp)
     
-
-    set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
     add_executable(signals src/signals.cpp)
     add_executable(system_call src/system_call.cpp)
 
     # add_executable(date_time src/date_time.cpp)
-
     add_executable(fork src/fork.cpp)
     
 endif()
+
+if(SANITIZE)
+    set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+endif(SANITIZE)
+
+
 
 add_executable(any src/any.cpp)
 
