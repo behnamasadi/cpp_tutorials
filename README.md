@@ -218,6 +218,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Typedef, Type alias (using keyword)](docs/typedef.md)
    * [type_dispatch, integral_constant, true/false type](src/type_dispatch_integral_constant_true_false_type.cpp)    
    * [Unions](docs/union.md)  
+   * [Variant](docs/std_variant.md)     
    * [Variadic Templates Function](docs/variadic_templates.md)  
    * [Volatile Keyword](docs/volatile.md)  
 - [C++ Classes](#)
