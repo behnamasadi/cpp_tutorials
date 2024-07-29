@@ -210,6 +210,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Structured binding declaration](docs/structured_binding_declaration.md)  
    * [Switch Case](src/switch_case.cpp)  
    * [Template, Expression Templates](docs/templates.md)  
+   * [Template argument deduction](https://en.cppreference.com/w/cpp/language/template_argument_deduction)     
    * [Ternary (One Line If)](src/ternary.cpp) 
    * [Temporary Objects](docs/temporary_objects.md)    
    * [Track memory allocations(overriding new operator)](docs/track_memory_allocations_overriding_new_operator.md)  
