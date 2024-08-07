@@ -114,5 +114,110 @@ Refs: [1](http://www.cplusplus.com/reference/iterator/), [2](https://en.cpprefer
   it = v.end();
   nx = std::next(it, -2);
   std::cout << ' ' << *nx << '\n';
-```  
+```
 
+
+## Creating an iterator
+Creating an iterator in C++ can be achieved in several ways depending on the type of container and the level of customization you need. Here are a few common methods to create and use iterators in C++:
+
+### Using Standard Library Containers
+
+For standard library containers such as `std::vector`, `std::list`, `std::map`, etc., iterators are already defined, and you can use them directly.
+
+```cpp
+#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> vec = {1, 2, 3, 4, 5};
+
+    // Using iterator
+    for (std::vector<int>::iterator it = vec.begin(); it != vec.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+
+    // Using const_iterator
+    for (std::vector<int>::const_iterator it = vec.cbegin(); it != vec.cend(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+### Custom Container with Custom Iterator
+
+If you need a custom iterator for your own container class, you can define it by creating a nested class within your container class or a separate iterator class. Here's a simple example of a custom container and iterator:
+
+```cpp
+#include <iostream>
+
+template <typename T>
+class CustomContainer {
+public:
+    CustomContainer(size_t size) : size(size), data(new T[size]) {}
+
+    ~CustomContainer() { delete[] data; }
+
+    T& operator[](size_t index) { return data[index]; }
+    const T& operator[](size_t index) const { return data[index]; }
+
+    class Iterator {
+    public:
+        Iterator(T* ptr) : ptr(ptr) {}
+
+        Iterator& operator++() {
+            ++ptr;
+            return *this;
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return ptr != other.ptr;
+        }
+
+        T& operator*() const {
+            return *ptr;
+        }
+
+    private:
+        T* ptr;
+    };
+
+    Iterator begin() { return Iterator(data); }
+    Iterator end() { return Iterator(data + size); }
+
+private:
+    size_t size;
+    T* data;
+};
+
+int main() {
+    CustomContainer<int> container(5);
+    for (size_t i = 0; i < 5; ++i) {
+        container[i] = i + 1;
+    }
+
+    for (CustomContainer<int>::Iterator it = container.begin(); it != container.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+### Explanation
+
+1. **Standard Library Containers**:
+   - Standard library containers like `std::vector` come with predefined iterators.
+   - You can declare an iterator using the container's `iterator` or `const_iterator` types.
+   - The `begin()` and `end()` member functions return iterators to the beginning and end of the container, respectively.
+
+2. **Custom Container with Custom Iterator**:
+   - Create a custom container class and a nested iterator class within it.
+   - The iterator class should support the necessary operations (`operator++`, `operator!=`, and `operator*` in this case).
+   - The container class should have `begin()` and `end()` functions returning iterators pointing to the start and end of the container.
+
+This is a basic introduction to iterators in C++. Depending on your needs, you might need to implement additional functionalities like bidirectional iteration, random access, or const correctness.
