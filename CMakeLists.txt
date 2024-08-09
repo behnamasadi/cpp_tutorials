@@ -302,50 +302,6 @@ endif()
 
 message("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
-message("\n########################################## tinyxml2 ##########################################\n")
-pkg_check_modules(TINYXML2 tinyxml2)
-#find_package(TinyXML2 )
-
-
-if(${TINYXML2_FOUND})
-    message("TINYXML2_FOUND:" ${TINYXML2_FOUND})
-    message("TINYXML2_VERSION:" ${TINYXML2_VERSION})
-    message("TINYXML2_LIBRARIES:" ${TINYXML2_LIBRARIES})
-    message("TINYXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
-    message("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
-    include_directories(${TINYXML2_INCLUDE_DIRS})
-    link_directories(${TINYXML2_LIBRARY_DIRS})
-    add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
-    target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
-else()
-    message("tinyxml2 not found")
-endif()
-
-message("\n########################################## yaml-cpp ##########################################\n")
-
-set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
-find_package(yaml-cpp)
-
-if(${yaml-cpp_FOUND})
-    message("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
-    message("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
-    add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp)
-    target_link_libraries(yaml-cpp_example yaml-cpp)
-endif()
-
-pkg_check_modules(BENCHMARK benchmark)
-
-if(${BENCHMARK_FOUND})
-    message("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
-    message("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
-    message("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
-    message("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
-    message("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
-    include_directories(${TINYXML2_INCLUDE_DIRS})
-    link_directories(${TINYXML2_LIBRARY_DIRS})
-    add_executable(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
-    target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
-endif()
 
 option(TESTING "Enable testing" OFF)
 
@@ -391,6 +347,104 @@ if(PRINT_INCLUDES)
 	    target_compile_options(copy_and_swap PRIVATE "-H")
 	endif()
 endif()
+
+
+
+message("\n########################################## tinyxml2 ##########################################\n")
+
+#pkg_check_modules(TINYXML2 tinyxml2)
+##find_package(TinyXML2 )
+
+include(FetchContent)
+FetchContent_Declare (tinyxml2
+GIT_REPOSITORY https://github.com/leethomason/tinyxml2
+GIT_TAG master
+GIT_SHALLOW TRUE
+GIT_PROGRESS TRUE)
+
+FetchContent_MakeAvailable(tinyxml2)
+
+
+if(${TINYXML2_FOUND})
+    message("TINYXML2_FOUND:" ${TINYXML2_FOUND})
+    message("TINYXML2_VERSION:" ${TINYXML2_VERSION})
+    message("TINYXML2_LIBRARIES:" ${TINYXML2_LIBRARIES})
+    message("TINYXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
+    message("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
+    include_directories(${TINYXML2_INCLUDE_DIRS})
+    link_directories(${TINYXML2_LIBRARY_DIRS})
+    add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
+    target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
+else()
+    message("tinyxml2 not found")
+endif()
+
+message("\n########################################## yaml-cpp ##########################################\n")
+
+
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+  GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+)
+FetchContent_GetProperties(yaml-cpp)
+
+if(NOT yaml-cpp_POPULATED)
+  message(STATUS "Fetching yaml-cpp...")
+  FetchContent_Populate(yaml-cpp)
+  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+endif()
+
+FetchContent_MakeAvailable(yaml-cpp)
+
+
+# set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
+# find_package(yaml-cpp)
+
+if(${yaml-cpp_FOUND})
+    message("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
+    message("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
+    add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp)
+    target_link_libraries(yaml-cpp_example yaml-cpp)
+endif()
+
+
+message("\n########################################## Google benchmark ##########################################\n")
+
+
+
+FetchContent_Declare(
+    benchmark
+  GIT_REPOSITORY https://github.com/google/benchmark
+  GIT_TAG main # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+
+
+FetchContent_GetProperties(benchmark)
+
+if(NOT benchmark_POPULATED)
+  message(STATUS "Fetching benchmark...")
+  FetchContent_Populate(benchmark)
+  add_subdirectory(${benchmark_SOURCE_DIR} ${benchmark_BINARY_DIR})
+endif()
+
+FetchContent_MakeAvailable(benchmark)
+
+#pkg_check_modules(BENCHMARK benchmark)
+
+if(${BENCHMARK_FOUND})
+    message("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
+    message("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
+    message("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
+    message("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
+    message("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
+    include_directories(${TINYXML2_INCLUDE_DIRS})
+    link_directories(${TINYXML2_LIBRARY_DIRS})
+    #add_executable(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
+    #target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
+endif()
+
 
 
 message("\n########################################## json ##########################################\n")
