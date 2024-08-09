@@ -393,6 +393,53 @@ if(PRINT_INCLUDES)
 endif()
 
 
+message("\n########################################## json ##########################################\n")
+
+
+
+include(FetchContent)
+FetchContent_Declare (json
+GIT_REPOSITORY https://github.com/nlohmann/json
+GIT_TAG master
+GIT_SHALLOW TRUE
+GIT_PROGRESS TRUE)
+
+FetchContent_MakeAvailable(json)
+
+
+message("\n########################################## tracy ##########################################\n")
+
+
+
+include(FetchContent)
+FetchContent_Declare (tracy
+GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+GIT_TAG v0.11.0
+GIT_SHALLOW TRUE
+GIT_PROGRESS TRUE)
+
+FetchContent_MakeAvailable(tracy)
+
+
+
+FetchContent_GetProperties(tracy)
+if(NOT tracy_POPULATED)
+#   FetchContent_Populate(tracy)
+#   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+
+message("-------------------")
+else()
+message("++++++++++++++++")
+endif()
+
+
+
+add_executable(tracy_profile src/tracy_profile.cpp)
+target_link_libraries ( tracy_profile PUBLIC TracyClient )
+
+
+
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_executable(main src/main.cpp)
 endif()
