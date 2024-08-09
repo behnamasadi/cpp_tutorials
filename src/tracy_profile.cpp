@@ -12,6 +12,15 @@ int main() {
 }
 
 /*
+
+https://davespace.xyz/blog/building-tracy-profiler-on-linux
+git clone https://github.com/capstone-engine/capstone.git
+
+https://github.com/wolfpld/tracy/issues/484
+
+
+https://www.youtube.com/watch?v=W9U5y5jjQDM
+
 cmake -S . -DCMAKE_INSTALL_PREFIX=~/usr -B build
 cmake --build build/
 cmake --install build/
