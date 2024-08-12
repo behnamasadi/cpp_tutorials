@@ -83,4 +83,74 @@ However, when you use the `mutable` keyword with a lambda, it allows this copied
 
 In this code, lambda has its own internal copy of `a`. When lambda is called, it modifies this copy (due to **mutable**), but the original `a` in the outer scope remains unchanged at `10`.
 
+
+
+
+## Functions or classes that accept lambdas
+
+In C++, you can write functions or classes that accept lambdas by using templates or `std::function`. Here's an example of both approaches:
+
+### 1. Using Templates to Accept a Lambda
+
+Templates in C++ allow you to write a function that can accept any callable object, including lambdas. Here's an example:
+
+```cpp
+#include <iostream>
+
+// Function template that accepts any callable object (including lambdas)
+template<typename Func>
+void execute(Func f) {
+    f();  // Call the passed function
+}
+
+int main() {
+    // Lambda that prints a message
+    auto lambda = []() {
+        std::cout << "Hello from lambda!" << std::endl;
+    };
+
+    // Pass the lambda to the execute function
+    execute(lambda);
+
+    // You can also pass the lambda directly
+    execute([]() {
+        std::cout << "Direct lambda call!" << std::endl;
+    });
+
+    return 0;
+}
+```
+
+### 2. Using `std::function` to Accept a Lambda
+
+`std::function` is a more flexible way to accept a callable object, but it might involve some overhead compared to templates. Here’s an example:
+
+```cpp
+#include <iostream>
+#include <functional>
+
+// Function that accepts a std::function<void()> (any callable object that takes no arguments and returns void)
+void execute(const std::function<void()>& func) {
+    func();  // Call the passed function
+}
+
+int main() {
+    // Lambda that prints a message
+    auto lambda = []() {
+        std::cout << "Hello from lambda!" << std::endl;
+    };
+
+    // Pass the lambda to the execute function
+    execute(lambda);
+
+    // You can also pass the lambda directly
+    execute([]() {
+        std::cout << "Direct lambda call!" << std::endl;
+    });
+
+    return 0;
+}
+```
+
+
 [source code](../src/lambda.cpp)

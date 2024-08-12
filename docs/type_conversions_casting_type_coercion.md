@@ -295,3 +295,118 @@ Refs: [1](https://en.cppreference.com/w/cpp/types/remove_pointer)
 
 
 Refs: [1](https://www.cplusplus.com/doc/tutorial/typecasting/), [2](https://www.geeksforgeeks.org/const_cast-in-c-type-casting-operators/)
+
+
+
+## Type coercion
+
+Type coercion in C++ refers to the process of converting one data type into another. This can happen automatically (implicit coercion) or can be explicitly specified by the programmer (explicit coercion). Here's an overview of both:
+
+### Implicit Type Coercion
+
+C++ performs implicit type coercion when it converts a value from one type to another automatically. This often happens in mixed-type expressions or when passing arguments to functions. For example:
+
+```cpp
+int a = 10;
+double b = 5.5;
+double result = a + b;  // 'a' is implicitly converted to double
+```
+
+In this example, the integer `a` is implicitly converted to a double before the addition.
+
+#### Rules of Implicit Type Conversion
+
+1. **Promotion:** Converting a smaller integer type to a larger integer type (e.g., `char` to `int`).
+2. **Floating-point promotion:** Converting `float` to `double`.
+3. **Mixed-type expressions:** In expressions involving different types, C++ promotes the smaller type to the larger type (e.g., `int` to `double`).
+4. **Boolean conversion:** Non-zero values are converted to `true` and zero to `false`.
+
+### Explicit Type Coercion
+
+Explicit type coercion, also known as type casting, is when the programmer specifies the conversion. There are several ways to do this in C++:
+
+1. **C-style cast:**
+
+   ```cpp
+   int a = 10;
+   double b = (double)a;  // Explicitly cast 'a' to double
+   ```
+
+2. **C++ cast operators:** These are safer and more precise than C-style casts.
+
+   - `static_cast`: Most common cast for well-defined and non-polymorphic conversions.
+
+     ```cpp
+     int a = 10;
+     double b = static_cast<double>(a);
+     ```
+
+   - `dynamic_cast`: Used for safe downcasting in class hierarchies.
+
+     ```cpp
+     Base *basePtr = new Derived();
+     Derived *derivedPtr = dynamic_cast<Derived*>(basePtr);
+     ```
+
+   - `const_cast`: Adds or removes `const` qualifier.
+
+     ```cpp
+     const int a = 10;
+     int *b = const_cast<int*>(&a);
+     ```
+
+   - `reinterpret_cast`: For low-level casts, such as converting a pointer to an integer.
+
+     ```cpp
+     int a = 10;
+     void *ptr = &a;
+     int *b = reinterpret_cast<int*>(ptr);
+     ```
+
+### Example
+
+Here is an example demonstrating implicit and explicit type coercion:
+
+```cpp
+#include <iostream>
+
+class Base {
+public:
+    virtual void show() { std::cout << "Base class\n"; }
+};
+
+class Derived : public Base {
+public:
+    void show() override { std::cout << "Derived class\n"; }
+};
+
+int main() {
+    // Implicit Type Coercion
+    int i = 42;
+    double d = i;  // int to double
+    std::cout << "Implicit coercion: " << d << std::endl;
+
+    // Explicit Type Coercion
+    double x = 3.14;
+    int y = static_cast<int>(x);  // double to int
+    std::cout << "Explicit coercion: " << y << std::endl;
+
+    // Polymorphic example with dynamic_cast
+    Base *basePtr = new Derived();
+    Derived *derivedPtr = dynamic_cast<Derived*>(basePtr);
+    if (derivedPtr) {
+        derivedPtr->show();  // Output: Derived class
+    } else {
+        std::cout << "Failed to cast.\n";
+    }
+
+    delete basePtr;
+    return 0;
+}
+```
+
+In this example:
+- Implicit coercion occurs when `int` is converted to `double`.
+- Explicit coercion is demonstrated using `static_cast` to convert `double` to `int`.
+- `dynamic_cast` is used for safe downcasting in a polymorphic class hierarchy.
+
