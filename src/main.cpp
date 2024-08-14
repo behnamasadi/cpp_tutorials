@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <queue>
+#include <stack>
 
 int sub(int a, int b) { return a - b; }
 
@@ -15,48 +17,58 @@ void inc(int a, int &b, const int &c) {
   return;
 }
 
-template <typename T> struct array {
-  int m_length = 0;
-  T *data;
-  array(int length = 0) : m_length(length), data(new T[length]) {}
-  ~array() { delete[] data; }
-  T &operator[](std::size_t index) { return data[index]; }
-
-  class Iterator {
-  public:
-    Iterator(T *ptr) : m_ptr(ptr) {}
-
-    Iterator &operator++() {
-      ++m_ptr;
-      return *this;
-    }
-
-    // Iterator & ++operator() {
-    //   m_ptr++;
-    //   return *this;
-    // }
-
-    Iterator &operator--() {
-      --m_ptr;
-      return *this;
-    }
-
-    // bool operator!=(const Iterator &rhs) const { return m_ptr != rhs.m_ptr; }
-
-    bool operator!=(const Iterator &other) const {
-      return m_ptr != other.m_ptr;
-    }
-
-    T &operator*() { return *m_ptr; }
-
-  private:
-    T *m_ptr;
-  };
-
-public:
-  Iterator begin() { return Iterator(data); }
-  Iterator end() { return Iterator(data + m_length); }
+template <typename T> struct Node {
+  Node *l_child = nullptr;
+  Node *r_child = nullptr;
+  T val;
 };
+// dfs
+template <typename T> void recursive_dfs(Node<T> *node) {
+  // pre order
+  std::cout << node->val << std::endl;
+  if (node->l_child != nullptr)
+    recursive_dfs(node->l_child);
+  // mid order
+  // std::cout << node->val << std::endl;
+
+  if (node->r_child != nullptr)
+    recursive_dfs(node->r_child);
+  // post order
+  // std::cout << node->val << std::endl;
+}
+
+template <typename T> void bfs(Node<T> *node) {
+  std::queue<Node<T> *> q;
+  q.push(node);
+  while (!q.empty()) {
+    auto node = q.front();
+    q.pop();
+
+    std::cout << node->val << std::endl;
+    if (node->l_child != nullptr)
+      q.push(node->l_child);
+
+    if (node->r_child != nullptr)
+      q.push(node->r_child);
+  }
+}
+
+template <typename T> void dfs(Node<T> *node) {
+  std::stack<Node<T> *> stack;
+  stack.push(node);
+  while (!stack.empty()) {
+    auto node = stack.top();
+    stack.pop();
+
+    std::cout << node->val << std::endl;
+
+    if (node->r_child != nullptr)
+      stack.push(node->r_child);
+
+    if (node->l_child != nullptr)
+      stack.push(node->l_child);
+  }
+}
 
 int main() {
   // double number = 3.1914;
@@ -101,19 +113,61 @@ int main() {
   // f();
   // std::cout << "after call: " << a << ' ' << b << ' ' << c << '\n';
 
-  std::vector<int> foo(3);
-  array<int> my_arr(4);
+  /*
 
-  my_arr[0] = 3;
-  my_arr[1] = 7;
-  my_arr[2] = 5;
-  my_arr[3] = 6;
 
-  // std::sort(my_arr.begin(), my_arr.end());
+                      a
+                    /   \
+                  b       c
+                /  \    /   \
+               d    e  f     g
+              / \  /
+             h   i j
 
-  // std::cout << *(my_arr++) << std::endl;
-  for (array<int>::Iterator it = my_arr.begin(); it != my_arr.end(); ++it) {
+  */
 
-    std::cout << *it << std::endl;
-  }
+  Node<std::string> *a = new Node<std::string>;
+  Node<std::string> *b = new Node<std::string>;
+  Node<std::string> *c = new Node<std::string>;
+  Node<std::string> *d = new Node<std::string>;
+  Node<std::string> *e = new Node<std::string>;
+  Node<std::string> *f = new Node<std::string>;
+  Node<std::string> *g = new Node<std::string>;
+  Node<std::string> *h = new Node<std::string>;
+  Node<std::string> *i = new Node<std::string>;
+  Node<std::string> *j = new Node<std::string>;
+
+  a->val = "a";
+  a->l_child = b;
+  a->r_child = c;
+
+  b->val = "b";
+  b->l_child = d;
+  b->r_child = e;
+
+  c->val = "c";
+  c->l_child = f;
+  c->r_child = g;
+
+  d->val = "d";
+  d->l_child = h;
+  d->r_child = i;
+
+  e->val = "e";
+  e->l_child = j;
+
+  h->val = "h";
+  i->val = "i";
+  f->val = "f";
+  g->val = "g";
+  j->val = "j";
+  std::cout << "recursive_dfs" << std::endl;
+  recursive_dfs(a);
+
+  std::cout << "dfs" << std::endl;
+  dfs(a);
+
+  std::cout << "bfs" << std::endl;
+
+  bfs(a);
 }
