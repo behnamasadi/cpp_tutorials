@@ -130,6 +130,22 @@ bool operator<(const Person &lhs, const Person &rhs) {
 bool operator>(const Person &lhs, const Person &rhs) {
   return lhs.age > rhs.age;
 }
+template <typename T> void printArray(T array) {
+  for (const auto &element : array)
+    std::cout << element << " ";
+}
+
+class Solution {
+public:
+  int removeDuplicates(std::vector<int> &nums) {
+    std::unique(nums.begin(), nums.end());
+
+    printArray(nums);
+    std::cout << '\n';
+    std::cout << nums.size() << std::endl;
+    return nums.size();
+  }
+};
 
 int main() {
   // double number = 3.1914;
@@ -198,4 +214,8 @@ int main() {
   for (const auto &person : people) {
     std::cout << person.name << ": " << person.age << std::endl;
   }
+
+  std::vector<int> nums = {0, 0, 1, 1, 1, 2, 2, 3, 3, 4};
+  Solution s;
+  s.removeDuplicates(nums);
 }

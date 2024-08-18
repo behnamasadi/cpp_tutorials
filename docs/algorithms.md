@@ -82,12 +82,6 @@ int main() {
 }
 ```
 
-**Explanation:**
-1. We create two vectors: `numbers` with unsorted elements and `result` to hold the sorted elements.
-2. We use `std::partial_sort_copy` to copy the first 3 smallest elements from `numbers` to `result`.
-3. The original `numbers` vector remains unchanged.
-4. The `result` vector contains the 3 smallest elements in sorted order.
-
 **Key points:**
 * `std::partial_sort_copy` is efficient for finding a specific number of smallest or largest elements without sorting the entire input range.
 * The output range must be large enough to hold at least as many elements as the number of elements you want to copy.
@@ -99,13 +93,6 @@ int main() {
 
 By understanding `std::partial_sort_copy`, you can effectively handle situations where you need to extract a sorted subset of elements from a larger unsorted collection without modifying the original data.
  
-
-
-
-
-   
-   
-   
 
 5. **Binary Search Operations (on sorted ranges):**
    - `std::lower_bound` and `std::upper_bound`: Find bounds in a sorted range.
