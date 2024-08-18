@@ -22,6 +22,16 @@ endif()
 
 message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
 
+option(ENABLE_JSON "enable the json example with nlohmann library" OFF)
+option(ENABLE_CSV "enable the csv example with fast-cpp-csv-parser library" ON)
+option(ENABLE_YAML "enable the yaml example with yaml-cpp" ON)
+option(ENABLE_BENCHMARKING "enable the code benchmarking with Goolge benchmarking" OFF)
+option(ENABLE_TRACY "enable the code profiling with tracy" OFF)
+option(ENABLE_XML "enable the xml example with tinyxml2" ON)
+option(ENABLE_TESTING "Enable testing" OFF)
+option(ENABLE_SANITIZE "Add sanitizer flags" OFF)
+
+
 add_executable(pointers src/pointers/pointers.cpp)
 
 add_executable(string  src/string.cpp )
@@ -218,10 +228,6 @@ add_executable(forward src/forward.cpp)
 
 add_executable(virtual_destructor_virtual_constructor src/class/virtual_destructor_virtual_constructor.cpp)
 
-#add_executable(csv_reading_example src/third_party_tools/csv/fast-cpp-csv-parser/csv_reading_example.cpp)
-
-add_executable(json_example src/third_party_tools/jason/nlohmann/json_example.cpp)
-
 add_executable(header_guard src/class/header_guard/main.cpp)
 
 add_executable(optimizing_cpp src/optimizing_cpp/index.cpp)
@@ -253,6 +259,11 @@ add_executable(heap_and_stack_memory_layout_of_C_programs src/heap_and_stack_mem
 
 # target_compile_options(heap_and_stack_memory_layout_of_C_programs PRIVATE -Wall -Wextra -g -O0)
 
+
+if(ENABLED_SANITIZE)
+    set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
+endif()
 # set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
 # set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
 add_executable(memory_checking src/memory_checking.cpp)
@@ -294,23 +305,12 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND ${CMAKE_CXX_COMPILER_VERSION} G
     add_executable(printing_with_format src/printing_with_format.cpp)
 endif()
 
-find_package(PkgConfig)
-
-if(EXISTS "$ENV{HOME}/usr/lib/pkgconfig")
-    set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/lib/pkgconfig:" $ENV{PKG_CONFIG_PATH})
-endif()
-
-message("PKG_CONFIG_PATH:" $ENV{PKG_CONFIG_PATH})
 
 
-option(TESTING "Enable testing" OFF)
-
-if(testing_enabled)
-    add_subdirectory(tests)
-endif()
 
 
-option(SANITIZE "Add sanitizer flags" OFF)
+
+
 
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -328,10 +328,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     
 endif()
 
-if(SANITIZE)
-    set(CMAKE_CXX_FLAGS "-fsanitize=address ${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS "-fno-omit-frame-pointer ${CMAKE_CXX_FLAGS}")
-endif(SANITIZE)
+
 
 
 
@@ -350,148 +347,190 @@ endif()
 
 
 
-message("\n########################################## tinyxml2 ##########################################\n")
 
-#pkg_check_modules(TINYXML2 tinyxml2)
-##find_package(TinyXML2 )
+if(ENABLED_TESTING)
+    add_subdirectory(tests)
+else()
+    message("testing is not enabled")
+endif()
 
-include(FetchContent)
-FetchContent_Declare (tinyxml2
-GIT_REPOSITORY https://github.com/leethomason/tinyxml2
-GIT_TAG master
-GIT_SHALLOW TRUE
-GIT_PROGRESS TRUE)
+if(ENABLE_XML)
+    message("\n########################################## tinyxml2 ##########################################\n")
+    
+    include(FetchContent)
+    
+    FetchContent_Declare(
+        tinyxml2
+        GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+    
+    FetchContent_MakeAvailable(tinyxml2)
 
-FetchContent_MakeAvailable(tinyxml2)
+    message("TINYXML2_FOUND: ${TINYXML2_FOUND}")
+    message("TINYXML2_VERSION: ${TINYXML2_VERSION}")
+    message("TINYXML2_LIBRARIES: ${TINYXML2_LIBRARIES}")
+    message("TINYXML2_INCLUDE_DIRS: ${TINYXML2_INCLUDE_DIRS}")
+    message("TINYXML2_LIBRARY_DIRS: ${TINYXML2_LIBRARY_DIRS}")
 
-
-if(${TINYXML2_FOUND})
-    message("TINYXML2_FOUND:" ${TINYXML2_FOUND})
-    message("TINYXML2_VERSION:" ${TINYXML2_VERSION})
-    message("TINYXML2_LIBRARIES:" ${TINYXML2_LIBRARIES})
-    message("TINYXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
-    message("TINYXML2_LIBRARY_DIRS:" ${TINYXML2_LIBRARY_DIRS})
     include_directories(${TINYXML2_INCLUDE_DIRS})
     link_directories(${TINYXML2_LIBRARY_DIRS})
-    add_executable(tinyxml2_demo src/third_party_tools/xml/tinyxml2/tinyxml2_demo.cpp)
-    target_link_libraries(tinyxml2_demo ${TINYXML2_LIBRARIES})
+
+    add_executable(tinyxml2_demo src/tinyxml2_demo.cpp)
+    target_link_libraries(tinyxml2_demo tinyxml2)
+
 else()
-    message("tinyxml2 not found")
+    message("XML is not enabled")
 endif()
 
-message("\n########################################## yaml-cpp ##########################################\n")
+
+if(ENABLE_YAML)
+    message("\n########################################## yaml-cpp ##########################################\n")
+
+    FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+    )
+    FetchContent_GetProperties(yaml-cpp)
+
+    if(NOT yaml-cpp_POPULATED)
+    message(STATUS "Fetching yaml-cpp...")
+    FetchContent_Populate(yaml-cpp)
+    add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+    endif()
+
+    FetchContent_MakeAvailable(yaml-cpp)
+    FetchContent_GetProperties(yaml-cpp)
 
 
-FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
-)
-FetchContent_GetProperties(yaml-cpp)
-
-if(NOT yaml-cpp_POPULATED)
-  message(STATUS "Fetching yaml-cpp...")
-  FetchContent_Populate(yaml-cpp)
-  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
-endif()
-
-FetchContent_MakeAvailable(yaml-cpp)
-
-
-# set(yaml-cpp_DIR "$ENV{HOME}/usr/share/cmake/yaml-cpp")
-# find_package(yaml-cpp)
-
-if(${yaml-cpp_FOUND})
     message("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
     message("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
-    add_executable(yaml-cpp_example src/third_party_tools/yaml/yaml-cpp/yaml-cpp_example.cpp)
+    add_executable(yaml-cpp_example src/yaml-cpp_example.cpp)
     target_link_libraries(yaml-cpp_example yaml-cpp)
+else()
+    message("yaml is not enabled")
 endif()
 
 
-message("\n########################################## Google benchmark ##########################################\n")
 
+if(ENABLE_BENCHMARKING)
+    message("\n########################################## Google benchmark ##########################################\n")
 
+    FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark
+        GIT_TAG main # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+    )
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    FetchContent_GetProperties(benchmark)
 
-FetchContent_Declare(
-    benchmark
-  GIT_REPOSITORY https://github.com/google/benchmark
-  GIT_TAG main # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
-)
-set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    if(NOT benchmark_POPULATED)
+        message(STATUS "Fetching benchmark...")
+        FetchContent_Populate(benchmark)
+        add_subdirectory(${benchmark_SOURCE_DIR} ${benchmark_BINARY_DIR})
+    endif()
 
-
-FetchContent_GetProperties(benchmark)
-
-if(NOT benchmark_POPULATED)
-  message(STATUS "Fetching benchmark...")
-  FetchContent_Populate(benchmark)
-  add_subdirectory(${benchmark_SOURCE_DIR} ${benchmark_BINARY_DIR})
-endif()
-
-FetchContent_MakeAvailable(benchmark)
-
-#pkg_check_modules(BENCHMARK benchmark)
-
-if(${BENCHMARK_FOUND})
     message("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
     message("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
     message("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
     message("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
     message("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
-    include_directories(${TINYXML2_INCLUDE_DIRS})
-    link_directories(${TINYXML2_LIBRARY_DIRS})
-    #add_executable(benchmark_demo src/third_party_tools/benchmark/benchmark_demo.cpp)
-    #target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
+
+    include_directories(${BENCHMARK_INCLUDE_DIRS}) # Corrected to use benchmark include directories
+    link_directories(${BENCHMARK_LIBRARY_DIRS})    # Corrected to use benchmark library directories
+    add_executable(benchmark_demo src/benchmark_demo.cpp)
+    target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
+else()
+    message("Benchmarking is not enabled")
 endif()
 
 
 
-message("\n########################################## json ##########################################\n")
+if(ENABLE_JSON)
+    message("\n########################################## json ##########################################\n")
+
+    FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+
+    FetchContent_MakeAvailable(json)
+
+    add_executable(json_example src/json_example.cpp)
+
+    # Define a macro CMAKE_CURRENT_SOURCE_DIR with the value of CMAKE_CURRENT_SOURCE_DIR
+    target_compile_definitions(json_example PRIVATE CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+    # Include the nlohmann/json directory
+    target_include_directories(json_example PRIVATE ${json_SOURCE_DIR})
+
+
+else()
+    message("json is not enabled")
+endif()
 
 
 
+
+
+
+if(ENABLE_TRACY)
+    message("\n########################################## tracy ##########################################\n")
+    include(FetchContent)
+    FetchContent_Declare (tracy
+    GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+    GIT_TAG v0.11.0
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE)
+
+    FetchContent_MakeAvailable(tracy)
+
+
+
+    FetchContent_GetProperties(tracy)
+    # if(NOT tracy_POPULATED)
+    # #   FetchContent_Populate(tracy)
+    # #   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+    # message("-------------------")
+    # else()
+    # message("++++++++++++++++")
+    # endif()
+
+
+    add_executable(tracy_profile src/tracy_profile.cpp)
+    target_link_libraries ( tracy_profile PUBLIC TracyClient )
+
+else()
+    message("tracy is not enabled")
+endif()
+
+
+if(ENABLE_CSV)
+message("\n########################################## fast-cpp-csv-parser ##########################################\n")
 include(FetchContent)
-FetchContent_Declare (json
-GIT_REPOSITORY https://github.com/nlohmann/json
+FetchContent_Declare (fast-cpp-csv-parser
+GIT_REPOSITORY https://github.com/ben-strasser/fast-cpp-csv-parser
 GIT_TAG master
 GIT_SHALLOW TRUE
 GIT_PROGRESS TRUE)
 
-FetchContent_MakeAvailable(json)
+FetchContent_MakeAvailable(fast-cpp-csv-parser)
+FetchContent_GetProperties(fast-cpp-csv-parser)
 
+add_executable(csv_reading_example src/csv_reading_example.cpp)
+target_compile_definitions(csv_reading_example PRIVATE CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(csv_reading_example PRIVATE ${fast-cpp-csv-parser_SOURCE_DIR})
 
-message("\n########################################## tracy ##########################################\n")
-
-
-
-include(FetchContent)
-FetchContent_Declare (tracy
-GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-GIT_TAG v0.11.0
-GIT_SHALLOW TRUE
-GIT_PROGRESS TRUE)
-
-FetchContent_MakeAvailable(tracy)
-
-
-
-FetchContent_GetProperties(tracy)
-if(NOT tracy_POPULATED)
-#   FetchContent_Populate(tracy)
-#   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-
-message("-------------------")
 else()
-message("++++++++++++++++")
+message("fast-cpp-csv-parser is not enabled")
+
 endif()
-
-
-
-add_executable(tracy_profile src/tracy_profile.cpp)
-target_link_libraries ( tracy_profile PUBLIC TracyClient )
-
-
 
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")

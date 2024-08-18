@@ -70,6 +70,67 @@ template <typename T> void dfs(Node<T> *node) {
   }
 }
 
+void tree() {
+  Node<std::string> *a = new Node<std::string>;
+  Node<std::string> *b = new Node<std::string>;
+  Node<std::string> *c = new Node<std::string>;
+  Node<std::string> *d = new Node<std::string>;
+  Node<std::string> *e = new Node<std::string>;
+  Node<std::string> *f = new Node<std::string>;
+  Node<std::string> *g = new Node<std::string>;
+  Node<std::string> *h = new Node<std::string>;
+  Node<std::string> *i = new Node<std::string>;
+  Node<std::string> *j = new Node<std::string>;
+
+  a->val = "a";
+  a->l_child = b;
+  a->r_child = c;
+
+  b->val = "b";
+  b->l_child = d;
+  b->r_child = e;
+
+  c->val = "c";
+  c->l_child = f;
+  c->r_child = g;
+
+  d->val = "d";
+  d->l_child = h;
+  d->r_child = i;
+
+  e->val = "e";
+  e->l_child = j;
+
+  h->val = "h";
+  i->val = "i";
+  f->val = "f";
+  g->val = "g";
+  j->val = "j";
+  std::cout << "recursive_dfs" << std::endl;
+  recursive_dfs(a);
+
+  std::cout << "dfs" << std::endl;
+  dfs(a);
+
+  std::cout << "bfs" << std::endl;
+
+  bfs(a);
+}
+
+struct Person {
+
+  std::string name;
+  int age;
+};
+
+bool operator<(const Person &lhs, const Person &rhs) {
+  return lhs.age < rhs.age;
+}
+
+bool operator>(const Person &lhs, const Person &rhs) {
+  return lhs.age > rhs.age;
+}
+
 int main() {
   // double number = 3.1914;
 
@@ -125,49 +186,16 @@ int main() {
              h   i j
 
   */
+  // std::cmp_equal
 
-  Node<std::string> *a = new Node<std::string>;
-  Node<std::string> *b = new Node<std::string>;
-  Node<std::string> *c = new Node<std::string>;
-  Node<std::string> *d = new Node<std::string>;
-  Node<std::string> *e = new Node<std::string>;
-  Node<std::string> *f = new Node<std::string>;
-  Node<std::string> *g = new Node<std::string>;
-  Node<std::string> *h = new Node<std::string>;
-  Node<std::string> *i = new Node<std::string>;
-  Node<std::string> *j = new Node<std::string>;
+  // std::vector<int> numbers = {3, 7, 4, 9, 2, 5, 8, 1, 6};
+  // std::sort(numbers.begin(), numbers.end(), std::less<int>());
 
-  a->val = "a";
-  a->l_child = b;
-  a->r_child = c;
+  std::vector<Person> people = {{"Alice", 30}, {"Bob", 25}, {"Charlie", 35}};
 
-  b->val = "b";
-  b->l_child = d;
-  b->r_child = e;
+  std::sort(people.begin(), people.end(), std::less<Person>());
 
-  c->val = "c";
-  c->l_child = f;
-  c->r_child = g;
-
-  d->val = "d";
-  d->l_child = h;
-  d->r_child = i;
-
-  e->val = "e";
-  e->l_child = j;
-
-  h->val = "h";
-  i->val = "i";
-  f->val = "f";
-  g->val = "g";
-  j->val = "j";
-  std::cout << "recursive_dfs" << std::endl;
-  recursive_dfs(a);
-
-  std::cout << "dfs" << std::endl;
-  dfs(a);
-
-  std::cout << "bfs" << std::endl;
-
-  bfs(a);
+  for (const auto &person : people) {
+    std::cout << person.name << ": " << person.age << std::endl;
+  }
 }
