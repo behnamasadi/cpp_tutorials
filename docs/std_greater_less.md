@@ -37,6 +37,8 @@ int main() {
 * **`std::less<int>()`**: This is the default comparator for many algorithms. It defines the "less than" operation for integers.
 * **`std::greater<int>()`**: This defines the "greater than" operation for integers.
 
+* **`std::greater{}`**: This is equivalent to `std::greater<>()`. It's just a different syntax for creating a transparent comparator.
+
 
 ### Advance Example
 ```cpp
