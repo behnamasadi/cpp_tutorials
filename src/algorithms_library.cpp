@@ -57,7 +57,7 @@ template <typename T> void print_queue(T &q) {
 
 template <typename T> void printArray(T array) {
   for (const auto &element : array)
-    std::cout << element << std::endl;
+    std::cout << element << " ";
 }
 
 bool IsOdd(int i) { return (i % 2) == 1; }
@@ -815,10 +815,23 @@ bool validate(const std::vector<std::string> &in) {
   });
 }
 
+void partial_sort() {
+  int Kth = 4;
+  std::vector<int> arr = {5, 812, 4, 74, 68, 7, 48, 45};
+  printArray(arr);
+  std::vector<int> arr_cp(Kth);
+
+  std::partial_sort_copy(arr.begin(), arr.begin(), arr_cp.begin(),
+                         arr_cp.end());
+
+  std::partial_sort(arr.begin(), arr.begin() + Kth, arr.end());
+
+  printArray(arr);
+}
 int main(int argc, char **argv) {
 
-  for_eachExample();
-  // accumulateExample();
+  // for_eachExample();
+  //  accumulateExample();
   /*
       unique();
       count();
@@ -903,4 +916,5 @@ int main(int argc, char **argv) {
   //    //std::align();
 
   //     permutation();
+  partial_sort();
 }

@@ -24,8 +24,88 @@ The `<algorithm>` header in C++20 includes a wide range of functions that are es
 4. **Sorting Operations:**
    - `std::sort`: Sort elements in a range.
    - `std::stable_sort`: Stable sort elements.
-   - `std::partial_sort`: Partially sort elements in a range.
-   - `std::nth_element`: Partially sort such that the nth element is in its sorted position.
+   - `std::partial_sort`: Partially sort elements in a range, up to the `K'th` element.
+```cpp
+  int Kth = 4;
+  std::vector<int> arr = {5, 812, 4, 74, 68, 7, 48, 45};
+  std::partial_sort(arr.begin(), arr.begin() + Kth, arr.end());
+```
+   
+   - `std::nth_element`:  partially sorts a range of elements. It rearranges the elements such that the element at the specified nth position is the one that would be at that position if the entire range were sorted. It is efficient for finding specific elements (like **median, kth smallest/largest**) without sorting the entire container.
+```cpp
+    std::vector<int> numbers = {3, 7, 4, 9, 2, 5, 8, 1, 6};
+
+    // Find the median
+    auto middle = numbers.begin() + numbers.size() / 2;
+    std::nth_element(numbers.begin(), middle, numbers.end());
+
+    std::cout << "Median: " << *middle << std::endl;   
+```
+
+- `std::partial_sort_copy`: Copies elements from an input range to an output range, Simultaneously sorts the elements copied to the output range. Only the first `n` elements of the output range are guaranteed to be sorted.
+
+**Syntax:**
+
+```cpp
+std::partial_sort_copy(first, last, result_first, result_last);
+```
+
+* `first` and `last`: Iterators defining the range of elements to be copied.
+* `result_first` and `result_last`: Iterators defining the range of elements to be copied to.
+
+**Example:**
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> numbers = { 64, 25, 12, 22, 11, 90 };
+    std::vector<int> result(3); // We want the 3 smallest elements
+
+    std::partial_sort_copy(numbers.begin(), numbers.end(), result.begin(), result.end());
+
+    std::cout << "Original numbers: ";
+    for (int num : numbers) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Smallest 3 numbers: ";
+    for (int num : result) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+**Explanation:**
+1. We create two vectors: `numbers` with unsorted elements and `result` to hold the sorted elements.
+2. We use `std::partial_sort_copy` to copy the first 3 smallest elements from `numbers` to `result`.
+3. The original `numbers` vector remains unchanged.
+4. The `result` vector contains the 3 smallest elements in sorted order.
+
+**Key points:**
+* `std::partial_sort_copy` is efficient for finding a specific number of smallest or largest elements without sorting the entire input range.
+* The output range must be large enough to hold at least as many elements as the number of elements you want to copy.
+* The elements beyond the first `n` elements in the output range are not guaranteed to be sorted.
+
+**Additional notes:**
+* You can use custom comparison functions with `std::partial_sort_copy` to sort elements based on different criteria.
+* For more complex sorting scenarios, consider using `std::stable_partition` or writing custom sorting algorithms.
+
+By understanding `std::partial_sort_copy`, you can effectively handle situations where you need to extract a sorted subset of elements from a larger unsorted collection without modifying the original data.
+ 
+
+
+
+
+   
+   
+   
 
 5. **Binary Search Operations (on sorted ranges):**
    - `std::lower_bound` and `std::upper_bound`: Find bounds in a sorted range.
