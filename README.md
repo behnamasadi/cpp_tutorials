@@ -182,7 +182,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Hash Functions, Hash Data Structure (Hash Table)](docs/hash_function_hash_table.md)    
    * [Heap and Stack, Memory Layout of C Programs](docs/heap_and_stack_memory_layout_of_C_programs.md)  
    * [Iterator, for_each loop, range-for loop, Loop optimization](docs/iterator_loop.md)  
-   * [std::less, std::greater] (docs/std_greater_less.md)   
+   * [std::less, std::greater](docs/std_greater_less.md)   
    * [std::not1 and std::unary_negate](docs/not1_unary_negate.md)   
    * [Lambda](docs/lambda.md)  
    * [Literals](docs/literals.md)  
