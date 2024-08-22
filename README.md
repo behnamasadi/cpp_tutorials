@@ -5,7 +5,7 @@
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
-This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and sample code for using third-party libs to parse **CSV**, **YAML**, and **JASON** files. An example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
+This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and sample code for using third-party libs to parse **CSV**, **YAML**, and **JASON** files. An example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** to build and export your project.
 
 ## Building and Installation
 if you need to update your CMake:
@@ -284,7 +284,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Static Casting, Dynamic Casting](src/cast.cpp)  
    * [Run-Time Type Information(RTTI)](docs/RTTI.md)  
    * [Curiously Recurring Template Pattern (CRTP)](src/CRTP.cpp)  
-   * [Copy Elision, Return value optimization (RVO,NRVO)](docs/copy_elision.md)  
+   * [Copy Elision, Return value optimization (RVO, NRVO)](docs/copy_elision.md)  
    * [Double Dispatch](docs/double_dispatch.md)  
    * [Most vexing parse](docs/most_vexing_parse.md)  
    * [Metaprogramming](docs/metaprogramming.md)  
@@ -304,7 +304,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Undefined behavior, Unspecified and Implementation-Defined](docs/undefined_unspecified_implementation_defined.md)   
    * [Printing List of All Included Headers](docs/print_all_included_headers.md)   
    * [fPIE (Position Independent Executable) and fPIC(Position Independent Code and) ](docs/fPIE_and_fPIC.md)
-   * [Lexical Analyzer](docs/)     
+   * [Lexical Analyzer](docs/lexical_analyzer.md)     
 
    
 ## [Optimizing C++](src/optimizing_cpp)
@@ -314,7 +314,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [JASON](docs/json.md)  
    * [XML](docs/tinyxml2.md)  
 ## [Code Benchmarking](#)
-   * [Google Benchmark ]docs/google_benchmark.md)  
+   * [Google Benchmark](docs/google_benchmark.md)  
 ## [C++ Coding Standards and Style Guide](#)  
    * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
    * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
@@ -325,9 +325,3 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [vcpkg](docs/vcpkg.md)  
    * [Chocolatey](https://chocolatey.org/install)
    * [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
-   
-   
-
-
-  
-
