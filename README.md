@@ -5,10 +5,10 @@
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
-This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and samples code for using third party libs for parsing **CSV**, **YAML** and **JASON** files. Example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
+This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and sample code for using third-party libs to parse **CSV**, **YAML**, and **JASON** files. An example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** for building and exporting your project.
 
 ## Building and Installation
-if you need to update your cmake:
+if you need to update your CMake:
 
 Navigate to [CMake's official](https://cmake.org/download/) website to get the link for the latest source tarball:
 
@@ -66,7 +66,7 @@ cmake --build --preset ninja-multi-release
 ```
 
 ### 1. Building the Image
-There is docker file for this project where contains all dependencies and you build the image with :   
+There is a docker file for this project that contains all dependencies and you build the image with:   
 
 `docker build -t cpp_tutorials .`
 
@@ -107,7 +107,7 @@ You can remove unnecessary images and containers by:
 read more [here](https://ros-developer.com/2017/11/08/docker/)
 
 
-## Configure VSCode to use Ninja Multi-Config for all cmake projects
+## Configure VSCode to use Ninja Multi-Config for all CMake projects
 
 To configure VSCode to use CMake with the "Ninja Multi-Config" generator for all CMake projects, you can modify the VSCode settings. Here's how you can do it:
 
@@ -309,10 +309,10 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    
 ## [Optimizing C++](src/optimizing_cpp)
 ## [Data File Storage Parsing](#)
-   * [CSV ](docs/csv.md)  
-   * [YAML ](src/third_party_tools/yaml)  
+   * [CSV](docs/csv.md)  
+   * [YAML](docs/yaml-cpp.md)  
    * [JASON](docs/json.md)  
-   * [XML ](src/third_party_tools/xml/)  
+   * [XML](docs/tinyxml2.md)  
 ## [Code Benchmarking](src/third_party_tools/benchmark)
    * [Google Benchmark ](src/third_party_tools/benchmark)  
 ## [C++ Coding Standards and Style Guide](#)  
