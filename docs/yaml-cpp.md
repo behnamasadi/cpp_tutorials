@@ -1,5 +1,3 @@
-`yaml-cpp` is a popular C++ library for parsing and emitting YAML. Below is an example that demonstrates how to use `yaml-cpp` to parse a YAML file and access its contents.
-
 ### YAML Example File
 
 Let's assume we have a YAML file named `example.yaml` with the following content:
@@ -62,21 +60,7 @@ int main() {
 }
 ```
 
-### Explanation
 
-- **Loading the YAML file**: `YAML::LoadFile("example.yaml")` reads the YAML file and creates a `YAML::Node` object.
-- **Accessing data**: The `YAML::Node` object provides methods like `as<std::string>()` to convert YAML nodes to the desired C++ type.
-- **Iterating over sequences**: If the YAML node represents a sequence (like the `phones` array), you can iterate over it using a loop.
-
-### Compilation
-
-To compile the above code, you'll need to link the `yaml-cpp` library. Here’s an example command using `g++`:
-
-```bash
-g++ -o yaml_example yaml_example.cpp -lyaml-cpp
-```
-
-### Output
 
 When you run the compiled program, it will print the contents of the YAML file:
 
@@ -87,3 +71,6 @@ Name: John Doe
 Age: 30
 Address: 123 Maple Street, Springfield, IL
 ```
+
+
+[code](../src/yaml-cpp_example.cpp)

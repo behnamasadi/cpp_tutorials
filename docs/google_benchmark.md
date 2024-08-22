@@ -1,14 +1,5 @@
-Google Benchmark is a micro-benchmarking library developed by Google that helps you measure the performance of individual code snippets or small parts of a program. It is particularly useful for performance-critical code where you need to optimize specific functions or algorithms.
-
-### Key Features of Google Benchmark:
-1. **Simple API**: The library provides an easy-to-use API for defining and running benchmarks.
-2. **Automatic Iteration Count**: It automatically determines the number of iterations required to get an accurate measurement.
-3. **Customizable**: You can customize benchmarks by specifying the number of iterations, setting up custom counters, or adding user-defined options.
-4. **Reporting and Output**: The library provides detailed output of the benchmarking results, including mean, median, and standard deviation.
-
-### How to Use Google Benchmark
-
-Let's walk through a simple example to understand how Google Benchmark works.
+## Google Benchmark
+Google Benchmark is a micro-benchmarking library developed by Google that helps you measure the performance of individual code snippets or small parts of a program. It is particularly useful for performance-critical code where you need to optimize specific functions or algorithms. It automatically determines the number of iterations required to get an accurate measurement. The library provides detailed output of the benchmarking results, including mean, median, and standard deviation.
 
 ### Example 1: Benchmarking a Simple Function
 
@@ -112,25 +103,7 @@ void BM_Throughput(benchmark::State& state) {
 BENCHMARK(BM_Throughput);
 
 BENCHMARK_MAIN();
+
 ```
+[code](../src/benchmark_demo.cpp)
 
-**Explanation**:
-- `benchmark::DoNotOptimize(some_operation());` ensures that the compiler does not optimize away the operation being benchmarked.
-- `state.SetItemsProcessed(state.iterations());` reports the number of items processed, which can be used to calculate throughput.
-
-### Running the Benchmarks
-To compile and run these benchmarks, you would typically do the following:
-
-1. **Compile** the program using a C++ compiler, ensuring that you link against the Google Benchmark library.
-2. **Run** the resulting executable, which will automatically execute the benchmarks and output the results.
-
-```bash
-$ g++ -std=c++11 benchmark_example.cpp -lbenchmark -lpthread -o benchmark_example
-$ ./benchmark_example
-```
-
-### Output
-The output will include the function name, the number of iterations, the time taken per iteration, and other statistics.
-
-### Summary
-Google Benchmark is a powerful tool for performance testing in C++. By writing simple benchmark functions and registering them, you can measure the performance of specific code paths in your application, enabling more informed decisions about optimizations.
