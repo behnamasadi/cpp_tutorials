@@ -87,4 +87,4 @@ JSON Schema provides a robust framework to ensure that JSON data is well-formed 
 
 
 
-[code](../srcjson_example.cpp)  
+[code](../src/json_example.cpp)  
