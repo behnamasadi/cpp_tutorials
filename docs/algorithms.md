@@ -114,8 +114,9 @@ By understanding `std::partial_sort_copy`, you can effectively handle situations
    - `std::lexicographical_compare`: Compare sequences.
    - `std::equal`: Test if two ranges are equal.
 
-10. **Permutation Operations:**
-    - `std::next_permutation`, `std::prev_permutation`: Generate permutations.
+10. **Permutation and Shuffle Operations:**
+    - `std::next_permutation`, `std::prev_permutation`: Generate permutations,
+    - `std::random_shuffle`, `std::shuffle`: Reorders the elements such that each possible permutation of those elements has equal probability of appearance.
 
 11. **Numeric Operations:**
     - `std::iota`: Fill a range with successive increments of a start value.
