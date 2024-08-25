@@ -1,6 +1,8 @@
 #include <iostream>
+#include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 // user-defined hash functions:
 // Example 1
@@ -87,4 +89,35 @@ void unordered_mapCustomClasstype() {
       {{1, "John", "Doe"}, "example"}, {{2, "Mary", "Sue"}, "another"}};
 }
 
-int main() {}
+void sizeOfTheHashTable() {
+  // Example with std::unordered_map
+  std::unordered_map<int, std::string> my_map = {
+      {1, "one"}, {2, "two"}, {3, "three"}};
+
+  std::cout << "Number of buckets in my_map: " << my_map.bucket_count()
+            << std::endl;
+  std::cout << "Current load factor in my_map: " << my_map.load_factor()
+            << std::endl;
+  std::cout << "Max load factor in my_map: " << my_map.max_load_factor()
+            << std::endl;
+
+  // Example with std::unordered_set
+  std::unordered_set<int> my_set = {1, 2, 3, 4, 5};
+
+  std::cout << "Number of buckets in my_set: " << my_set.bucket_count()
+            << std::endl;
+  std::cout << "Current load factor in my_set: " << my_set.load_factor()
+            << std::endl;
+  std::cout << "Max load factor in my_set: " << my_set.max_load_factor()
+            << std::endl;
+
+  // Accessing the size of a specific bucket
+  size_t bucket_index = 0;
+  std::cout << "Elements in bucket " << bucket_index
+            << " of my_map: " << my_map.bucket_size(bucket_index) << std::endl;
+}
+
+int main() {
+  unordered_mapCustomClasstype();
+  sizeOfTheHashTable();
+}

@@ -1,81 +1,139 @@
 # Hash Functions
-In C++, a hash refers to a function or algorithm that takes an input (or "key") and produces a fixed-size string of characters, which is typically a hexadecimal number or a sequence of bytes. Hash functions are commonly used in data structures like hash tables and for various other purposes, such as data encryption, password storage, and digital signatures.
+In C++, `std::hash` is a function object, also known as a functor, that provides a way to obtain a hash value for a given input of a specific type. When you declare something like `std::hash<float> float_hasher;` or `std::hash<std::string> str_hasher;`, you're creating an instance of `std::hash` specialized for `float` or `std::string`. These are used to generate hash values from floating-point numbers or strings, respectively.
 
-Here's a basic explanation of how to use a hash function in C++ with an example using the `std::hash` function from the C++ Standard Library:
+### How Does `std::hash` Work?
 
-```cpp
-#include <iostream>
-#include <functional>
+1. **Hash Function**:
+   - `std::hash` provides a `operator()` function that takes an object of the specified type and returns a `std::size_t`, which is an unsigned integer type used to represent sizes.
+   - This `operator()` essentially converts the input (e.g., a `float` or a `std::string`) into a hash value, which is a number that ideally distributes inputs uniformly across its range.
 
-int main() {
-    // Create a hash function object using std::hash
-    std::hash<std::string> hasher;
+2. **Usage Example**:
+   ```cpp
+   std::hash<float> float_hasher;
+   std::size_t hash_value = float_hasher(3.14f);  // Hash value for the float 3.14
+   
+   std::hash<std::string> str_hasher;
+   std::size_t hash_value_str = str_hasher("hello");  // Hash value for the string "hello"
+   ```
 
-    // Input data (a string)
-    std::string input = "Hello, World!";
-
-    // Calculate the hash value of the input
-    size_t hashValue = hasher(input);
-
-    // Display the hash value
-    std::cout << "Hash value of '" << input << "': " << hashValue << std::endl;
-
-    return 0;
-}
-```
-
-In this example, we include the `<iostream>` and `<functional>` headers, which are necessary for input/output and using the `std::hash` function, respectively.
-
-Here's how the code works:
-
-1. We create a hash function object called `hasher` using the `std::hash` template. In this case, we specify that we want to hash `std::string` objects.
-
-2. We define a `std::string` variable called `input` with the string "Hello, World!" as our input data.
-
-3. We calculate the hash value of the input string by invoking the `hasher` function with the `input` as its argument. This will return a `size_t` value representing the hash code of the input string.
-
-4. Finally, we display the hash value using `std::cout`.
-
-It's important to note that the `std::hash` function is suitable for basic use cases, but it's not suitable for cryptographic purposes or when you need a hash function with specific properties like collision resistance. For cryptographic purposes, you should use cryptographic hash functions like SHA-256 or SHA-3, which are available in C++ through various libraries, such as OpenSSL or the C++ Standard Library's `<cryptopp>` library.
-
-# Hash Data Structure (Hash Table)
-A hash data structure, often referred to as a hash table or hash map, is a data structure that uses a hash function to map keys to values. It allows for efficient retrieval and storage of values based on their associated keys. Hash tables are commonly used in computer science and programming for tasks like implementing dictionaries, caches, and database indexing.
-
-Here's a basic explanation of a hash table in C++ with an example using the `std::unordered_map` container from the C++ Standard Library:
+### User-defined Hash functions
 
 ```cpp
-#include <iostream>
-#include <unordered_map>
+class student {
+public:
+  int id;
+  std::string first_name;
+  std::string last_name;
 
-int main() {
-    // Create an unordered_map (hash table) to store key-value pairs
-    std::unordered_map<std::string, int> hashMap;
-
-    // Insert key-value pairs into the hash table
-    hashMap["apple"] = 3;
-    hashMap["banana"] = 2;
-    hashMap["cherry"] = 5;
-
-    // Access values by their keys
-    std::cout << "Number of apples: " << hashMap["apple"] << std::endl;
-    std::cout << "Number of cherries: " << hashMap["cherry"] << std::endl;
-
-    return 0;
-}
+  bool operator==(const student &other) const {
+    return (first_name == other.first_name && last_name == other.last_name &&
+            id == other.id);
+  }
+};
 ```
 
-In this example, we use the `std::unordered_map` container, which is an implementation of a hash table. Here's how the code works:
+hash function:
 
-1. We include the necessary header `<iostream>` for input/output and `<unordered_map>` for using the `std::unordered_map` container.
+```cpp
+namespace std {
 
-2. We create an `std::unordered_map` named `hashMap` that associates `std::string` keys with `int` values.
+template <> struct hash<student> {
+  std::size_t operator()(const student &k) const {
 
-3. We insert key-value pairs into the hash table using the `[]` operator. For example, we associate the key "apple" with the value 3.
+    // Compute individual hash values for first,
+    // second and third and combine them using XOR
+    // and bit shifting:
 
-4. We access values from the hash table using their corresponding keys. In this case, we retrieve the number of apples and cherries from the hash table and display them using `std::cout`.
+    return ((std::hash<string>()(k.first_name) ^
+             (std::hash<string>()(k.last_name) << 1)) >>
+            1) ^
+           (std::hash<int>()(k.id) << 1);
+    ;
+  }
+};
 
-So, to clarify, the example provided above demonstrates the use of a hash data structure (hash table) in C++. It uses a hash function internally to efficiently store and retrieve values based on their keys.
+}
+```
+If you don't want to specialize template inside the std namespace (although it's perfectly legal in this case), you can define the hash function as a separate class and add it to the template argument list for the map:
 
+```cpp
+struct KeyHasher {
+  std::size_t operator()(const student &k) const {
+
+    return ((std::hash<std::string>()(k.first_name) ^
+             (std::hash<std::string>()(k.last_name) << 1)) >>
+            1) ^
+           (std::hash<int>()(k.id) << 1);
+  }
+};
+```
+
+In your main:
+
+```cpp
+std::unordered_map<student, std::string> student_umap = {
+      {{1, "John", "Doe"}, "example"}, {{2, "Mary", "Sue"}, "another"}};
+
+  std::unordered_map<student, std::string, KeyHasher> m6 = {
+      {{1, "John", "Doe"}, "example"}, {{2, "Mary", "Sue"}, "another"}};
+```
+    
+
+
+### Where is the Hash Table?
+
+- **No Hash Table in `std::hash`**:
+   - The `std::hash` function object itself does not involve a hash table. It simply computes a hash value for a given input.
+   - The responsibility of organizing and storing these hash values in a hash table belongs to containers that utilize hashing, such as `std::unordered_map`, `std::unordered_set`, etc.
+
+- **Hash Table in Containers**:
+   - When you use a container like `std::unordered_map`, it internally uses `std::hash` to compute hash values for keys and organizes these values in a hash table.
+   - The hash table itself is managed by the container, not by the `std::hash` function.
+
+### What is the Size of the Hash Table?
+
+In C++, to get information about the size of the hash table (i.e., the number of buckets) in a `std::unordered_map` or `std::unordered_set`, you can use the `bucket_count()` member function. This function returns the current number of buckets in the hash table.
+
+Here are the relevant functions you can use:
+
+1. **`bucket_count()`**: Returns the number of buckets in the hash table.
+2. **`load_factor()`**: Returns the current load factor, which is the average number of elements per bucket.
+3. **`max_load_factor()`**: Returns the maximum load factor before the container will automatically increase the number of buckets (rehash).
+4. **`bucket_size(bucket_index)`**: Returns the number of elements in the specified bucket.
+
+### Example Code
+
+```cpp
+    std::unordered_map<int, std::string> my_map = {{1, "one"}, {2, "two"}, {3, "three"}};
+
+    std::cout << "Number of buckets in my_map: " << my_map.bucket_count() << std::endl;
+    std::cout << "Current load factor in my_map: " << my_map.load_factor() << std::endl;
+    std::cout << "Max load factor in my_map: " << my_map.max_load_factor() << std::endl;
+
+    // Example with std::unordered_set
+    std::unordered_set<int> my_set = {1, 2, 3, 4, 5};
+
+    std::cout << "Number of buckets in my_set: " << my_set.bucket_count() << std::endl;
+    std::cout << "Current load factor in my_set: " << my_set.load_factor() << std::endl;
+    std::cout << "Max load factor in my_set: " << my_set.max_load_factor() << std::endl;
+
+    // Accessing the size of a specific bucket
+    size_t bucket_index = 0;
+    std::cout << "Elements in bucket " << bucket_index << " of my_map: " << my_map.bucket_size(bucket_index) << std::endl;
+```
+
+
+For the code above, you might see output similar to:
+
+```bash
+Number of buckets in my_map: 8
+Current load factor in my_map: 0.375
+Max load factor in my_map: 1
+Number of buckets in my_set: 10
+Current load factor in my_set: 0.5
+Max load factor in my_set: 1
+Elements in bucket 0 of my_map: 0
+```
 
 
 [code](../src/hash.cpp)
