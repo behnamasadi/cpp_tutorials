@@ -241,7 +241,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Header Guard](src/class/header_guard)    
    * [Inheritance, Inheritance Prevention (final)](src/class/inheritance.cpp)  
    * [Multiple Inheritance Polymorphism](src/class/multiple_inheritance_polymorphism.cpp)  
-   * [Operator Overloading](src/class/operator_overloading.cpp)  
+   * [Operator Overloading](docs/operator_overloading.md)  
    * [Object Slicing](src/class/object_slicing.cpp)  
    * [Passing Arguments To Parent Constructor](src/class/passing_arg_to_parent_constructor.cpp)  
    * [Private Public Protected Inheritance](src/class/private_public_protected_inheritance.cpp)  

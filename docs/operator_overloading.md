@@ -1,7 +1,26 @@
-#include <iostream>
-#include <istream>
-#include <random>
+# Operators Overloading
 
+Any of the following 38 (until C++20)40 (since C++20) operators:
+```
++ - * / % ^ & |
+~ ! = < > += -=
+*= /= %= ^= &= |= << >> >>= <<= == != <= >= <=> (since C++20) && || ++ -- , ->*
+-> ( ) [ ]
+ co_await (since C++20)
+```
+
+In this example we gonna overload the following operators:
+```cpp
+()
+-
+<<
+>>
+= deep copy (Copy constructor, Assignment operator)
+```
+
+Our class money:
+
+```cpp
 class money {
 private:
   int m_size = 10;
@@ -64,36 +83,80 @@ public:
     return *this;
   }
 };
+```
 
-money operator-(const money &t1, int m_value) {
-  return money(t1.m_value - m_value);
-}
 
-std::ostream &operator<<(std::ostream &os, const money &t) {
-  for (int i = 0; i < t.m_size; i++)
-    os << t.data[i] << " ";
-  return os;
-}
+### () operator overloading
 
-std::istream &operator>>(std::istream &is, money &t) {
-  is >> t.m_value;
-  return is;
-}
+```cpp
+  double operator()() { return value; }
+```
+  
+  
+### < operator overloading
 
+```cpp
+  bool operator<(const money &other) const { return value < other.value; }
+
+  money operator-(const money &other) {
+    value - other.value;
+    return *this;
+  }
+```
+
+### Implementations of the < operator inside or outside of the class
+
+inside of the class:
+```cpp
 struct cell {
   int index;
   float cost;
-  //  bool operator<(const cell &otherside) { return cost < otherside.cost; }
+  bool operator<(const cell &otherside) { return cost < otherside.cost; }
 };
+```
 
+ouside of the class:
+
+```cpp
 bool operator<(const cell &lhs, const cell &rhs) { return lhs.cost < rhs.cost; }
+```
 
-int main() {
 
+### - operator overloading
+
+```cpp
+friend money operator-(const money &t1, int value);
+money operator-(const money &t1, int value) { return money(t1.value - value); }
+```
+
+###  << operator overloading
+
+```cpp
+  friend std::ostream &operator<<(std::ostream &os, const money &t);
+std::ostream &operator<<(std::ostream &os, const money &t) {
+  for (int i = 0; i < t.size; i++)
+    os << t.data[i] << " ";
+  return os;
+}
+```
+
+###  >> operator overloading
+
+
+```cpp
+  friend std::istream &operator>>(std::istream &is, const money &t);
+std::istream &operator>>(std::istream &is, const money &t) {
+  is >> t.value;
+  return is;
+}
+```
+
+now we can use it as:
+
+```cpp
   money money3;
   std::cout << "Enter the size: " << std::endl;
 
-  // getchar();
   std::cin >> money3;
   std::cout << "The operator >> gives you:" << money3 << std::endl;
 
@@ -102,4 +165,10 @@ int main() {
   std::cout << money2 - money1 << std::endl;
   std::cout << "The operator ()  gives you:\n" << money1() << std::endl;
   std::cout << "The operator () << gives you:\n" << money1 << std::endl;
-}
+  
+```
+
+
+
+
+[code](../src/class/operator_overloading.cpp)
