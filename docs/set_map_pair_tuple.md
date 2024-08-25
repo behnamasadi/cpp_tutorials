@@ -8,6 +8,14 @@
   * [unordered_map user defined type](#unordered-map-user-defined-type)
   * [set user defined type](#set-user-defined-type)
   * [unordered_set user defined type](#unordered-set-user-defined-type)
+  * [Real-world Examples and Applications of std::unordered_map and std::unordered_set](#real-world-examples-and-applications-of-std--unordered-map-and-std--unordered-set)
+    + [1. **Caching (Memoization) in Dynamic Programming**](#1---caching--memoization--in-dynamic-programming--)
+    + [2. **Counting Word Frequencies in Text Processing**](#2---counting-word-frequencies-in-text-processing--)
+    + [3. **Tracking Unique Visitors on a Website**](#3---tracking-unique-visitors-on-a-website--)
+    + [4. **Building an Inverted Index for a Search Engine**](#4---building-an-inverted-index-for-a-search-engine--)
+    + [5. **Routing in Network Applications**](#5---routing-in-network-applications--)
+    + [6. **Deduplication in Large Datasets**](#6---deduplication-in-large-datasets--)
+    + [Why `std::unordered_map` and `std::unordered_set`?](#why--std--unordered-map--and--std--unordered-set--)
 - [tie](#tie)
 - [tuple](#tuple)
 - [pair](#pair)
@@ -459,6 +467,122 @@ courses.insert(c2);
 courses.find(c2)->m_name;
 ```
 
+## Real-world Examples and Applications of std::unordered_map and std::unordered_set
+
+
+`std::unordered_map` and `std::unordered_set` are powerful containers in C++ that are particularly useful in situations where you need fast lookups, insertions, and deletions. Here are some real-world examples where these containers shine:
+
+### 1. **Caching (Memoization) in Dynamic Programming**
+   - **Scenario**: You're implementing a dynamic programming solution, such as solving the Fibonacci sequence, and want to avoid recalculating results for the same inputs.
+   - **Use Case**: A `std::unordered_map` can be used to store previously computed values (e.g., `fib(n)`) so that when the function is called with the same argument again, the result can be retrieved in constant time.
+   - **Example**: Calculating Fibonacci numbers using memoization.
+     ```cpp
+     std::unordered_map<int, long long> fib_cache;
+
+     long long fib(int n) {
+         if (n <= 1) return n;
+         if (fib_cache.find(n) != fib_cache.end()) {
+             return fib_cache[n];
+         }
+         long long result = fib(n - 1) + fib(n - 2);
+         fib_cache[n] = result;
+         return result;
+     }
+     ```
+
+### 2. **Counting Word Frequencies in Text Processing**
+   - **Scenario**: In text processing or natural language processing (NLP), you often need to count the frequency of words in a large corpus of text.
+   - **Use Case**: A `std::unordered_map<std::string, int>` can efficiently store words as keys and their frequencies as values. The fast lookups provided by the hash table are crucial when processing large amounts of text.
+   - **Example**: Counting the frequency of each word in a document.
+     ```cpp
+     std::unordered_map<std::string, int> word_count;
+
+     void count_words(const std::string& text) {
+         std::istringstream stream(text);
+         std::string word;
+         while (stream >> word) {
+             ++word_count[word];
+         }
+     }
+     ```
+
+### 3. **Tracking Unique Visitors on a Website**
+   - **Scenario**: A website wants to track the number of unique visitors in a day by storing their IP addresses.
+   - **Use Case**: A `std::unordered_set<std::string>` is ideal for this scenario, where each IP address is stored only once, ensuring uniqueness. The fast insertions and lookups help maintain performance even with a large number of visitors.
+   - **Example**: Tracking unique visitor IP addresses.
+     ```cpp
+     std::unordered_set<std::string> unique_ips;
+
+     void log_visit(const std::string& ip_address) {
+         unique_ips.insert(ip_address);
+     }
+
+     size_t unique_visitors() {
+         return unique_ips.size();
+     }
+     ```
+
+### 4. **Building an Inverted Index for a Search Engine**
+   - **Scenario**: In a search engine, you need to build an inverted index that maps each word to the list of documents that contain that word.
+   - **Use Case**: A `std::unordered_map<std::string, std::unordered_set<int>>` can be used, where the key is a word, and the value is a set of document IDs. The `std::unordered_set` ensures that each document ID is unique for a given word.
+   - **Example**: Building an inverted index.
+     ```cpp
+     std::unordered_map<std::string, std::unordered_set<int>> inverted_index;
+
+     void index_document(int doc_id, const std::string& content) {
+         std::istringstream stream(content);
+         std::string word;
+         while (stream >> word) {
+             inverted_index[word].insert(doc_id);
+         }
+     }
+     ```
+
+### 5. **Routing in Network Applications**
+   - **Scenario**: In a peer-to-peer network application, you need to manage a dynamic list of active connections (identified by IP and port) to route data efficiently.
+   - **Use Case**: A `std::unordered_set<std::pair<std::string, int>, CustomHash>` can track active connections. Using a custom hash function to hash the combination of IP address and port ensures that connections are unique and can be efficiently managed.
+   - **Example**: Managing active network connections.
+     ```cpp
+     struct Connection {
+         std::string ip;
+         int port;
+         bool operator==(const Connection& other) const {
+             return ip == other.ip && port == other.port;
+         }
+     };
+
+     struct ConnectionHash {
+         std::size_t operator()(const Connection& conn) const {
+             return std::hash<std::string>()(conn.ip) ^ std::hash<int>()(conn.port);
+         }
+     };
+
+     std::unordered_set<Connection, ConnectionHash> active_connections;
+
+     void add_connection(const std::string& ip, int port) {
+         active_connections.insert({ip, port});
+     }
+     ```
+
+### 6. **Deduplication in Large Datasets**
+   - **Scenario**: You have a large dataset with potential duplicate records, and you want to remove these duplicates efficiently.
+   - **Use Case**: A `std::unordered_set` is ideal for deduplication, as it only allows unique elements. You can insert records into the set, and duplicates will be automatically discarded.
+   - **Example**: Deduplicating a list of user IDs.
+     ```cpp
+     std::unordered_set<int> unique_user_ids;
+
+     void add_user(int user_id) {
+         unique_user_ids.insert(user_id);
+     }
+     ```
+
+### Why `std::unordered_map` and `std::unordered_set`?
+
+- **Performance**: Both containers provide average-case constant time complexity (`O(1)`) for insertions, lookups, and deletions, which is often crucial in performance-sensitive applications.
+- **Ease of Use**: They provide a simple and effective way to manage key-value pairs or unique collections without worrying about the underlying implementation details.
+- **Flexibility**: They can be used in a variety of real-world scenarios that require fast access to data, uniqueness enforcement, or efficient key-based retrieval.
+
+These examples demonstrate how `std::unordered_map` and `std::unordered_set` can be applied to solve practical problems efficiently, leveraging their strengths in situations where speed and unique data management are critical.
 
  
 # tie
@@ -546,7 +670,7 @@ if(items["mumbo jumo"]==NULL)
 {
     std::cout<<"not found" <<std::endl;
 }
-```    
+```
 
 
 
