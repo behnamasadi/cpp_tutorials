@@ -150,7 +150,7 @@ public:
 struct cell {
   int index;
   float cost;
-  //  bool operator<(const cell &otherside) { return cost < otherside.cost; }
+  // bool operator<(const cell &other) { return cost < other.cost; }
 };
 
 bool operator<(const cell &lhs, const cell &rhs) { return lhs.cost < rhs.cost; }
@@ -231,6 +231,23 @@ int main() {
 
   cell c1{1, 5};
   cell c2{2, 3};
+  cell c3{3, 7};
+  cell c4{4, 4};
   // std::boolalpha <<
   std::cout << std::boolalpha << (c1 < c2) << std::endl;
+
+  std::vector<cell> cells = {c1, c2, c3, c4};
+  std::priority_queue<cell> pq;
+
+  for (const auto &c : cells) {
+    pq.push(c);
+  }
+
+  // Displaying the elements in priority_queue (will be in descending order of
+  // cost)
+  while (!pq.empty()) {
+    cell top = pq.top();
+    std::cout << "Index: " << top.index << ", Cost: " << top.cost << std::endl;
+    pq.pop();
+  }
 }

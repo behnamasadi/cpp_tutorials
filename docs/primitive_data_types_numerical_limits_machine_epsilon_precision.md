@@ -298,3 +298,203 @@ decltype(ra) b4 = a; // reference to int
 
 
 Refs: [1](https://stackoverflow.com/questions/14130774/difference-between-decltype-and-typeof)   
+
+
+
+
+# Machine Precision
+
+Machine precision in the context of C++ programming (or any other programming language) refers to the degree of accuracy and reliability with which a computer can represent and manipulate real (floating-point) numbers. Here's a breakdown of the key aspects:
+
+1. **Floating-Point Representation**: In C++, floating-point numbers are typically represented using the `float`, `double`, and `long double` data types. These types are based on the IEEE 754 standard for floating-point arithmetic.
+
+2. **Precision**: The term "precision" refers to the number of digits that can be represented. In C++, `float` typically offers single precision (around 7 decimal digits), `double` offers double precision (about 15 decimal digits), and `long double` can offer extended precision (usually more than `double`, but this is platform-dependent).
+
+3. **Limits**: The precision of these floating-point types is not just about the number of decimal places; it's also about the range of values they can represent. C++ provides header files like `<limits>` and `<cfloat>` which can be used to determine the properties of these types, such as their maximum and minimum representable values.
+
+4. **Machine Epsilon**: This is a critical concept in understanding machine precision. It is the smallest positive number such that `1.0 + epsilon` is not equal to `1.0` when using a particular floating-point representation. In simple terms, it gives an idea of how small a difference the floating-point type can detect.
+
+5. **Issues with Precision**: Floating-point numbers cannot represent all real numbers precisely due to their finite precision. This can lead to rounding errors and issues like loss of significance, especially when performing arithmetic operations on numbers of vastly different magnitudes.
+
+6. **Determining Precision**: To find out the precision details of floating-point types in a particular C++ environment, one can use functions like `std::numeric_limits<float>::digits10` or `std::numeric_limits<double>::epsilon()`.
+
+7. **Handling Precision Issues**: Programmers often need to be mindful of precision issues. This involves strategies like avoiding equality comparisons between floating-point numbers, being cautious with operations that can amplify rounding errors, and sometimes using higher-precision types or specialized libraries for numerical computations.
+
+# Machine Epsilon
+Machine epsilon is a fundamental concept in numerical computing, representing the smallest difference between two representable floating-point numbers. In other words, it's the smallest positive number that, when added to 1.0, yields a different number in a given floating-point format. Understanding machine epsilon helps in appreciating the limitations and characteristics of floating-point arithmetic.
+
+### More on Machine Epsilon
+
+1. **Definition**: Machine epsilon, often denoted as ε, is the upper bound on the relative error due to rounding in floating-point arithmetic.
+
+2. **Significance**: Machine epsilon gives an idea of how much precision is lost during floating-point calculations. It is crucial for tasks that require high precision, such as scientific computations, where small errors can accumulate and lead to significant inaccuracies.
+
+3. **Different for Each Data Type**: In C++, the machine epsilon varies for `float`, `double`, and `long double`. Generally, `double` has a smaller epsilon than `float`, indicating higher precision.
+
+4. **Usage**: Knowing the machine epsilon is important when comparing floating-point numbers. Since direct equality checks (`==`) can be unreliable due to precision issues, epsilon is used to check if numbers are "close enough" to be considered equal.
+
+### C++ Examples
+
+#### Example 1: Finding Machine Epsilon for `float` and `double`
+
+```cpp
+#include <iostream>
+#include <cfloat>
+
+int main() {
+    // Machine epsilon for float
+    float epsilon_float = 1.0f;
+    while ((1.0f + (epsilon_float / 2.0f)) != 1.0f) {
+        epsilon_float /= 2.0f;
+    }
+
+    // Machine epsilon for double
+    double epsilon_double = 1.0;
+    while ((1.0 + (epsilon_double / 2.0)) != 1.0) {
+        epsilon_double /= 2.0;
+    }
+
+    std::cout << "Machine epsilon for float: " << epsilon_float << std::endl;
+    std::cout << "Machine epsilon for double: " << epsilon_double << std::endl;
+
+    return 0;
+}
+```
+
+This code calculates the machine epsilon for `float` and `double` by continuously halving a number until adding it to 1.0 no longer changes the result.
+
+#### Example 2: Using Epsilon for Floating-Point Comparisons
+
+```cpp
+#include <iostream>
+#include <cmath>
+
+bool areAlmostEqual(double a, double b, double epsilon) {
+    return std::fabs(a - b) < epsilon;
+}
+
+int main() {
+    double num1 = 0.3 * 3 + 0.1;
+    double num2 = 1.0;
+
+    // Comparing using a defined epsilon
+    double epsilon = 1e-9; // You can choose an appropriate epsilon value
+    if (areAlmostEqual(num1, num2, epsilon)) {
+        std::cout << "Numbers are almost equal." << std::endl;
+    } else {
+        std::cout << "Numbers are not equal." << std::endl;
+    }
+
+    return 0;
+}
+```
+
+C++ provides a standard way to find the machine epsilon without manually calculating it as shown in the earlier examples. This can be done using the `std::numeric_limits` template class found in the `<limits>` header. This class contains various properties of arithmetic types, including their epsilon values.
+
+Here's how you can use `std::numeric_limits` to find the machine epsilon for `float`, `double`, and `long double`:
+
+```cpp
+#include <iostream>
+#include <limits>
+
+int main() {
+    // Machine epsilon for float
+    float epsilon_float = std::numeric_limits<float>::epsilon();
+    std::cout << "Machine epsilon for float: " << epsilon_float << std::endl;
+
+    // Machine epsilon for double
+    double epsilon_double = std::numeric_limits<double>::epsilon();
+    std::cout << "Machine epsilon for double: " << epsilon_double << std::endl;
+
+    // Machine epsilon for long double
+    long double epsilon_long_double = std::numeric_limits<long double>::epsilon();
+    std::cout << "Machine epsilon for long double: " << epsilon_long_double << std::endl;
+
+    return 0;
+}
+```
+## std::nan
+
+`std::nan` is a C++ standard library constant that represents a Not-a-Number (NaN) value. A NaN is a special and **only** floating-point value that indicates an undefined or invalid result from a numerical operation.
+
+**Key characteristics of `std::nan`:**
+
+- **Not-a-Number:** It's not a valid number, but a special value used to signify undefined or exceptional results.
+- **Comparison:** `std::nan` always compares unequal to itself and any other floating-point value, including other NaNs. This is because NaNs are inherently indeterminate.
+- **Arithmetic operations:** Operations involving `std::nan` typically result in `std::nan`. For example, adding, subtracting, multiplying, or dividing any number by `std::nan` yields `std::nan`.
+- **Comparison with NaN:** To check if a floating-point value is a NaN, you can use the `std::isnan()` function.
+
+**When is `std::nan` used?**
+
+`std::nan` is commonly used in various scenarios where undefined or exceptional results can occur:
+
+- **Division by zero:** Dividing a non-zero number by zero results in `std::nan`.
+- **Square root of a negative number:** Taking the square root of a negative number yields `std::nan`.
+- **Mathematical operations with invalid inputs:** Certain mathematical functions (e.g., `log`, `asin`, `acos`) may return `std::nan` for invalid inputs.
+- **Error handling:** `std::nan` can be used to indicate errors or invalid results in calculations.
+
+**Example:**
+
+```cpp
+#include <iostream>
+#include <cmath>
+
+int main() {
+    double result = 0.0 / 0.0; // Division by zero results in NaN
+
+    if (std::isnan(result)) {
+        std::cout << "Result is NaN." << std::endl;
+    } else {
+        std::cout << "Result is not NaN." << std::endl;
+    }
+
+    return 0;
+}
+```
+
+This code will output:
+
+```
+Result is NaN.
+```
+
+
+
+The `const char* arg` parameter in the `std::nan` function is used to provide a **payload** or **diagnostic message** associated with the NaN value. This payload can be helpful for debugging or understanding the cause of the NaN.
+
+**Purpose of the payload:**
+
+- **Debugging:** The payload can provide additional context or information about the circumstances that led to the NaN, making it easier to identify and fix the underlying issue.
+- **Tracing:** The payload can be used to trace the origin of the NaN through a program's execution, helping to isolate the specific part of the code where it occurred.
+- **Customization:** The payload can be customized to include specific details relevant to the application or domain, providing more meaningful information.
+
+**Example:**
+
+```cpp
+#include <iostream>
+#include <cmath>
+
+int main() {
+    double result = 0.0 / 0.0; // Division by zero results in NaN
+    std::cout << "Result: " << std::nan("Division by zero") << std::endl;
+
+    return 0;
+}
+```
+
+In this example, the `std::nan("Division by zero")` expression creates a NaN value with the payload "Division by zero". When printed, the output might be something like:
+
+```
+Result: nan(Division by zero)
+```
+
+The payload "Division by zero" is included in the output, providing a clear indication of the cause of the NaN.
+
+**Key points:**
+
+- The `const char* arg` parameter is optional and can be omitted if a payload is not needed.
+- The interpretation of the payload is implementation-dependent and may vary across different C++ compilers and platforms.
+- The payload can be any string, but it is generally recommended to use informative messages that help to understand the context of the NaN.
+
+By using the `const char* arg` parameter in `std::nan`, you can provide more meaningful and helpful information about the NaN values in your C++ programs.
+

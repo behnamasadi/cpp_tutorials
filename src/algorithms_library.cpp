@@ -724,13 +724,69 @@ void priority_queue() {
   print_queue(q2);
 
   // Using lambda to compare elements.
-  auto cmp = [](int left, int right) { return (left ^ 1) < (right ^ 1); };
-  std::priority_queue<int, std::vector<int>, decltype(cmp)> q3(cmp);
+  auto comparator = [](int left, int right) {
+    return (left ^ 1) < (right ^ 1);
+  };
 
+  std::priority_queue<int, std::vector<int>, decltype(comparator)>
+      q_custom_comparator(comparator);
   for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    q3.push(n);
+    q_custom_comparator.push(n);
 
-  print_queue(q3);
+  print_queue(q_custom_comparator);
+}
+
+void customStructPQ() {
+
+  // Define the cell struct
+  struct cell {
+    int index;
+    float cost;
+  };
+
+  // Define a custom comparison functor
+  struct CompareCell {
+    bool operator()(const cell &a, const cell &b) {
+      return a.cost > b.cost; // Min-heap: smallest cost has highest priority
+    }
+  };
+
+  cell c1{1, 5.0};
+  cell c2{2, 3.0};
+  cell c3{3, 7.0};
+  cell c4{4, 4.0};
+
+  // Initialize a vector of cells
+  std::vector<cell> cells = {c1, c2, c3, c4};
+
+  // Initialize a priority_queue with custom comparison
+  std::priority_queue<cell, std::vector<cell>, CompareCell> pq_vec;
+
+    // Initialize a priority_queue with std::list as the underlying container
+  std::priority_queue<cell, std::list<cell>> pq_list;
+
+  // Push all cells into the priority queue
+  for (const auto &c : cells) {
+    pq_vec.push(c);
+  }
+
+  // Display the elements in priority_queue (will be in ascending order of cost)
+  while (!pq_vec.empty()) {
+    cell top = pq_vec.top();
+    std::cout << "Index: " << top.index << ", Cost: " << top.cost << std::endl;
+    pq_vec.pop();
+  }
+}
+
+void customStructOverloadedLessOperatorPQ() {
+  struct cell {
+    int index;
+    float cost;
+
+    bool operator<(const cell &other) const { return cost < other.cost; }
+  };
+  // Max-heap by default, largest `cost` is at the top
+  std::priority_queue<cell> pq;
 }
 
 void lower_upper_equal_bound() {
@@ -817,16 +873,23 @@ bool validate(const std::vector<std::string> &in) {
 
 void partial_sort() {
   int Kth = 4;
-  std::vector<int> arr = {5, 812, 4, 74, 68, 7, 48, 45};
-  printArray(arr);
-  std::vector<int> arr_cp(Kth);
+  std::vector<int> numbers = {64, 25, 12, 22, 11, 90};
+  std::vector<int> result(Kth); // We want the 4 smallest elements
 
-  std::partial_sort_copy(arr.begin(), arr.begin(), arr_cp.begin(),
-                         arr_cp.end());
+  std::partial_sort_copy(numbers.begin(), numbers.end(), result.begin(),
+                         result.end());
 
-  std::partial_sort(arr.begin(), arr.begin() + Kth, arr.end());
+  std::cout << "Original numbers: ";
+  for (int num : numbers) {
+    std::cout << num << " ";
+  }
+  std::cout << std::endl;
 
-  printArray(arr);
+  std::cout << "Smallest" << Kth << "numbers: ";
+  for (int num : result) {
+    std::cout << num << " ";
+  }
+  std::cout << std::endl;
 }
 int main(int argc, char **argv) {
 
