@@ -147,6 +147,14 @@ public:
   }
 };
 
+struct cell {
+  int index;
+  float cost;
+  //  bool operator<(const cell &otherside) { return cost < otherside.cost; }
+};
+
+bool operator<(const cell &lhs, const cell &rhs) { return lhs.cost < rhs.cost; }
+
 int main() {
   // double number = 3.1914;
 
@@ -220,4 +228,9 @@ int main() {
   s.removeDuplicates(nums);
 
   // std::transform()
+
+  cell c1{1, 5};
+  cell c2{2, 3};
+  // std::boolalpha <<
+  std::cout << std::boolalpha << (c1 < c2) << std::endl;
 }
