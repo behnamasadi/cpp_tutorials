@@ -165,7 +165,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
       * [stack, queue, priority_queue, deque](docs/stack_queue_priority_queue_deque.md) 
    * [Const, Constexpr and Mutable](docs/const_constexpr_mutable.md)    
    * [Immutable Objects](docs/immutable_objects.md)  
-   * [Data Types, Numerical Limits, Machine Epsilon, Precision](docs/primitive_data_types_numerical_limits_machine_epsilon_precision.md)    
+   * [Data Types, Numerical Limits, Machine Epsilon, Precision, std::nan](docs/primitive_data_types_numerical_limits_machine_epsilon_precision.md)    
    * [Data Types Conversions, Casting, Type Coercion](docs/type_conversions_casting_type_coercion.md)  
    * [Decay](docs/decay.md)  
    * [Dynamic Memory Allocation in C](docs/dynamic_memory_allocation.md)  
