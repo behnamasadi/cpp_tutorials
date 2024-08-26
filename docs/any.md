@@ -97,3 +97,83 @@ This method is useful when you want to write code that depends on whether a type
 
 ### 3. Attempt Compilation
 As a quick-and-dirty method, you can write a small piece of code that attempts to copy an instance of the class. If the code fails to compile, it's likely that the class is not `CopyConstructible`. However, this method is less precise and should be used cautiously.
+
+## std::any vs templates
+
+In C++, both `std::any` and templates serve different purposes and have different use cases. Understanding the differences and when to use each is important for effective C++ programming.
+
+### **1. `std::any`:**
+
+- **Type Erasure:** `std::any` is a type-erased container that can hold an instance of any type. This means that the type of the object stored in `std::any` is not known at compile time, only at runtime. It can store any type, but type information is erased, and you need to know the type to retrieve the stored object.
+
+- **Runtime Polymorphism:** Since `std::any` works with any type, it provides a form of runtime polymorphism. You can store different types in the same container or pass around different types using `std::any`.
+
+- **Performance:** Using `std::any` incurs runtime overhead. This includes type checks, storage management, and potential dynamic memory allocations. This makes it less efficient compared to templates, which are resolved at compile time.
+
+- **Usage Example:**
+
+    ```cpp
+    #include <any>
+    #include <iostream>
+
+    int main() {
+        std::any value = 10;  // Storing an int
+        value = std::string("Hello");  // Storing a string
+        
+        try {
+            std::cout << std::any_cast<std::string>(value) << std::endl;
+        } catch (const std::bad_any_cast& e) {
+            std::cout << "Bad cast: " << e.what() << std::endl;
+        }
+        
+        return 0;
+    }
+    ```
+
+- **Use Case:** `std::any` is useful when you need to store or pass around objects of different types without knowing the type in advance or when working with APIs that require handling various types generically.
+
+### **2. Templates:**
+
+- **Compile-Time Polymorphism:** Templates provide compile-time polymorphism, meaning the code is generated at compile time based on the types provided. This allows for type-safe and efficient code generation.
+
+- **Type Safety:** Templates are type-safe, as the types are known at compile time. This allows the compiler to catch type errors before the program runs.
+
+- **Performance:** Templates are generally more performant than `std::any` because the compiler generates specialized code for each type, eliminating the need for runtime type checks and dynamic allocations.
+
+- **Usage Example:**
+
+    ```cpp
+    #include <iostream>
+
+    template<typename T>
+    void print(T value) {
+        std::cout << value << std::endl;
+    }
+
+    int main() {
+        print(10);          // Prints an integer
+        print("Hello");     // Prints a string literal
+        print(3.14);        // Prints a double
+
+        return 0;
+    }
+    ```
+
+- **Use Case:** Templates are ideal when you want to write generic and efficient code that works with different types but where the types are known at compile time.
+
+### **Comparison Summary:**
+
+| Feature         | `std::any`                          | Templates                        |
+|-----------------|-------------------------------------|----------------------------------|
+| Type Handling   | Runtime type erasure                | Compile-time type resolution     |
+| Type Safety     | Type safety only at runtime         | Type safety at compile-time      |
+| Performance     | Slower, with potential overhead     | Generally faster, optimized code |
+| Flexibility     | Can hold any type, very flexible    | Generic, but types must be known at compile time |
+| Usage Scenario  | Heterogeneous type containers, APIs | Generic programming, containers, algorithms |
+
+### **When to Use Which:**
+- **Use `std::any`** when you need to store or pass around objects of unknown types at runtime and are willing to accept the associated performance costs.
+  
+- **Use templates** when you need to write type-safe, efficient, and generic code where types are known at compile time.
+
+Choosing between `std::any` and templates depends on whether you need runtime flexibility (`std::any`) or compile-time efficiency and type safety (templates).

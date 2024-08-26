@@ -168,5 +168,33 @@ std::cout <<result<<std::endl;
 std::cout <<(a >>= 2) <<std::endl;
 ```
 
+
+### std::bit_xor
+The `std::bit_xor` function in C++20 offers several advantages over the traditional `^` operator:
+
+**1. Generic Type Support:**
+
+- `std::bit_xor` can operate on a wider range of integer types, including custom integral types.
+- This provides more flexibility and type safety in your code.
+
+**2. Potential Performance Improvements:**
+
+- While the performance difference between `std::bit_xor` and `^` might not be significant in most cases, the `std::bit_xor` implementation could potentially benefit from compiler optimizations or hardware-specific instructions.
+
+**3. Consistency with Other Bitwise Operations:**
+
+- `std::bit_xor` is part of the `std::bit` namespace, which also includes other bitwise operations like `std::bit_and`, `std::bit_or`, `std::bit_not`, and `std::bit_count`.
+- Using these functions consistently can improve code readability and maintainability.
+
+**4. Future Enhancements:**
+
+- As the C++ standard evolves, `std::bit_xor` might gain additional features or optimizations in the future.
+
+**In summary:**
+
+While the `^` operator is generally sufficient for most XOR operations, `std::bit_xor` provides a more generic, type-safe, and potentially performant alternative. If you need to work with custom integer types or prefer a more consistent approach for bitwise operations, `std::bit_xor` is a good choice. However, in most cases, the performance difference between the two methods will be negligible.
+
+
+
 Refs: [1](https://www.geeksforgeeks.org/bitwise-algorithms/)
 

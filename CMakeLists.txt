@@ -293,6 +293,11 @@ add_executable(core_dump src/core_dump.cpp)
 
 #add_executable(packaged_task src/packaged_task.cpp)
 
+add_executable(std_visit src/std_visit.cpp)
+
+add_executable(error_code src/error_code.cpp)
+
+
 if(${CMAKE_GNU_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} GREATER_EQUAL 13)
     add_executable(printing_with_format src/printing_with_format.cpp)
 endif()
