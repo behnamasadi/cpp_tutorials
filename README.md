@@ -5,7 +5,7 @@
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 
-This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and sample code for using third-party libs to parse **CSV**, **YAML**, and **JASON** files. An example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** to build and export your project.
+This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and sample code for using third-party libs to parse **CSV**, **YAML**, and **JSON** files. An example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** to build and export your project.
 
 ## Building and Installation
 if you need to update your CMake:
@@ -312,7 +312,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 ## [Data File Storage Parsing](#)
    * [CSV](docs/csv.md)  
    * [YAML](docs/yaml-cpp.md)  
-   * [JASON](docs/json.md)  
+   * [JSON](docs/json.md)  
    * [XML](docs/tinyxml2.md)  
 ## [Code Benchmarking](#)
    * [Google Benchmark](docs/google_benchmark.md)  
