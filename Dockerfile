@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     ninja-build \
     doxygen \
     build-essential \
+    graphviz \
     && rm -rf /var/lib/apt/lists/*
 
 
