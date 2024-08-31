@@ -326,3 +326,6 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [vcpkg](docs/vcpkg.md)  
    * [Chocolatey](https://chocolatey.org/install)
    * [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+   
+## [Documentation with Doxygen](#)
+   * [API documentation with UML diagram](docs/doxygen.md)  	
