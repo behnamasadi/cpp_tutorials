@@ -654,7 +654,7 @@ void heap() {
 
   if (!std::is_heap(v.begin(), v.end())) {
     std::cout << "making heap...\n";
-    std::make_heap(v.begin(), v.end());
+    std::make_heap(v.begin(), v.end(), std::greater_equal());
   }
 
   std::cout << "after make_heap, v: ";
@@ -762,7 +762,7 @@ void customStructPQ() {
   // Initialize a priority_queue with custom comparison
   std::priority_queue<cell, std::vector<cell>, CompareCell> pq_vec;
 
-    // Initialize a priority_queue with std::list as the underlying container
+  // Initialize a priority_queue with std::list as the underlying container
   std::priority_queue<cell, std::list<cell>> pq_list;
 
   // Push all cells into the priority queue

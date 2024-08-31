@@ -38,16 +38,37 @@ The `<algorithm>` header in C++20 includes a wide range of functions that are es
 
 	  std::partial_sort_copy(numbers.begin(), numbers.end(), result.begin(),result.end());
 	```
-   - `std::nth_element`:  partially sorts a range of elements. It rearranges the elements such that the element at the specified nth position is the one that would be at that position if the entire range were sorted. It is efficient for finding specific elements (like **median, kth smallest/largest**) without sorting the entire container.
-	```cpp
-	    std::vector<int> numbers = {3, 7, 4, 9, 2, 5, 8, 1, 6};
+   - `std::nth_element` algorithm partially sorts a range so that the element at the position pointed to by the middle iterator is the same as it would be if the entire range was sorted. The elements before the middle iterator are less than or equal to the middle element, and the elements after it are greater than or equal to the middle element.
 
-	    // Find the median
-	    auto middle = numbers.begin() + numbers.size() / 2;
-	    std::nth_element(numbers.begin(), middle, numbers.end());
 
-	    std::cout << "Median: " << *middle << std::endl;
-	``` 
+    
+    ```cpp
+    std::vector<int> numbers = {3, 7, 4, 9, 2, 5, 8, 1, 6};
+    auto middle = numbers.begin() + numbers.size() / 2;
+    std::nth_element(numbers.begin(), middle, numbers.end());
+    ```
+    In this case, `std::nth_element` rearranges the vector such that the element at the `middle` position is the same as it would be in a sorted array. The elements before `middle` are less than or equal to the element at `middle`, and the elements after it are greater than or equal to it.
+
+    After executing this code, you got:
+    ```
+    3 2 1 4 5 6 8 9 7
+    ```
+    Here, the `middle` element (`numbers[4]` or `5` in a zero-indexed vector) is placed at its correct position if the vector were fully sorted, but the other elements around it are not fully sorted.
+
+
+    ```cpp
+    std::nth_element(numbers.begin(), middle, numbers.end(), std::greater_equal<int>());
+    ```
+    In this example, `std::greater_equal<int>()` is used as the comparison function, which means that the elements are arranged in a way that the `middle` element is the same as it would be in a reverse-sorted array.
+
+    After executing this code, you got:
+    ```
+    6 7 8 9 5 4 2 1 3
+    ```
+    Here, the `middle` element (`5`) is correctly placed as it would be in a reverse-sorted array, with the elements before it greater than or equal to it and the elements after it less than or equal to it.
+
+
+	
    - `std::priority_queue`: use heap for finding max/min value
     
 	```cpp
@@ -130,7 +151,44 @@ The `<algorithm>` header in C++20 includes a wide range of functions that are es
    - `std::set_union`, `std::set_intersection`, `std::set_difference`, `std::set_symmetric_difference`: Perform set operations.
 
 7. **Heap Operations:**
-   - `std::make_heap`, `std::push_heap`, `std::pop_heap`, `std::sort_heap`: Functions for managing heaps.
+   - `std::make_heap`
+   
+	```cpp
+	std::vector<int> v = {6, 10, 7, 17, 10, 15};
+	// min heap
+	std::make_heap(v.begin(), v.end(), std::greater_equal());
+	
+	// max heap (default one)
+	 // std::make_heap(v.begin(), v.end(), std::less_equal());
+	std::make_heap(v.begin(), v.end());
+
+	```
+	
+	```cpp
+	std::cout << "The maximum element of heap is: "<< v.front();
+	```
+	
+ - `std::pop_heap` remove the largest element from max heap
+ 
+	```cpp
+	// put the max is at the bottom of the array
+	std::pop_heap(v.begin(), v.end());
+	// removing it
+	v.pop_back();
+	```
+	
+ - `std::push_heap`: Inserts the element at the position `last - 1` into the heap
+ 	```
+ 	 // Adding a new element to the end of array
+	  v.push_back(100);
+	  std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap" : "it is not a heap")<< std::endl;
+
+	  std::push_heap(v.begin(), v.end());
+	  std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap" : "it is not a heap")<< std::endl;
+	  
+ 	```
+ 
+ - `std::sort_heap`: converts the heap into a sorted range. The heap property is **no** longer maintained.
 
 8. **Min/Max Operations:**
    - `std::min`, `std::max`, `std::minmax`: Find minimum, maximum, and both.
