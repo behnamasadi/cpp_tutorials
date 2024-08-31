@@ -11,6 +11,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 #-y is for accepting yes when the system asked us for installing the package
 RUN apt-get update && apt-get install -y \
+    git \	
     cmake \
     ninja-build \
     doxygen \
