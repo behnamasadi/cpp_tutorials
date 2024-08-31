@@ -30,4 +30,9 @@ jobs:
 #    - name: Run tests
 #      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ctest -C Release -S /cpp_tutorials/build
 
+    - name: Generate Doxygen documentation
+      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+
+    - name: List generated documentation files
+      run: ls -la /cpp_tutorials/doxygen
 
