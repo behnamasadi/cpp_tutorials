@@ -11,28 +11,29 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
-      name: Checkout the repository
-      
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag mycpp_image:latest
+      - uses: actions/checkout@v3
+        name: Checkout the repository
 
-    # Debugging: List contents of the GitHub workspace
-    - name: List contents of the repository
-      run: ls -la
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag mycpp_image:latest
 
-    - name: Configure CMake
-      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
-      
-    - name: Build with CMake
-      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
-      
-#    - name: Run tests
-#      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ctest -C Release -S /cpp_tutorials/build
+      # Debugging: List contents of the GitHub workspace
+      - name: List contents of the repository
+        run: ls -la
 
-    - name: Generate Doxygen documentation
-      run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+      - name: Configure CMake
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
 
-    - name: List generated documentation files
-      run: ls -la /cpp_tutorials/doxygen
+      - name: Build with CMake
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
+
+      # Uncomment this step if you want to run tests
+      # - name: Run tests
+      #   run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ctest -C Release -S /cpp_tutorials/build
+
+      - name: Generate Doxygen documentation
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+
+      - name: List generated documentation files
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/doxygen
 
