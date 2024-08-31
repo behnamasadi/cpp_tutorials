@@ -250,4 +250,72 @@ int main() {
     std::cout << "Index: " << top.index << ", Cost: " << top.cost << std::endl;
     pq.pop();
   }
+
+  // std::vector<int> numbers = {13, 7, 41, 9, 2, 15, 8, 1, 6};
+  // printArray(numbers);
+
+  // std::cout << "\n";
+
+  // // Find the median
+  // auto middle = numbers.begin() + numbers.size() / 2;
+  // std::nth_element(numbers.begin(), middle, numbers.end(),
+  //                  std::greater_equal());
+
+  // std::cout << "\n";
+
+  // std::cout << "Median: " << *middle << std::endl;
+  // printArray(numbers);
+  // std::cout << "\n";
+
+  std::vector<int> v = {6, 10, 7, 17, 10, 15};
+
+  std::cout << "initially, v: ";
+  for (auto i : v)
+    std::cout << i << ' ';
+  std::cout << '\n';
+
+  if (!std::is_heap(v.begin(), v.end())) {
+    std::cout << "making min heap...\n";
+    std::make_heap(v.begin(), v.end(), std::greater_equal());
+  }
+
+  std::cout << "the min heap: ";
+  for (auto i : v)
+    std::cout << i << ' ';
+  std::cout << '\n';
+  std::cout << "The minimum element of heap is: ";
+  std::cout << v.front() << std::endl;
+
+  // std::make_heap(v.begin(), v.end(), std::less_equal());
+  std::make_heap(v.begin(), v.end());
+
+  std::cout << "the max heap: ";
+  for (auto i : v)
+    std::cout << i << ' ';
+  std::cout << '\n';
+
+  std::cout << "The maximum element of heap is: ";
+  std::cout << v.front() << std::endl;
+
+  // remove the largest element
+  std::pop_heap(v.begin(), v.end());
+  std::cout << "the max is at the bottom: ";
+  for (auto i : v)
+    std::cout << i << ' ';
+  std::cout << '\n';
+  v.pop_back();
+  std::cout << "the max element has been removed: ";
+  for (auto i : v)
+    std::cout << i << ' ';
+  std::cout << '\n';
+
+  // Adding a new element
+  v.push_back(100);
+  std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap"
+                                                 : "it is not a heap")
+            << std::endl;
+  std::push_heap(v.begin(), v.end());
+  std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap"
+                                                 : "it is not a heap")
+            << std::endl;
 }
