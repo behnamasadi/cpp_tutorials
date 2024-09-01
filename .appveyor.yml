@@ -1,26 +1,59 @@
-image:
-  - Visual Studio 2022  # Replace with the latest available Visual Studio version if newer
+# AppVeyor configuration for cpp_tutorial Project
+version: 1.0.{build}
 
-clone_folder: c:\projects\source
+# Build environment
+os: Visual Studio 2022
 
+# Branches to build
+branches:
+  only:
+    - master
+
+# Configuration matrix
+platform:
+  - x64
+
+configuration:
+  - Release
+  - Debug
+
+# Environment setup
 environment:
-  PYTHON: "C:\\Python38-x64\\python.exe"
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
+# Build scripts
 install:
-  - cmd: >-
-      set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\Python\Python38\Scripts
-      "%PYTHON%" -m pip install --user conan
-      choco install cmake --installargs '"ADD_CMAKE_TO_PATH=System"' --yes
-      choco upgrade cmake --yes
-      choco install ninja -y
+  # Ensure CMake is available
+  - ps: Install-Product node 14
+  - set PATH=C:\Program Files\CMake\bin;%PATH%
+  - cmake --version
+
+before_build:
+  - mkdir build
+  - cd build
+  - cmake -G "Ninja" -A x64 ..
 
 build_script:
-  - cmd: >-
-      cmake --preset ninja-multi
-      cmake --build . --preset ninja-multi-release
+  - cmake --build . --config %CONFIGURATION%
 
 test_script:
-  - cmd: >-
-      cd build
-      ctest -C Release
+  # Uncomment if you have tests
+  # - ctest -C %CONFIGURATION%
+
+# Artifacts
+artifacts:
+  - path: build\**\*.exe
+    name: Executables
+
+  - path: docs\**\*.html
+    name: Documentation
+
+# Notifications (optional)
+notifications:
+  - provider: Email
+    to:
+      - behnam.asadi@gmail.com
+    on_build_success: true
+    on_build_failure: true
 
