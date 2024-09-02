@@ -30,6 +30,7 @@ option(ENABLE_TRACY "enable the code profiling with tracy" OFF)
 option(ENABLE_XML "enable the xml example with tinyxml2" ON)
 option(ENABLE_TESTING "Enable testing" OFF)
 option(ENABLE_SANITIZE "Add sanitizer flags" OFF)
+option(ENABLE_SPDLOG "Add spdlog for logging" ON)
 
 
 add_executable(pointers src/pointers/pointers.cpp)
@@ -536,6 +537,50 @@ else()
 message("fast-cpp-csv-parser is not enabled")
 
 endif()
+
+
+if(ENABLE_SPDLOG)
+    message("\n########################################## spdlog ##########################################\n")
+    # include(FetchContent)
+    # FetchContent_Declare(spdlog
+    #     GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    #     GIT_TAG master
+    #     GIT_SHALLOW TRUE
+    #     GIT_PROGRESS TRUE
+    # )
+
+    # FetchContent_MakeAvailable(spdlog)
+    
+    # add_executable(spdlog_example src/spdlog_example.cpp)
+    # target_compile_definitions(spdlog_example PRIVATE CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+    # # Add spdlog's include directory
+    # target_link_libraries(spdlog_example PRIVATE spdlog::spdlog)
+
+
+
+# Fetch spdlog
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG        v1.14.1  # Use a specific tag, branch, or commit
+  )
+  
+  FetchContent_MakeAvailable(spdlog)
+  
+  # Create an executable or library
+  add_executable(spdlog_example src/spdlog_example.cpp)
+  
+  # Link spdlog to your target
+  target_link_libraries(spdlog_example PRIVATE spdlog::spdlog)
+  
+  # Optionally, if you want to disable spdlog's automatic formatting, add the following:
+  # target_compile_definitions(MyExecutable PRIVATE SPDLOG_FMT_EXTERNAL)
+    
+else()
+    message("spdlog is not enabled")
+endif()
+
 
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")

@@ -315,6 +315,10 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [YAML](docs/yaml-cpp.md)  
    * [JSON](docs/json.md)  
    * [XML](docs/tinyxml2.md)  
+   
+## [Logging With C++](#)
+   * [spdlog](docs/spdlog.md)  
+   
 ## [Code Benchmarking](#)
    * [Google Benchmark](docs/google_benchmark.md)  
 ## [C++ Coding Standards and Style Guide](#)  
