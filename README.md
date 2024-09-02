@@ -321,10 +321,6 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    
 ## [Code Benchmarking](#)
    * [Google Benchmark](docs/google_benchmark.md)  
-## [C++ Coding Standards and Style Guide](#)  
-   * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
-   * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
-   * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
    
 ## [C++ Package Manager](#)   
    * [Conan](docs/conan.md)  
@@ -333,4 +329,10 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
    
 ## [Documentation with Doxygen](#)
-   * [API documentation with UML diagram](docs/doxygen.md)  	
+   * [API documentation and UML diagram](docs/doxygen.md)  	
+   * [Integrate Doxygen with GitHub Action](docs/doxygen.md)  	
+
+## [C++ Coding Standards and Style Guide](#)  
+   * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
+   * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
+   * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
