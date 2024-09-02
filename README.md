@@ -321,6 +321,9 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    
 ## [Code Benchmarking](#)
    * [Google Benchmark](docs/google_benchmark.md)  
+
+## [Code Profiling]
+   * [Tracy Profiler](docs/tracy_profiler.md)  
    
 ## [C++ Package Manager](#)   
    * [Conan](docs/conan.md)  
