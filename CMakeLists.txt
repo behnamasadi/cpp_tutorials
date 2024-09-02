@@ -541,24 +541,6 @@ endif()
 
 if(ENABLE_SPDLOG)
     message("\n########################################## spdlog ##########################################\n")
-    # include(FetchContent)
-    # FetchContent_Declare(spdlog
-    #     GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    #     GIT_TAG master
-    #     GIT_SHALLOW TRUE
-    #     GIT_PROGRESS TRUE
-    # )
-
-    # FetchContent_MakeAvailable(spdlog)
-    
-    # add_executable(spdlog_example src/spdlog_example.cpp)
-    # target_compile_definitions(spdlog_example PRIVATE CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-
-    # # Add spdlog's include directory
-    # target_link_libraries(spdlog_example PRIVATE spdlog::spdlog)
-
-
-
 # Fetch spdlog
 FetchContent_Declare(
     spdlog
