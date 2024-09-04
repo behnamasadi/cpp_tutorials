@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <queue>
+#include <set>
 #include <stack>
 
 int sub(int a, int b) { return a - b; }
@@ -318,4 +319,15 @@ int main() {
   std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap"
                                                  : "it is not a heap")
             << std::endl;
+
+  std::set<std::string> usernames;
+  usernames.insert("info");
+  usernames.insert("alice");
+  usernames.insert("bob");
+
+  for (const auto &user : usernames)
+    std::cout << user << std::endl;
+
+  // if (usernames.find("who") == usernames.end())
+  return 0;
 }
