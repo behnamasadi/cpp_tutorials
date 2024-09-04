@@ -6,89 +6,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-/*
-//////////////////////////// std::map, std::set ///////////////////////
-std::map is red black tree and NOT hash table.
-
-Both std::set and std::map are associative containers. The difference is that
-std::sets contain only the key, while in std::map there is an associated value.
-Choosing one over the other depends mainly on what the task at hand is. If you
-want to build a dictionary of all the words that appear in a text, you could use
-a std::set<std::string>, but if you also want to count how many times each word
-appeared (i.e. associate a value to the key) then you would need an
-std::map<std::string,int>. If you don't need to associate that count, it does
-not make sense to have the int that is unnecessary.
-
-
-Time complexity of map operations is O(Log n) while for unordered_set, it is
-O(1) on average.
-
-//////////////////////////// unordered_map, multimap, unordered_set, multiset
-///////////////////////
-
-C++ 11 added std::unordered_map (as well as std::unordered_set and multi
-versions of both), which is based on hashing. Map is implemented as balanced
-tree structure that is why it is possible to maintain an order between the
-elements (by specific tree traversal). Time complexity of map operations is
-O(Log n) while for unordered_set, it is O(1) on average.
-
-
-To be able to use std::unordered_map (or one of the other unordered associative
-containers) with a user-defined key-type, you need to define two things:
-
-1) A hash function; this must be a class that overrides operator() and
-calculates the hash value given an object of the key-type. One particularly
-straight-forward way of doing this is to specialize the std::hash template for
-your key-type.
-
-2) A comparison function for equality; this is required because the hash cannot
-rely on the fact that the hash function will always provide a unique hash value
-for every distinct key (i.e., it needs to be able to deal with collisions), so
-it needs a way to compare two given keys for an exact match. You can implement
-this either as a class that overrides operator(), or as a specialization of
-std::equal, or – easiest of all – by overloading operator==() for your key type
-(as you did already).
-
-
-                |     set             | unordered_set
----------------------------------------------------------
-Ordering        | increasing  order   | no ordering
-                | (by default)        |
-
-Implementation  | Self balancing BST  | Hash Table
-                | like Red-Black Tree |
-
-search time     | log(n)              | O(1) -> Average
-                |                     | O(n) -> Worst Case
-
-Insertion time  | log(n) + Rebalance  | Same as search
-
-Deletion time   | log(n) + Rebalance  | Same as search
-
-Use set when
-
-    We need ordered data.
-    We would have to print/access the data (in sorted order).
-    We need predecessor/successor of elements.
-    Since set is ordered, we can use functions like binary_search(),
-lower_bound() and upper_bound() on set elements. These functions cannot be used
-on unordered_set(). See advantages of BST over Hash Table for more cases.
-
-Use unordered_set when
-
-    We need to keep a set of distinct elements and no ordering is required.
-    We need single element access i.e. no traversal.
-
-//////////////////////////////  Tie //////////////////////////////
-
-The work of tie() is to unpack the tuple values into seperate variables. There
-are two variants of tie(), with and without “ignore” , the “ignore” ignores a
-particular tuple element and stops it from getting unpacked.
-
-////////////////////////////// tuple //////////////////////////////
-A tuple is an object that can hold a number of elements. The elements can be of
-different data types.
-*/
 
 void tupleExample() {
   std::tuple<int, double, int, std::string> mytuple =
@@ -120,7 +37,7 @@ void pairExample() {
   item2 = std::make_pair("size", 12);
 }
 
-void mapExample() {
+void map_Example() {
   // item are stored sorted
   std::map<std::string, int> items;
   std::pair<std::string, int> single_item;
@@ -139,7 +56,7 @@ void mapExample() {
 
   items.insert(single_item);
 
-  // keys shoudl be unique,
+  // keys should be unique,
   items["melon"] = 3;
   // this will replace the old value
   items["melon"] = 6;
@@ -149,6 +66,10 @@ void mapExample() {
   items.insert(single_item);
 
   items["water melon"] = 6;
+
+  std::cout << "items.size():" << items.size() << std::endl;
+  std::cout << items["foo"] << std::endl;
+  std::cout << "items.size():" << items.size() << std::endl;
 
   for (std::map<std::string, int>::iterator it = items.begin();
        it != items.end(); ++it) {
@@ -175,12 +96,10 @@ void checkExsitanceOfKeyInMap() {
             << std::endl;
 
   // when key doesn't exist:
-  if (items["mumbo jumo"] == NULL) {
+  if (items.count("mumbo jumbo") == 0) {
     std::cout << "not found" << std::endl;
   }
 }
-
-///////////////////////// unordered_map ///////////////////////////
 
 void unordered_mapExample() {
 
@@ -226,7 +145,6 @@ void wordFrequencyInString() {
   for (p = wordFreq.begin(); p != wordFreq.end(); p++)
     std::cout << "(" << p->first << ", " << p->second << ")\n";
 }
-
 class student {
 public:
   int id;
@@ -295,89 +213,60 @@ void unordered_mapCustomClasstype() {
 }
 
 void multimapExample() {
-  std::multimap<std::string, int> items;
-  std::pair<std::string, int> item;
 
-  item.first = "water";
-  item.second = 4;
-  items.insert(item);
+  std::multimap<int, std::string> employeeMap;
 
-  item.first = "book";
-  item.second = 1;
-  items.insert(item);
+  // Inserting elements
+  employeeMap.insert(std::make_pair(101, "John"));
+  employeeMap.insert(std::make_pair(102, "Alice"));
+  employeeMap.insert(std::make_pair(101, "Mike"));
+  employeeMap.insert(std::make_pair(103, "Bob"));
 
-  item.first = "book";
-  item.second = 2;
-  items.insert(item);
-
-  item.first = "beer";
-  item.second = 5;
-  items.insert(item);
-
-  item.first = "wine";
-  item.second = 8;
-  items.insert(item);
-
-  item.first = "book";
-  item.second = 9;
-  items.insert(item);
-
-  std::cout << "printing all items:" << std::endl;
-
-  for (auto i : items)
-    std::cout << i.first << ", " << i.second << std::endl;
-
-  std::string searchingKey = "book";
-
-  /*
-      Finds an element with a key. If there are several elements with key in the
-     container, the one inserted earlier is selected.
-   */
-
-  std::cout << "searching for " << searchingKey << std::endl;
-  std::multimap<std::string, int>::iterator it = items.find(searchingKey);
-  std::cout << searchingKey << " "
-            << (it != items.end() ? std::to_string(it->second) : "not found")
-            << std::endl;
-
-  // finding all elements with same key
-  typedef std::multimap<std::string, int>::iterator MMAPIterator;
-  std::pair<MMAPIterator, MMAPIterator> result =
-      items.equal_range(searchingKey);
-  for (MMAPIterator it = result.first; it != result.second; it++)
-    std::cout << it->first << ":" << it->second << std::endl;
-
-  int count = std::distance(result.first, result.second);
-  std::cout << "Total values for key: {" << searchingKey << "} are : " << count
-            << std::endl;
-}
-
-int setExample() {
-  std::set<std::string> items;
-  //     std::cout<<items.size() <<std::endl;
-
-  // items are unique
-  items.insert("bread");
-  items.insert("water");
-  items.insert("condom");
-  items.insert("beer");
-
-  // this won't add beer again
-  items.insert("beer");
-
-  std::cout << "All available items are: (itesm are stored sorted in set)"
-            << std::endl;
-  for (std::set<std::string>::iterator it = items.begin(); it != items.end();
-       it++) {
-    std::cout << *it << std::endl;
+  // Display all elements
+  for (const auto &pair : employeeMap) {
+    std::cout << pair.first << ": " << pair.second << std::endl;
   }
 
-  std::string searchingKey = "water";
-  std::cout << searchingKey
-            << (items.find(searchingKey) != items.end() ? " found"
-                                                        : " not found")
-            << std::endl;
-  return 0;
+  // Find all employees with ID 101
+  auto range = employeeMap.equal_range(101);
+  std::cout << "Employees with ID 101:" << std::endl;
+  for (auto it = range.first; it != range.second; ++it) {
+    std::cout << it->second << std::endl;
+  }
+
+  return;
+}
+
+void setExample() {
+  // Declare a set to store unique usernames
+  std::set<std::string> usernames;
+
+  // Adding usernames
+  usernames.insert("Alice");
+  usernames.insert("Bob");
+  usernames.insert("Charlie");
+  usernames.insert("Alice"); // This won't be added again
+
+  // Check if a username exists
+  if (usernames.find("Alice") != usernames.end()) {
+    std::cout << "Alice is in the chat." << std::endl;
+  }
+
+  // Display all usernames (automatically sorted)
+  std::cout << "Usernames in chat:" << std::endl;
+  for (const auto &name : usernames) {
+    std::cout << name << std::endl;
+  }
+
+  // Remove a username
+  usernames.erase("Bob");
+
+  // Display usernames after removal
+  std::cout << "Usernames after Bob left:" << std::endl;
+  for (const auto &name : usernames) {
+    std::cout << name << std::endl;
+  }
+  return;
 }
 
 void setFromUserDefinedTypeExample() {
@@ -394,30 +283,35 @@ void setFromUserDefinedTypeExample() {
 }
 
 void unordered_setExample() {
-  // Creating an Unoredered_set of type string
-  std::unordered_set<std::string> items;
+  // Declare an unordered_set to store unique IP addresses in the blocklist
+  std::unordered_set<std::string> blocklist;
 
-  // Insert strings to the set
-  items.insert("z");
-  items.insert("a");
-  items.insert("b");
+  // Adding IP addresses to the blocklist
+  blocklist.insert("192.168.1.1");
+  blocklist.insert("10.0.0.2");
+  blocklist.insert("172.16.0.3");
+  blocklist.insert("192.168.1.1"); // This won't be added again
 
-  // Try to Insert a duplicate string in set
-  items.insert("a");
+  // Check if an IP address is in the blocklist
+  std::string ip = "192.168.1.1";
+  if (blocklist.find(ip) != blocklist.end()) {
+    std::cout << "IP " << ip << " is blocked." << std::endl;
+  } else {
+    std::cout << "IP " << ip << " is allowed." << std::endl;
+  }
 
-  // Iterate Over the Unordered Set and display it
-  for (auto s : items)
-    std::cout << s << std::endl;
+  // Remove an IP address from the blocklist
+  blocklist.erase("10.0.0.2");
 
-  // more examples:
-  std::set<int> first; // empty set of ints
+  // Check the blocklist again
+  ip = "10.0.0.2";
+  if (blocklist.find(ip) != blocklist.end()) {
+    std::cout << "IP " << ip << " is blocked." << std::endl;
+  } else {
+    std::cout << "IP " << ip << " is allowed." << std::endl;
+  }
 
-  int myints[] = {10, 20, 30, 40, 50};
-  std::set<int> second(myints, myints + 5); // pointers used as iterators
-
-  std::set<int> third(second); // a copy of second
-
-  std::set<int> fourth(second.begin(), second.end()); // iterator ctor.
+  return;
 }
 
 class Course {
@@ -453,9 +347,9 @@ void unordered_setUserDefinedClassExample() {
   The unordered_set internally implements a hash table to store elements. By
   default we can store only pre definded type as int, string, float etc.
 
-  Some comparison function need to be designed. Since unordered_set also store
-  implements hash table to store elements we should also have to implement hash
-  function to perform hashing related work.
+  Some comparison function need to be designed. Since unordered_set also
+  store implements hash table to store elements we should also have to
+  implement hash function to perform hashing related work.
   */
 
   std::unordered_set<Course, CourseHashFunction> courses;
@@ -491,7 +385,41 @@ template <typename T> typename T::iterator min_map_element(T &m) {
       });
 }
 
+void multiset_Example() {
+
+  std::multiset<std::string> items_ID;
+
+  // Inserting elements
+  items_ID.insert("ID5");
+  items_ID.insert("ID3");
+  items_ID.insert("ID7");
+  items_ID.insert("ID3"); // Duplicate
+  items_ID.insert("ID5"); // Duplicate
+
+  // Display all elements
+  for (const auto &item_ID : items_ID) {
+    std::cout << item_ID << " ";
+  }
+  std::cout << std::endl;
+
+  // Count occurrences of ID3
+  std::cout << "Count of ID3: " << items_ID.count("ID3") << std::endl;
+
+  // Remove one occurrence of 5
+  items_ID.erase(items_ID.find("ID5"));
+
+  // Display all elements after erasure
+  for (const auto &item_ID : items_ID) {
+    std::cout << item_ID << " ";
+  }
+  std::cout << std::endl;
+  return;
+}
+
 int main() {
-  unordered_mapExample();
+  // unordered_mapExample();
+  // multiset_Example();
+
+  map_Example();
   return 0;
 }
