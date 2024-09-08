@@ -14,6 +14,7 @@
   * [Difference between char * and char[]](#difference-between-char---and-char--)
   * [size of string](#size-of-string)
   * [strdup](#strdup)
+  * [strstr](#strstr)  
   * [String copying](#string-copying)
 - [C++ String](#c---string)
   * [warning iso c++ forbids converting a string constant to ‘char*’ -wwrite-strings](#warning-iso-c---forbids-converting-a-string-constant-to--char----wwrite-strings)
@@ -346,23 +347,87 @@ std::cout<<"size of string is: "<<strlen( my_str )<<" bytes and string is: "<< m
 3. `str.size()` also return the size of c++ strings.
 
 ## strdup
-String Duplicate,
 
+In C++, the `strdup` function (from C) is used to duplicate a string by allocating memory and copying the content of an existing string to that new memory. You would need to use `strdup` when you want to create a copy of a string that you plan to manage manually (for instance, when working with raw pointers and dynamic memory allocation).
 
-Each call to `strdup` creates a new `char *` of the size matching the length of the string. You should bind it to a raw pointer `char*` and remove it at some point.
+Here is an example of when you might use `strdup`:
 
+### Example:
 ```cpp
-char* temp = strdup("foo");
+#include <iostream>
+#include <cstring>  // for strdup and free
 
-if(temp)
-{
-	free(temp);
+int main() {
+    // Original string
+    const char* original = "Hello, World!";
+    
+    // Duplicate the string using strdup
+    char* duplicate = strdup(original);
+
+    // Print both strings
+    std::cout << "Original: " << original << std::endl;
+    std::cout << "Duplicate: " << duplicate << std::endl;
+
+    // Free the memory allocated by strdup
+    free(duplicate);
+
+    return 0;
 }
 ```
 
- It allocates a copy of a `char*` on the heap. 
+When to use `strdup`:
+
+- **C-style strings**: If you're working with raw C-style strings (`char*`) and need to make a copy of the string that requires its own memory management.
+- **Manual memory management**: When the duplicated string will be used independently and may need to be freed later.
+  
+Important notes:
+
+1. `strdup` allocates memory using `malloc`, so you must free it with `free` when you're done using the duplicated string.
+2. In C++, you generally don't need to use `strdup` if you are working with `std::string`, which manages memory automatically. Instead, use `std::string`'s copy constructor or assignment operator, which is safer and more idiomatic.
+
+C++ alternative using `std::string`:
+
+```cpp
+#include <iostream>
+#include <string>
+
+int main() {
+    // Original string
+    std::string original = "Hello, World!";
+    
+    // Duplicate the string using std::string
+    std::string duplicate = original;
+
+    // Print both strings
+    std::cout << "Original: " << original << std::endl;
+    std::cout << "Duplicate: " << duplicate << std::endl;
+
+    // No need to free memory, std::string handles it automatically
+    return 0;
+}
+```
+
+In modern C++ code, using `std::string` is preferable to avoid manual memory management.
 
 
+
+## strstr
+
+A standard C-style API for searching a substring within a string can be implemented using the `strstr` function, which is part of the C standard library (<string.h>). The `strstr` function searches for the first occurrence of a substring in a string and returns a pointer to the beginning of the substring if found. Otherwise, it returns `NULL`.
+
+```cpp
+    char haystack[] = "Hello, World!";  // Now this is modifiable
+    const char *needle = "World";
+
+    // Use strstr to find the first occurrence of the needle in the haystack
+    char *result = strstr(haystack, needle);
+
+    if (result) {
+        printf("Found substring: %s\n", result);
+    } else {
+        printf("Substring not found.\n");
+    }
+```
 	
 ## String copying
 
@@ -496,19 +561,72 @@ while ((pos = s.find(delimiter)) != std::string::npos)
         s.erase(0, pos + delimiter.length());
     }
 ```
-## std::string to lower/ upper case
+## std::tolower, std::toupper 
+
+
+`std::tolower()` returns an integer, not a `std::string`, and you cannot directly cast the result to a `std::string`. Instead, you should convert the result of `std::tolower()` to a `char`, and then construct a `std::string` from that character.
+```cpp
+ unsigned char c = 'A';
+  char lower_c = static_cast<char>(std::tolower(c));
+
+  std::string a(1, lower_c); // Create a string with one character
 ```
-#include <algorithm>
-#include <cctype>
-#include <string>
-
-std::string my_str = "Foo";
-std::transform(my_str.begin(), my_str.end(), my_str.begin(),
-    [](unsigned char c){ return std::tolower(c); });
-```	
-# string_view
 
 
+To correctly use `std::tolower` on a std::string, you need to iterate over each character of the string and apply `std::tolower` to it. Since `std::tolower` works on single characters (and returns an int), you should also cast the result back to char. Here's how you can do this:
+
+
+```cpp
+    std::string input = "Hello, World!";
+    std::string result;
+
+    // Use std::transform to apply std::tolower to each character
+    std::transform(input.begin(), input.end(), std::back_inserter(result), 
+                   [](unsigned char c){ return std::tolower(c); });
+
+    std::cout << "Original: " << input << std::endl;
+    std::cout << "Lowercase: " << result << std::endl;
+```
+
+- `std::transform` is used to apply the transformation (lowercasing in this case) to each character.
+- `std::tolower` is applied to each character of the string. It takes an `unsigned char` as input, so we cast each character to `unsigned char` to avoid undefined behavior with non-ASCII characters.
+- The result is accumulated in the `result` string using `std::back_inserter`.
+
+This will output:
+```
+Original: Hello, World!
+Lowercase: hello, world!
+```
+
+
+## std::isalnum
+
+The function `std::isalnum` in C++ checks whether a given character is either an alphanumeric character, i.e., a letter (A-Z, a-z) or a digit (0-9).
+
+- digits (0123456789)
+- uppercase letters (ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+- lowercase letters (abcdefghijklmnopqrstuvwxyz)
+
+
+Return Value:
+- It returns a **non-zero value** (typically `true`) if the character is alphanumeric.
+- It returns **0** (typically `false`) if the character is not alphanumeric.
+
+
+```cpp
+  char c = 'A';
+  if (std::isalnum(c)) {
+    std::cout << c << " is alphanumeric." << std::endl;
+  } else {
+    std::cout << c << " is not alphanumeric." << std::endl;
+  }
+```
+
+In this case, if `c` is 'A' (an alphanumeric character), `std::isalnum(c)` will return a non-zero value, and the output will be:
+
+```
+A is alphanumeric.
+```
 
 # Find String Case Insensitive
 ```cpp

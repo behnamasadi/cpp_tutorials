@@ -348,6 +348,47 @@ void WidestringStringConversion() {
   // std::wstring wide = converter.from_bytes(narrow_utf8_source_string);
 }
 
+int isalnumExample() {
+  char c = 'A';
+  if (std::isalnum(c)) {
+    std::cout << c << " is alphanumeric." << std::endl;
+  } else {
+    std::cout << c << " is not alphanumeric." << std::endl;
+  }
+  return 0;
+}
+#include <stdio.h>
+
+void strstrExample() {
+  char haystack[] = "Hello, World!"; // Now this is modifiable
+  const char *needle = "World";
+
+  // Use strstr to find the first occurrence of the needle in the haystack
+  char *result = strstr(haystack, needle);
+
+  if (result) {
+    printf("Found substring: %s\n", result);
+  } else {
+    printf("Substring not found.\n");
+  }
+}
+
+#include <cstring> // for strdup and free
+
+void strdupExample() {
+  // Original string
+  const char *original = "Hello, World!";
+
+  // Duplicate the string using strdup
+  char *duplicate = strdup(original);
+
+  // Print both strings
+  std::cout << "Original: " << original << std::endl;
+  std::cout << "Duplicate: " << duplicate << std::endl;
+
+  // Free the memory allocated by strdup
+  free(duplicate);
+}
 int main() {
 
   // stringNumberConversion();
