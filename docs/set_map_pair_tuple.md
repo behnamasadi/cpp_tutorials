@@ -432,7 +432,9 @@ For instance, if the warehouse receives five units of product with ID `101` and 
 
 This makes `multiset` ideal for situations where managing and tracking multiple instances of identical elements is necessary, particularly when maintaining an ordered collection.
 
- 
+
+**std::unordered_set::count**
+ Because unordered_set containers do not allow for duplicate values, this means that the function actually returns 1 if an element with that value exists in the container, and zero otherwise.
 
 ### Example Code:
 ```cpp
