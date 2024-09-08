@@ -329,5 +329,13 @@ int main() {
     std::cout << user << std::endl;
 
   // if (usernames.find("who") == usernames.end())
+
+  unsigned char c = 'A';
+  char lower_c = static_cast<char>(std::tolower(c));
+
+  std::string a(1, lower_c); // Create a string with one character
+
+  std::cout << std::boolalpha << static_cast<bool>(std::isalnum(c)) << '\n';
+
   return 0;
 }
