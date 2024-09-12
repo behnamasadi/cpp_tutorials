@@ -335,6 +335,13 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [API documentation and UML diagram](docs/doxygen.md)  	
    * [Integrate Doxygen with GitHub Action](docs/doxygen.md)  	
 
+## [Application Packaging and Deployment](#)
+   * [CPack Packaging](docs/cpack_packaging.md)
+
+## [Software versioning](#)
+   * [Semantic Versioning](docs/semantic_versioning.md)
+   * [Getting Version From Git in CMake](docs/getting_version_from_git_in_CMake.md)  
+
 ## [C++ Coding Standards and Style Guide](#)  
    * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
    * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
