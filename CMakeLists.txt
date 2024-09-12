@@ -31,7 +31,7 @@ option(ENABLE_XML "enable the xml example with tinyxml2" ON)
 option(ENABLE_TESTING "Enable testing" OFF)
 option(ENABLE_SANITIZE "Add sanitizer flags" OFF)
 option(ENABLE_SPDLOG "Add spdlog for logging" ON)
-option(ENABLE_CPP_REST_SDK "Add CppRestSDK for microservices" ON)
+option(ENABLE_CPP_REST_SDK "Add CppRestSDK for microservices" OFF)
 
 
 add_executable(pointers src/pointers/pointers.cpp)
