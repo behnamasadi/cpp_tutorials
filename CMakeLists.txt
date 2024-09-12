@@ -22,7 +22,7 @@ endif()
 
 message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
 
-option(ENABLE_JSON "enable the json example with nlohmann library" OFF)
+option(ENABLE_JSON "enable the json example with nlohmann library" ON)
 option(ENABLE_CSV "enable the csv example with fast-cpp-csv-parser library" ON)
 option(ENABLE_YAML "enable the yaml example with yaml-cpp" ON)
 option(ENABLE_BENCHMARKING "enable the code benchmarking with Goolge benchmarking" OFF)
@@ -31,6 +31,7 @@ option(ENABLE_XML "enable the xml example with tinyxml2" ON)
 option(ENABLE_TESTING "Enable testing" OFF)
 option(ENABLE_SANITIZE "Add sanitizer flags" OFF)
 option(ENABLE_SPDLOG "Add spdlog for logging" ON)
+option(ENABLE_CPP_REST_SDK "Add CppRestSDK for microservices" ON)
 
 
 add_executable(pointers src/pointers/pointers.cpp)
@@ -461,7 +462,7 @@ if(ENABLE_JSON)
     FetchContent_Declare(
         json
         GIT_REPOSITORY https://github.com/nlohmann/json
-        GIT_TAG master
+        GIT_TAG v3.11.3
         GIT_SHALLOW TRUE
         GIT_PROGRESS TRUE
     )
@@ -475,6 +476,7 @@ if(ENABLE_JSON)
 
     # Include the nlohmann/json directory
     target_include_directories(json_example PRIVATE ${json_SOURCE_DIR})
+    target_link_libraries(json_example PRIVATE nlohmann_json::nlohmann_json)
 
 
 else()
@@ -562,6 +564,54 @@ FetchContent_Declare(
 else()
     message("spdlog is not enabled")
 endif()
+
+
+if(ENABLE_CPP_REST_SDK)
+    message("\n########################################## CppRestSDK ##########################################\n")
+    # Download and add CppRestSDK as a dependency
+# Fetch CppRestSDK
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error")
+
+FetchContent_Declare(
+  CppRestSDK
+  GIT_REPOSITORY https://github.com/microsoft/cpprestsdk.git
+  GIT_TAG        v2.10.18 # Replace with the desired version
+)
+
+FetchContent_MakeAvailable(CppRestSDK)
+
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error")
+
+
+# # Print some CMake variables related to CppRestSDK
+# get_target_property(cpprestsdk_INCLUDE_DIR cpprestsdk::cpprest INTERFACE_INCLUDE_DIRECTORIES)
+# get_target_property(cpprestsdk_LIBRARIES cpprestsdk::cpprest INTERFACE_LINK_LIBRARIES)
+
+# message(STATUS "CppRestSDK include directories: ${cpprestsdk_INCLUDE_DIR}")
+# message(STATUS "CppRestSDK libraries: ${cpprestsdk_LIBRARIES}")
+
+
+    # # Add your executable
+    # add_executable(user_service src/user_service.cpp)
+
+    # # Link CppRestSDK with your application
+    # target_link_libraries(user_service PRIVATE cpprest)
+    # target_compile_options(user_service PRIVATE -Wno-error)
+
+
+
+    #payment_service.cpp
+    #product_service.cpp
+    #order_service.cpp
+
+
+else()
+    message("CppRestSDK is not enabled")
+endif()
+
+
 
 
 
