@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package calculator;
+
+// The request message containing two numbers.
+message CalcRequest {
+    double number1 = 1;
+    double number2 = 2;
+}
+
+// The response message containing the result.
+message CalcResponse {
+    double result = 1;
+}
+
+// The Calculator service definition.
+service CalculatorService {
+    // Performs addition of two numbers.
+    rpc Add(CalcRequest) returns (CalcResponse);
+
+    // Performs subtraction of two numbers.
+    rpc Subtract(CalcRequest) returns (CalcResponse);
+}
+
