@@ -4,3 +4,6 @@
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/microsoft/vcpkg
+[submodule "src/microservices/vcpkg"]
+	path = src/microservices/vcpkg
+	url = https://github.com/microsoft/vcpkg
