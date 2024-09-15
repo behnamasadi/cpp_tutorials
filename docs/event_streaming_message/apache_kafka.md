@@ -122,3 +122,151 @@ RabbitMQ, and Kafka are  designed for messaging or communication between systems
 | **Kafka**   | **High-throughput event streaming**, **log aggregation**, **real-time analytics**| **Overly complex** for simple tasks, lacks **routing** and **priority features**, more setup and management |
 
 RabbitMQ is ideal for cases where **reliability, routing, and discrete task management** are important, while Kafka excels at **high-throughput, durable event streams** where **scalability** and **real-time analytics** are the focus. Each platform serves different types of workloads, and using the wrong one for a particular job can result in added complexity and inefficiencies.
+
+
+## Point-to-Point and Publish-Subscribe
+
+
+### 1. **RabbitMQ** – **Point-to-Point** and **Publish-Subscribe**
+RabbitMQ is a message broker that supports both the **Point-to-Point** and **Publish-Subscribe** messaging patterns.
+
+- **Point-to-Point (Queue-based messaging)**: In RabbitMQ, a sender can publish a message to a queue, and the message will be delivered to **one specific receiver** that pulls the message from the queue. This fits the **Point-to-Point** pattern.
+
+- **Publish-Subscribe (Exchange-based messaging)**: RabbitMQ also supports the **Publish-Subscribe** pattern through **exchanges**. A publisher sends a message to an exchange, which routes the message to all the queues bound to that exchange. Subscribers, consuming messages from their respective queues, receive a copy of the message.
+
+### 2. **Kafka** – **Publish-Subscribe**
+Kafka implements a **distributed log-based messaging system** that is primarily designed for the **Publish-Subscribe** pattern.
+
+- **Publish-Subscribe (Topic-based messaging)**: In Kafka, a producer publishes messages to a **topic**, and any number of **consumers** (subscribers) can subscribe to that topic to consume the messages. Kafka ensures durability and allows replay of messages from the log, making it very suitable for event streaming and high-throughput, fault-tolerant use cases.
+
+
+
+Here’s a basic overview and code implementation of the **Publish-Subscribe** and **Point-to-Point** design patterns in C++ along with a UML diagram.
+
+### 1. Publish-Subscribe Design Pattern
+In this pattern, the *publisher* doesn't send messages directly to specific receivers. Instead, messages are sent to a *topic*, and any number of *subscribers* can receive the messages.
+
+#### Code Example
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+
+class ISubscriber {
+public:
+    virtual void update(const std::string& message) = 0;
+};
+
+class Publisher {
+private:
+    std::vector<ISubscriber*> subscribers;
+public:
+    void subscribe(ISubscriber* subscriber) {
+        subscribers.push_back(subscriber);
+    }
+
+    void unsubscribe(ISubscriber* subscriber) {
+        subscribers.erase(std::remove(subscribers.begin(), subscribers.end(), subscriber), subscribers.end());
+    }
+
+    void notify(const std::string& message) {
+        for (auto* subscriber : subscribers) {
+            subscriber->update(message);
+        }
+    }
+};
+
+class Subscriber : public ISubscriber {
+private:
+    std::string name;
+public:
+    Subscriber(const std::string& name) : name(name) {}
+
+    void update(const std::string& message) override {
+        std::cout << name << " received message: " << message << std::endl;
+    }
+};
+
+int main() {
+    Publisher publisher;
+
+    Subscriber sub1("Subscriber 1"), sub2("Subscriber 2");
+
+    publisher.subscribe(&sub1);
+    publisher.subscribe(&sub2);
+
+    publisher.notify("Hello, Subscribers!");
+
+    publisher.unsubscribe(&sub1);
+
+    publisher.notify("Another message!");
+    
+    return 0;
+}
+```
+
+#### UML Diagram for Publish-Subscribe
+
+```
++----------------+          +--------------------+         +---------------------+
+|   Publisher    |          |     ISubscriber     |         |     Subscriber       |
++----------------+          +--------------------+         +---------------------+
+| - subscribers  |<--------> | + update(message)  |<------- | - name              |
+| + subscribe()  |          +--------------------+         | + update(message)    |
+| + unsubscribe()|                                         +---------------------+
+| + notify()     |                                          | + name              |
++----------------+                                          +---------------------+
+```
+
+---
+
+### 2. Point-to-Point Design Pattern
+In this pattern, a *sender* sends a message directly to a *receiver*. The message is meant for a single specific receiver.
+
+#### Code Example
+
+```cpp
+#include <iostream>
+#include <string>
+
+class Receiver {
+public:
+    void receiveMessage(const std::string& message) {
+        std::cout << "Receiver got message: " << message << std::endl;
+    }
+};
+
+class Sender {
+public:
+    void sendMessage(Receiver& receiver, const std::string& message) {
+        receiver.receiveMessage(message);
+    }
+};
+
+int main() {
+    Sender sender;
+    Receiver receiver;
+
+    sender.sendMessage(receiver, "Direct Message to Receiver");
+    
+    return 0;
+}
+```
+
+#### UML Diagram for Point-to-Point
+
+```
++------------+          +-------------+
+|   Sender   | -------> |   Receiver   |
++------------+          +-------------+
+| + sendMessage()       | + receiveMessage() |
++------------+          +-------------+
+```
+
+### Summary:
+- **Publish-Subscribe**: The publisher notifies all subscribers when an event occurs, and any number of subscribers can react.
+- **Point-to-Point**: A sender sends a message directly to a specific receiver.
+
+Let me know if you need further explanations or additional design details!
+
