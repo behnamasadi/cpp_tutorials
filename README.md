@@ -317,12 +317,16 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [XML](docs/tinyxml2.md)  
 
 ## [REST API and Microservices with C++](#)
-   * [Monolithic Architecture vs REST API and Microservices](docs/REST_API_microservices.md)   
-   * [mock APIs with Mockoon](docs/mockoon.md)
-   * [gRPC Microservice](docs/gRPC_microservice.md)   
-   * [REST API with Crow](docs/REST_API_with_crow.md)   
-   * [Test API with Postman](docs/test_API_with_postman.md)    
+   * [Monolithic Architecture vs REST API and Microservices](docs/microservices/REST_API_microservices.md)   
+   * [gRPC](docs/microservices/grpc.md)  
+   * [REST API with crow](docs/microservices/REST_API_with_crow.md)   
+   * [mocking APIs with Mockoon](docs/microservices/mockoon.md)
+   * [Test API with Postman](docs/microservices/test_API_with_postman.md)    
 
+## [Event Streaming and Message Queuing with C++](#)
+   * [Apache Kafka](docs/event_streaming_message/apache_kafka.md)    
+   * [RabbitMQ](docs/event_streaming_message/rabbitMQ.md)    
+   
 ## [Logging With C++](#)
    * [spdlog](docs/spdlog.md)  
    

@@ -196,7 +196,7 @@ int main() {
 In the microservice architecture, services would typically communicate using HTTP or gRPC. For example, `OrderService` might call `UserService` to retrieve user info, or `PaymentService` might be called to process payments after an order is placed.
 
 The implementation of communication could be handled using REST API frameworks like:
-- **CppRestSDK** (for RESTful communication)
+- **Crow** (for RESTful communication)
 - **gRPC** (for high-performance communication)
 
 
