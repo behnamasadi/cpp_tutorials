@@ -103,7 +103,3 @@ There are several ways to manage and update versions:
 - Made breaking changes to the API: `2.0.0`
 - New feature added: `2.1.0`
 - Another bug fix: `2.1.1`
-
-### Conclusion
-
-Semantic versioning in C++ projects provides clarity in understanding what changes have occurred and how those changes affect the software's backward compatibility. By following SemVer rules, you ensure a consistent, predictable versioning system that helps developers and users understand the impact of each release.
