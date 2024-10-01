@@ -5,9 +5,9 @@
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/behnamasadi/cpp_tutorials)
+![GitHub Release](https://img.shields.io/github/v/release/behnamasadi/cpp_tutorials)
 ![GitHub Repo stars](https://img.shields.io/github/stars/behnamasadi/cpp_tutorials)
 ![GitHub forks](https://img.shields.io/github/forks/behnamasadi/cpp_tutorials)
-![GitHub Release](https://img.shields.io/github/v/release/behnamasadi/cpp_tutorials)
 
 
 
