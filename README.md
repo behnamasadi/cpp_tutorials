@@ -4,6 +4,12 @@
 <!---[![Build status](https://ci.appveyor.com/api/projects/status/i4omlfovqaswpj41/branch/master?svg=true)](https://ci.appveyor.com/project/behnamasadi/cpp-tutorials/branch/master)-->
 ![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/behnamasadi/cpp_tutorials)
+![GitHub Repo stars](https://img.shields.io/github/stars/behnamasadi/cpp_tutorials)
+![GitHub forks](https://img.shields.io/github/forks/behnamasadi/cpp_tutorials)
+![GitHub Release](https://img.shields.io/github/v/release/behnamasadi/cpp_tutorials)
+
+
 
 This repository contains my C++ snippets code on **C++ concepts/ idioms**, **optimized C++**, **modern C++** and **advance C++**. I have included snippets and sample code for using third-party libs to parse **CSV**, **YAML**, and **JSON** files. An example of code benchmarking with **Google Benchmark** is available. There is also a tutorial on using **CMake** to build and export your project.
 
