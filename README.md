@@ -358,6 +358,8 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 ## [Software versioning](#)
    * [Semantic Versioning](docs/semantic_versioning.md)
    * [Getting Version From Git in CMake](docs/getting_version_from_git_in_CMake.md)  
+   * [Getting Release Version From Git (check for update)](docs/get_the_release_version_github.md)     
+   
 
 ## [C++ Coding Standards and Style Guide](#)  
    * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
