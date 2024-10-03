@@ -68,7 +68,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}  # Use the pushed version tag as the release tag
+          tag_name: ${{ github.ref }}  # Use the pushed version tag as the release tag (e.g., v1.0.0)
           release_name: Release ${{ github.ref_name }}  # Name the release after the tag (e.g., v1.0.0)
           body: |
             Release notes for version ${{ github.ref_name }}.
