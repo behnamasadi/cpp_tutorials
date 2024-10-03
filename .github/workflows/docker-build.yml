@@ -3,46 +3,40 @@ name: cpp_tutorial CI and Release
 on:
   push:
     branches:
-      - "master"        # Trigger workflow on push to master
+      - "master"
     tags:
-      - 'v*.*.*'        # Trigger workflow on version tags (e.g., v1.0.0)
+      - 'v*.*.*'
   pull_request:
     branches:
-      - "master"        # Trigger workflow on pull request to master
+      - "master"
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      # Step 1: Checkout the repository
       - uses: actions/checkout@v3
         name: Checkout the repository
 
-      # Step 2: Build the Docker image
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag mycpp_image:latest
 
-      # Step 3: Configure CMake
       - name: Configure CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
 
-      # Step 4: Build with CMake
       - name: Build with CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
 
-      # Step 5: Generate Doxygen documentation
-      - name: Generate Doxygen documentation
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+      # List the build directory contents for verification
+      - name: List build directory contents
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/build
 
-      # Step 6: Upload documentation as an artifact
       - name: Upload documentation
         uses: actions/upload-artifact@v3
         with:
           name: cpp_documentation
           path: /cpp_tutorials/docs
 
-      # Step 7: Upload build artifacts as an artifact (e.g., binaries or build output)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -54,39 +48,28 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      # Step 1: Checkout the repository
       - uses: actions/checkout@v3
         name: Checkout the repository
 
-      # Step 2: Create a GitHub release
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}  # Use the ref_name to get the tag name only
+          tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
           body: |
             Release notes for this version.
           draft: false
           prerelease: false
 
-      # Step 3: Upload build artifacts to the release
+      # Replace '/cpp_tutorials/build/myapp' with the actual build artifact path
       - name: Upload build artifacts to release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/build/your_build_artifact  # Adjust to your actual artifact
-          asset_name: your_build_artifact_name  # Name the artifact file as you want
+          asset_path: /cpp_tutorials/build/myapp  # Adjust to the actual file or artifact path
+          asset_name: myapp  # Adjust this name to what you want
           asset_content_type: application/octet-stream
-
-      # Step 4: Upload documentation to the release
-      - name: Upload documentation to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/docs
-          asset_name: cpp_documentation
-          asset_content_type: application/zip
 
