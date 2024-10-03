@@ -5,7 +5,7 @@ on:
     branches:
       - "master"
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'  # Trigger workflow on version tags (e.g., v1.0.0)
   pull_request:
     branches:
       - "master"
@@ -27,30 +27,11 @@ jobs:
       - name: Build with CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
 
-      # Verify if build files are generated
-      - name: List build directory contents
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/build
-
-      - name: Generate Doxygen documentation
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
-
-      # Verify if documentation files are generated
-      - name: List documentation directory contents
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/docs
-
-      # Upload documentation as an artifact (if the files exist)
-      - name: Upload documentation
-        uses: actions/upload-artifact@v3
-        with:
-          name: cpp_documentation
-          path: /cpp_tutorials/docs  # This path must exist or be adjusted
-
-      # Upload build artifacts as an artifact (if the files exist)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: cpp_build_output
-          path: /cpp_tutorials/build  # This path must exist or be adjusted
+          path: /cpp_tutorials/build
 
   release:
     needs: build
@@ -66,28 +47,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}  # This will use the pushed tag as the release tag
+          release_name: Release ${{ github.ref_name }}  # Name the release after the tag
           body: |
-            Release notes for this version.
+            Release notes for version ${{ github.ref_name }}.
           draft: false
           prerelease: false
 
-      # Upload build artifacts to the release
       - name: Upload build artifacts to release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/build/your_build_artifact  # Adjust to your actual file
-          asset_name: your_build_artifact_name  # Adjust this to name the artifact file
+          asset_path: /cpp_tutorials/build/your_build_artifact
+          asset_name: your_build_artifact_name
           asset_content_type: application/octet-stream
-
-      # Upload documentation to the release
-      - name: Upload documentation to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/docs
-          asset_name: cpp_documentation
-          asset_content_type: application/zip
 
