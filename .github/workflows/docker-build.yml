@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/build/main # Adjust to your actual file
+          asset_path: /cpp_tutorials/build/Release/main # Adjust to your actual file
           asset_name: main  # Adjust this to name the artifact file
           asset_content_type: application/octet-stream
 
