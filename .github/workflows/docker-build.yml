@@ -27,21 +27,30 @@ jobs:
       - name: Build with CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
 
-      # List the build directory contents for verification
+      # Verify if build files are generated
       - name: List build directory contents
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/build
 
+      - name: Generate Doxygen documentation
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+
+      # Verify if documentation files are generated
+      - name: List documentation directory contents
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/docs
+
+      # Upload documentation as an artifact (if the files exist)
       - name: Upload documentation
         uses: actions/upload-artifact@v3
         with:
           name: cpp_documentation
-          path: /cpp_tutorials/docs
+          path: /cpp_tutorials/docs  # This path must exist or be adjusted
 
+      # Upload build artifacts as an artifact (if the files exist)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: cpp_build_output
-          path: /cpp_tutorials/build
+          path: /cpp_tutorials/build  # This path must exist or be adjusted
 
   release:
     needs: build
@@ -64,12 +73,21 @@ jobs:
           draft: false
           prerelease: false
 
-      # Replace '/cpp_tutorials/build/myapp' with the actual build artifact path
+      # Upload build artifacts to the release
       - name: Upload build artifacts to release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/build/myapp  # Adjust to the actual file or artifact path
-          asset_name: myapp  # Adjust this name to what you want
+          asset_path: /cpp_tutorials/build/your_build_artifact  # Adjust to your actual file
+          asset_name: your_build_artifact_name  # Adjust this to name the artifact file
           asset_content_type: application/octet-stream
+
+      # Upload documentation to the release
+      - name: Upload documentation to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /cpp_tutorials/docs
+          asset_name: cpp_documentation
+          asset_content_type: application/zip
 
