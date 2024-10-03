@@ -15,18 +15,42 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      # Step 1: Checkout the repository
       - uses: actions/checkout@v3
         name: Checkout the repository
 
+      # Step 2: Build the Docker image
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag mycpp_image:latest
 
+      # Step 3: Configure CMake
       - name: Configure CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
 
+      # Step 4: Build with CMake
       - name: Build with CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
 
+      # Step 5: Generate Doxygen documentation
+      - name: Generate Doxygen documentation
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+
+      # Verify if build files are generated
+      - name: List build directory contents
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/build
+
+      # Verify if documentation files are generated
+      - name: List documentation directory contents
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/docs
+
+      # Upload documentation as an artifact (if the files exist)
+      - name: Upload documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: cpp_documentation
+          path: /cpp_tutorials/docs
+
+      # Upload build artifacts as an artifact (if the files exist)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -38,27 +62,39 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      # Step 1: Checkout the repository
       - uses: actions/checkout@v3
         name: Checkout the repository
 
+      # Step 2: Create a GitHub release using PAT_TOKEN
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use Personal Access Token (PAT)
         with:
-          tag_name: ${{ github.ref_name }}  # This will use the pushed tag as the release tag
+          tag_name: ${{ github.ref_name }}  # Use the pushed tag as the release tag
           release_name: Release ${{ github.ref_name }}  # Name the release after the tag
           body: |
             Release notes for version ${{ github.ref_name }}.
           draft: false
           prerelease: false
 
+      # Step 3: Upload build artifacts to the release
       - name: Upload build artifacts to release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/build/your_build_artifact
-          asset_name: your_build_artifact_name
+          asset_path: /cpp_tutorials/build/your_build_artifact  # Adjust to your actual file
+          asset_name: your_build_artifact_name  # Adjust this to name the artifact file
           asset_content_type: application/octet-stream
+
+      # Step 4: Upload documentation to the release
+      - name: Upload documentation to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /cpp_tutorials/docs
+          asset_name: cpp_documentation
+          asset_content_type: application/zip
 
