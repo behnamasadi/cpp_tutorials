@@ -2,13 +2,8 @@ name: cpp_tutorial CI and Release
 
 on:
   push:
-    branches:
-      - "master"
     tags:
-      - 'v*.*.*'  # Trigger workflow on version tags (e.g., v1.0.0)
-  pull_request:
-    branches:
-      - "master"
+      - 'v*.*.*'  # Only trigger workflow on version tags (e.g., v1.0.0, v1.0.1)
 
 jobs:
   build:
@@ -66,15 +61,15 @@ jobs:
       - uses: actions/checkout@v3
         name: Checkout the repository
 
-      # Step 2: Create a GitHub release using GITHUB_TOKEN or PAT_TOKEN
+      # Step 2: Create a GitHub release using the version tag (e.g., v1.0.0, v1.0.1)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GITHUB_TOKEN or PAT_TOKEN
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}  # Use the pushed tag as the release tag
-          release_name: Release ${{ github.ref_name }}  # Name the release after the tag
+          tag_name: ${{ github.ref_name }}  # Use the pushed version tag as the release tag
+          release_name: Release ${{ github.ref_name }}  # Name the release after the tag (e.g., v1.0.0)
           body: |
             Release notes for version ${{ github.ref_name }}.
           draft: false
