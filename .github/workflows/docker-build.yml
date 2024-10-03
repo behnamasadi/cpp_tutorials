@@ -65,8 +65,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}  # Use the ref_name to get the tag name only
+          release_name: Release ${{ github.ref_name }}
           body: |
             Release notes for this version.
           draft: false
