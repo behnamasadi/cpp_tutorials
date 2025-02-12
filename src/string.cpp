@@ -14,6 +14,7 @@
 #include <string>   //c++ style api
 #include <string_view>
 #include <vector>
+#include <cstdint>
 
 #if defined WIN32
 //#include <stringapiset.h>

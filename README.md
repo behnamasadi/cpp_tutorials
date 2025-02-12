@@ -365,3 +365,4 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [Goolge C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
    * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
    * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
+
