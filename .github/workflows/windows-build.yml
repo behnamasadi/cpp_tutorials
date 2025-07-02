@@ -11,79 +11,36 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Release, Debug]
 
     steps:
       # Step 1: Checkout the repository
       - uses: actions/checkout@v4
         name: Checkout the repository
 
-      # Step 2: Setup Visual Studio Environment
-      - name: Setup Visual Studio Environment
-        run: |
-          # Find Visual Studio installation
-          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          if ($vsPath) {
-            Write-Host "Found Visual Studio at: $vsPath"
-            # Set up environment variables
-            & "$vsPath\VC\Auxiliary\Build\vcvars64.bat" | Out-String
-            $env:PATH = "$vsPath\VC\Tools\MSVC\14.37.32822\bin\Hostx64\x64;$env:PATH"
-          } else {
-            Write-Host "Visual Studio not found, trying to install build tools..."
-            # Download and install Visual Studio Build Tools
-            $vsInstaller = "vs_buildtools.exe"
-            Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vs_buildtools.exe" -OutFile $vsInstaller
-            Start-Process -FilePath $vsInstaller -ArgumentList "--quiet", "--wait", "--norestart", "--nocache", "--installPath", "C:\BuildTools", "--add", "Microsoft.VisualStudio.Workload.VCTools" -Wait
-            Remove-Item $vsInstaller
-            $env:PATH = "C:\BuildTools\VC\Tools\MSVC\14.37.32822\bin\Hostx64\x64;$env:PATH"
-          }
-
-      # Step 3: Setup CMake
+      # Step 2: Setup CMake (same as AppVeyor)
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v1.14
         with:
           cmake-version: 3.28.0
 
-      # Step 4: Setup Ninja
-      - name: Setup Ninja
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      # Step 3: Verify CMake (same as AppVeyor)
+      - name: Verify CMake
+        run: cmake --version
 
-      - name: Install Ninja
-        run: |
-          python -m pip install ninja
-          echo "$env:LOCALAPPDATA\Python\Python311\Scripts" >> $env:GITHUB_PATH
-
-      # Step 5: Verify tools availability
-      - name: Verify tools
-        shell: cmd
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake --version
-          ninja --version
-          cl
-          echo Using Visual Studio compiler:
-          cl
-
-      # Step 6: Configure CMake with Visual Studio
+      # Step 4: Configure with CMake presets (same as AppVeyor)
       - name: Configure CMake
-        shell: cmd
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake -S . -G "Ninja Multi-Config" -B build -DCMAKE_CXX_FLAGS="/W3" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        run: cmake --preset ninja-multi
 
-      # Step 7: Build with CMake
+      # Step 5: Build with CMake presets (same as AppVeyor)
       - name: Build with CMake
-        shell: cmd
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake --build build --config Release
+          if "${{ matrix.configuration }}"=="Debug" cmake --build --preset ninja-multi-debug
+          if "${{ matrix.configuration }}"=="Release" cmake --build --preset ninja-multi-release
 
-      # Step 8: Verify if build files are generated
-      - name: List build directory contents
-        run: Get-ChildItem -Path build -Recurse | Select-Object Name, FullName
-
-      # Step 9: Generate Doxygen documentation
+      # Step 6: Generate Doxygen documentation
       - name: Generate Doxygen documentation
         run: |
           # Install Doxygen if not available
@@ -92,22 +49,18 @@ jobs:
           }
           doxygen Doxyfile
 
-      # Step 10: Verify if documentation files are generated
-      - name: List documentation directory contents
-        run: Get-ChildItem -Path docs -Recurse | Select-Object Name, FullName
-
-      # Step 11: Upload documentation as an artifact (if files exist)
+      # Step 7: Upload documentation as an artifact
       - name: Upload documentation
         uses: actions/upload-artifact@v4
         with:
-          name: cpp_documentation_windows
+          name: cpp_documentation_windows_${{ matrix.configuration }}
           path: docs
 
-      # Step 12: Upload build artifacts as an artifact (if files exist)
+      # Step 8: Upload build artifacts as an artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cpp_build_output_windows
+          name: cpp_build_output_windows_${{ matrix.configuration }}
           path: build
 
   release:
@@ -120,27 +73,7 @@ jobs:
       - uses: actions/checkout@v4
         name: Checkout the repository
 
-      # Step 2: Setup Visual Studio Environment
-      - name: Setup Visual Studio Environment
-        run: |
-          # Find Visual Studio installation
-          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          if ($vsPath) {
-            Write-Host "Found Visual Studio at: $vsPath"
-            # Set up environment variables
-            & "$vsPath\VC\Auxiliary\Build\vcvars64.bat" | Out-String
-            $env:PATH = "$vsPath\VC\Tools\MSVC\14.37.32822\bin\Hostx64\x64;$env:PATH"
-          } else {
-            Write-Host "Visual Studio not found, trying to install build tools..."
-            # Download and install Visual Studio Build Tools
-            $vsInstaller = "vs_buildtools.exe"
-            Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vs_buildtools.exe" -OutFile $vsInstaller
-            Start-Process -FilePath $vsInstaller -ArgumentList "--quiet", "--wait", "--norestart", "--nocache", "--installPath", "C:\BuildTools", "--add", "Microsoft.VisualStudio.Workload.VCTools" -Wait
-            Remove-Item $vsInstaller
-            $env:PATH = "C:\BuildTools\VC\Tools\MSVC\14.37.32822\bin\Hostx64\x64;$env:PATH"
-          }
-
-      # Step 3: Create a GitHub release using the version tag (e.g., v1.0.0, v1.0.1)
+      # Step 2: Create a GitHub release using the version tag (e.g., v1.0.0, v1.0.1)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -154,7 +87,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # Step 4: Upload build artifacts to release
+      # Step 3: Upload build artifacts to release
       - name: Upload build artifacts to release
         uses: actions/upload-release-asset@v1
         with:
@@ -163,7 +96,7 @@ jobs:
           asset_name: main_windows.exe # Adjust this to name the artifact file
           asset_content_type: application/octet-stream
 
-      # Step 5: Upload documentation to release
+      # Step 4: Upload documentation to release
       - name: Upload documentation to release
         uses: actions/upload-release-asset@v1
         with:
