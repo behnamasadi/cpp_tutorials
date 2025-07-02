@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stddef.h> // for offsetof()
 #include <stdio.h>
-#include <unistd.h>
 
 //#pragma pack(1)
 
@@ -28,14 +27,18 @@ struct Foo3UnPacked {
 const int aligned_value = 8;
 
 struct Foo3 {
+#ifdef __GNUC__
   char c1 __attribute__((packed, aligned(aligned_value)));
-  ;
   char c2 __attribute__((packed, aligned(aligned_value)));
-  ;
   int i1 __attribute__((packed, aligned(aligned_value)));
-  ;
   int i2 __attribute__((packed, aligned(aligned_value)));
-  ;
+#else
+  // For MSVC and other compilers, use alignas
+  alignas(aligned_value) char c1;
+  alignas(aligned_value) char c2;
+  alignas(aligned_value) int i1;
+  alignas(aligned_value) int i2;
+#endif
 };
 
 struct alignas(8) Foo4 {
