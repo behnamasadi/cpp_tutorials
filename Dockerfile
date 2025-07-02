@@ -3,20 +3,20 @@ FROM ubuntu:24.04
 
 LABEL maintainer="Behnam Asadi <behnam.asadi@gmail.com>"
 
-
 # this is for timezone config
 ENV DEBIAN_FRONTEND=noninteractive 
 ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-#-y is for accepting yes when the system asked us for installing the package
+# Install required packages with better error handling
 RUN apt-get update && apt-get install -y \
-    git \	
+    git \
     cmake \
     ninja-build \
     doxygen \
     build-essential \
     graphviz \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 
