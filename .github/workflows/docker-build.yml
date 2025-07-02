@@ -2,20 +2,19 @@ name: cpp_tutorial CI and Release
 
 on:
   push:
-    branches: [ main, master, develop ]  # Trigger on pushes to main branches
-  pull_request:
-    branches: [ main, master ]  # Also trigger on PRs to main branches
-  push:
+    branches: [main, master, develop] # Trigger on pushes to main branches
     tags:
-      - 'v*.*.*'  # Keep the version tag trigger for releases
+      - v*.*.* # Also trigger on version tags for releases
+  pull_request:
+    branches: [main, master] # Also trigger on PRs to main branches
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       # Step 1: Checkout the repository
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout the repository
 
       # Step 2: Build the Docker image
@@ -44,25 +43,25 @@ jobs:
 
       # Step 8: Upload documentation as an artifact (if files exist)
       - name: Upload documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cpp_documentation
           path: /cpp_tutorials/docs
 
       # Step 9: Upload build artifacts as an artifact (if files exist)
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cpp_build_output
           path: /cpp_tutorials/build
 
   release:
     needs: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       # Step 1: Checkout the repository
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout the repository
 
       # Step 2: Create a GitHub release using the version tag (e.g., v1.0.0, v1.0.1)
@@ -72,8 +71,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}  # Use the pushed version tag as the release tag (e.g., v1.0.0)
-          release_name: Release ${{ github.ref_name }}  # Name the release after the tag (e.g., v1.0.0)
+          tag_name: ${{ github.ref }} # Use the pushed version tag as the release tag (e.g., v1.0.0)
+          release_name: Release ${{ github.ref_name }} # Name the release after the tag (e.g., v1.0.0)
           body: |
             Release notes for version ${{ github.ref_name }}.
           draft: false
@@ -85,7 +84,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: /cpp_tutorials/build/Release/main # Adjust to your actual file
-          asset_name: main  # Adjust this to name the artifact file
+          asset_name: main # Adjust this to name the artifact file
           asset_content_type: application/octet-stream
 
       # Step 4: Upload documentation to release
@@ -96,4 +95,3 @@ jobs:
           asset_path: /cpp_tutorials/docs
           asset_name: cpp_documentation
           asset_content_type: application/zip
-
