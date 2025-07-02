@@ -2,8 +2,12 @@ name: cpp_tutorial CI and Release
 
 on:
   push:
+    branches: [ main, master, develop ]  # Trigger on pushes to main branches
+  pull_request:
+    branches: [ main, master ]  # Also trigger on PRs to main branches
+  push:
     tags:
-      - 'v*.*.*'  # Only trigger workflow on version tags (e.g., v1.0.0, v1.0.1)
+      - 'v*.*.*'  # Keep the version tag trigger for releases
 
 jobs:
   build:
