@@ -21,6 +21,14 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag mycpp_image:latest
 
+      # Step 2.5: Verify Docker image and cmake availability
+      - name: Verify Docker image
+        run: |
+          docker run --rm mycpp_image:latest which cmake
+          docker run --rm mycpp_image:latest which ninja
+          docker run --rm mycpp_image:latest cmake --version
+          docker run --rm mycpp_image:latest ninja --version
+
       # Step 3: Configure CMake
       - name: Configure CMake
         run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
