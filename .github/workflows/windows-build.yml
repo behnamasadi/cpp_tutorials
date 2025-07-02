@@ -1,0 +1,122 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [main, master, develop] # Trigger on pushes to main branches
+    tags:
+      - v*.*.* # Also trigger on version tags for releases
+  pull_request:
+    branches: [main, master] # Also trigger on PRs to main branches
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - uses: actions/checkout@v4
+        name: Checkout the repository
+
+      # Step 2: Setup CMake
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v1.14
+        with:
+          cmake-version: 3.28.0
+
+      # Step 3: Setup Ninja
+      - name: Setup Ninja
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ninja
+        run: |
+          python -m pip install ninja
+          echo "$env:LOCALAPPDATA\Python\Python311\Scripts" >> $env:GITHUB_PATH
+
+      # Step 4: Verify tools availability
+      - name: Verify tools
+        run: |
+          cmake --version
+          ninja --version
+
+      # Step 5: Configure CMake
+      - name: Configure CMake
+        run: cmake -S . -G "Ninja Multi-Config" -B build
+
+      # Step 6: Build with CMake
+      - name: Build with CMake
+        run: cmake --build build --config Release
+
+      # Step 7: Verify if build files are generated
+      - name: List build directory contents
+        run: Get-ChildItem -Path build -Recurse | Select-Object Name, FullName
+
+      # Step 8: Generate Doxygen documentation
+      - name: Generate Doxygen documentation
+        run: |
+          # Install Doxygen if not available
+          if (-not (Get-Command doxygen -ErrorAction SilentlyContinue)) {
+            choco install doxygen.portable -y
+          }
+          doxygen Doxyfile
+
+      # Step 9: Verify if documentation files are generated
+      - name: List documentation directory contents
+        run: Get-ChildItem -Path docs -Recurse | Select-Object Name, FullName
+
+      # Step 10: Upload documentation as an artifact (if files exist)
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp_documentation_windows
+          path: docs
+
+      # Step 11: Upload build artifacts as an artifact (if files exist)
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp_build_output_windows
+          path: build
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/') # Only run on tag pushes
+
+    steps:
+      # Step 1: Checkout the repository
+      - uses: actions/checkout@v4
+        name: Checkout the repository
+
+      # Step 2: Create a GitHub release using the version tag (e.g., v1.0.0, v1.0.1)
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }} # Use just the tag name (e.g., v1.0.0)
+          release_name: Release ${{ github.ref_name }} # Name the release after the tag (e.g., v1.0.0)
+          body: |
+            Release notes for version ${{ github.ref_name }}.
+          draft: false
+          prerelease: false
+
+      # Step 3: Upload build artifacts to release
+      - name: Upload build artifacts to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/Release/main.exe # Adjust to your actual file
+          asset_name: main_windows.exe # Adjust this to name the artifact file
+          asset_content_type: application/octet-stream
+
+      # Step 4: Upload documentation to release
+      - name: Upload documentation to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: docs
+          asset_name: cpp_documentation_windows
+          asset_content_type: application/zip
