@@ -366,3 +366,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
    * [isocpp](https://isocpp.org/wiki/faq/coding-standards)  
    * [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)  
 
+
+## [VSCode](#)
+   * [`tasks.json`, `settings.json`, `launch.json`](docs/vscode.md)
+
