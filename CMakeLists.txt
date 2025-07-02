@@ -20,6 +20,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     endif()
 endif()
 
+# Handle threading library for different platforms
+if(WIN32)
+    set(THREADING_LIB "")
+else()
+    set(THREADING_LIB "-pthread")
+endif()
+
 message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
 
 option(ENABLE_JSON "enable the json example with nlohmann library" ON)
@@ -128,7 +135,7 @@ add_executable(pimpl src/pimpl/main.cpp src/pimpl/studentpimpl.cpp)
 add_executable(return_type_resolver src/return_type_resolver.cpp)
 
 add_executable(RAII src/RAII.cpp)
-target_link_libraries(RAII -pthread)
+target_link_libraries(RAII ${THREADING_LIB})
 
 add_executable(SFINAE src/SFINAE.cpp)
 
@@ -142,36 +149,36 @@ add_executable(stack_unwinding src/stack_unwinding.cpp)
 
 # ############################ Multithreading #############################
 add_executable(creating_and_terminating_threads src/multithreading/creating_and_terminating_threads.cpp)
-target_link_libraries(creating_and_terminating_threads -pthread)
+target_link_libraries(creating_and_terminating_threads ${THREADING_LIB})
 
 add_executable(differentiating_between_threads src/multithreading/differentiating_between_threads.cpp)
-target_link_libraries(differentiating_between_threads -pthread)
+target_link_libraries(differentiating_between_threads ${THREADING_LIB})
 
 add_executable(sleeping_threads src/multithreading/sleeping_threads.cpp)
-target_link_libraries(sleeping_threads -pthread)
+target_link_libraries(sleeping_threads ${THREADING_LIB})
 
 add_executable(join_detach_threads src/multithreading/join_detach_threads.cpp)
-target_link_libraries(join_detach_threads -pthread)
+target_link_libraries(join_detach_threads ${THREADING_LIB})
 
 add_executable(mutex src/multithreading/mutex.cpp)
-target_link_libraries(mutex -pthread)
+target_link_libraries(mutex ${THREADING_LIB})
 
 # add_executable(condition_variable src/multithreading/condition_variable.cpp)
 # target_link_libraries(condition_variable -pthread)
 add_executable(async_future_promise src/multithreading/async_future_promise.cpp)
-target_link_libraries(async_future_promise -pthread)
+target_link_libraries(async_future_promise ${THREADING_LIB})
 
 add_executable(dead_lock src/multithreading/dead_lock.cpp)
-target_link_libraries(dead_lock -pthread)
+target_link_libraries(dead_lock ${THREADING_LIB})
 
 add_executable(thread_safe src/multithreading/thread_safe.cpp)
-target_link_libraries(thread_safe -pthread)
+target_link_libraries(thread_safe ${THREADING_LIB})
 
 add_executable(packaged_task src/multithreading/packaged_task.cpp)
-target_link_libraries(packaged_task -pthread)
+target_link_libraries(packaged_task ${THREADING_LIB})
 
 add_executable(race_condition src/multithreading/race_condition.cpp)
-target_link_libraries(race_condition -pthread)
+target_link_libraries(race_condition ${THREADING_LIB})
 
 add_executable(unique_lock src/multithreading/unique_lock.cpp)
 target_link_libraries(unique_lock -pthread)
