@@ -1,7 +1,7 @@
 # [C++](#)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/github/behnamasadi/cpp_tutorials?branch=master&svg=true)](https://ci.appveyor.com/project/behnamasadi/cpp-tutorials)
-![build workflow](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
+[![Windows](https://ci.appveyor.com/api/projects/status/github/behnamasadi/cpp_tutorials?branch=master&svg=true)](https://ci.appveyor.com/project/behnamasadi/cpp-tutorials)
+![Ubuntu](https://github.com/behnamasadi/cpp_tutorials/actions/workflows/docker-build.yml/badge.svg)
 ![alt text](https://img.shields.io/badge/license-BSD-blue.svg)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/behnamasadi/cpp_tutorials)
 ![GitHub Release](https://img.shields.io/github/v/release/behnamasadi/cpp_tutorials)
