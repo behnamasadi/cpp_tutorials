@@ -291,7 +291,10 @@ target_link_libraries(asynchronous_programming -pthread)
 
 add_executable(circular_dependency src/class/circular_dependency/circular_dependency.cpp src/class/circular_dependency/classA.cpp src/class/circular_dependency/classB.cpp)
 
-add_executable(core_dump src/core_dump.cpp)
+# core_dump uses unistd.h which is only available on Unix-like systems
+if(UNIX)
+    add_executable(core_dump src/core_dump.cpp)
+endif()
 
 #add_executable(packaged_task src/packaged_task.cpp)
 
