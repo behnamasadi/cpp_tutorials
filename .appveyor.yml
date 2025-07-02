@@ -1,7 +1,7 @@
 # AppVeyor configuration for cpp_tutorial Project
 version: 1.0.{build}
 
-# Build environment
+# Build environment - using latest Visual Studio 2022
 os: Visual Studio 2022
 
 # Branches to build
@@ -30,12 +30,15 @@ install:
   - cmake --version
 
 before_build:
-  - mkdir build
-  - cd build
-  - cmake -G "Ninja"  ..
+  # Use CMake presets for configuration
+  - cmake --preset ninja-multi
 
 build_script:
-  - cmake --build . --config %CONFIGURATION%
+  # Use CMake presets for building based on configuration
+  - if "%CONFIGURATION%"=="Debug" cmake --build --preset ninja-multi-debug
+  - if "%CONFIGURATION%"=="Release" cmake --build --preset ninja-multi-release
+  - if "%CONFIGURATION%"=="RelWithDebInfo" cmake --build --preset ninja-multi-relwithdebinfo
+  - if "%CONFIGURATION%"=="MinSizeRel" cmake --build --preset ninja-multi-minsizerel
 
 test_script:
   # Uncomment if you have tests
@@ -56,4 +59,3 @@ notifications:
       - behnam.asadi@gmail.com
     on_build_success: true
     on_build_failure: true
-
