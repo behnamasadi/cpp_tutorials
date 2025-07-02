@@ -303,6 +303,14 @@ if(UNIX)
     add_executable(core_dump src/core_dump.cpp)
 endif()
 
+# Only build these on non-Windows platforms
+if(NOT WIN32)
+    add_executable(align src/align.cpp)
+    add_executable(signals src/signals.cpp)
+    add_executable(system_call src/system_call.cpp)
+    add_executable(fork src/fork.cpp)
+endif()
+
 #add_executable(packaged_task src/packaged_task.cpp)
 
 add_executable(std_visit src/std_visit.cpp)
