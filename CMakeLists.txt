@@ -181,10 +181,10 @@ add_executable(race_condition src/multithreading/race_condition.cpp)
 target_link_libraries(race_condition ${THREADING_LIB})
 
 add_executable(unique_lock src/multithreading/unique_lock.cpp)
-target_link_libraries(unique_lock -pthread)
+target_link_libraries(unique_lock ${THREADING_LIB})
 
 add_executable(lock_guard src/multithreading/lock_guard.cpp)
-target_link_libraries(lock_guard -pthread)
+target_link_libraries(lock_guard ${THREADING_LIB})
 
 add_executable(thread_pool src/multithreading/thread_pool.cpp)
 #target_link_libraries(thread_pool -pthread)
@@ -294,7 +294,7 @@ add_executable(std_invoke src/std_invoke.cpp)
 add_executable(structured_binding_declaration src/structured_binding_declaration.cpp)
 
 add_executable(asynchronous_programming src/asynchronous_programming.cpp)
-target_link_libraries(asynchronous_programming -pthread)
+target_link_libraries(asynchronous_programming ${THREADING_LIB})
 
 add_executable(circular_dependency src/class/circular_dependency/circular_dependency.cpp src/class/circular_dependency/classA.cpp src/class/circular_dependency/classB.cpp)
 
