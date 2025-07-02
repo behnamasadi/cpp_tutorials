@@ -40,7 +40,7 @@ jobs:
           if ("${{ matrix.configuration }}" -eq "Debug") { cmake --build --preset ninja-multi-debug }
           if ("${{ matrix.configuration }}" -eq "Release") { cmake --build --preset ninja-multi-release }
 
-      # Step 6: Generate Doxygen documentation
+            # Step 6: Generate Doxygen documentation
       - name: Generate Doxygen documentation
         run: |
           # Install Doxygen if not available
@@ -48,13 +48,15 @@ jobs:
             choco install doxygen.portable -y
           }
 
+          # Install Graphviz (dot tool) for diagrams
+          choco install graphviz -y
+
           # Create docs directory if it doesn't exist
           New-Item -ItemType Directory -Force -Path docs
 
           # Update Doxyfile for Windows environment
           $doxyfile = Get-Content Doxyfile -Raw
-          $doxyfile = $doxyfile -replace '/cpp_tutorials/src', 'src'
-          $doxyfile = $doxyfile -replace '/cpp_tutorials/docs', 'docs'
+          $doxyfile = $doxyfile -replace 'INPUT\s*=\s*/cpp_tutorials/src', 'INPUT = src'
           $doxyfile = $doxyfile -replace 'OUTPUT_DIRECTORY\s*=\s*\.', 'OUTPUT_DIRECTORY = docs'
           $doxyfile = $doxyfile -replace 'OUTPUT_TEXT_DIRECTION\s*=\s*None', '# OUTPUT_TEXT_DIRECTION = None'
           $doxyfile = $doxyfile -replace 'HTML_TIMESTAMP\s*=\s*NO', '# HTML_TIMESTAMP = NO'
@@ -67,7 +69,8 @@ jobs:
           $doxyfile = $doxyfile -replace 'DOT_FONTNAME\s*=\s*Helvetica', '# DOT_FONTNAME = Helvetica'
           $doxyfile = $doxyfile -replace 'DOT_FONTSIZE\s*=\s*10', '# DOT_FONTSIZE = 10'
           $doxyfile = $doxyfile -replace 'DOT_TRANSPARENT\s*=\s*NO', '# DOT_TRANSPARENT = NO'
-          $doxyfile = $doxyfile -replace 'HAVE_DOT\s*=\s*YES', 'HAVE_DOT = NO'
+          $doxyfile = $doxyfile -replace 'HAVE_DOT\s*=\s*YES', 'HAVE_DOT = YES'
+          $doxyfile = $doxyfile -replace 'DOT_PATH\s*=', 'DOT_PATH = C:\\ProgramData\\chocolatey\\bin'
 
           # Write updated Doxyfile
           $doxyfile | Out-File -FilePath Doxyfile.windows -Encoding UTF8
