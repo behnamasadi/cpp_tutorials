@@ -338,19 +338,11 @@ add_executable(error_code src/error_code.cpp)
 
 
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+# Only build these on non-Windows platforms (Unix/Linux)
+if(NOT WIN32)
     add_library(add SHARED src/add.cpp)
     add_executable(loadeding_libraries src/loadeding_libraries.cpp)
     target_link_libraries(loadeding_libraries dl)
-
-    add_executable(align src/align.cpp)
-    
-    add_executable(signals src/signals.cpp)
-    add_executable(system_call src/system_call.cpp)
-
-    # add_executable(date_time src/date_time.cpp)
-    add_executable(fork src/fork.cpp)
-    
 endif()
 
 

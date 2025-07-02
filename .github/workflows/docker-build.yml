@@ -31,11 +31,11 @@ jobs:
 
       # Step 3: Configure CMake
       - name: Configure CMake
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake -S /cpp_tutorials -G "Ninja Multi-Config" -B /cpp_tutorials/build
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --preset ninja-multi
 
       # Step 4: Build with CMake
       - name: Build with CMake
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build /cpp_tutorials/build --config Release
+        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build --preset ninja-multi-release
 
       # Step 5: Verify if build files are generated
       - name: List build directory contents
