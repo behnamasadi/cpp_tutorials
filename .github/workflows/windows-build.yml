@@ -37,8 +37,8 @@ jobs:
       # Step 5: Build with CMake presets (same as AppVeyor)
       - name: Build with CMake
         run: |
-          if "${{ matrix.configuration }}"=="Debug" cmake --build --preset ninja-multi-debug
-          if "${{ matrix.configuration }}"=="Release" cmake --build --preset ninja-multi-release
+          if ("${{ matrix.configuration }}" -eq "Debug") { cmake --build --preset ninja-multi-debug }
+          if ("${{ matrix.configuration }}" -eq "Release") { cmake --build --preset ninja-multi-release }
 
       # Step 6: Generate Doxygen documentation
       - name: Generate Doxygen documentation
