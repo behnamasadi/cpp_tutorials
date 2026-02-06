@@ -382,6 +382,24 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 - [isocpp](https://isocpp.org/wiki/faq/coding-standards)
 - [Bjarne Stroustrup's C++ Style](https://www.stroustrup.com/bs_faq2.html)
 
+## [C++ System Design](#)
+
+- [Memory Management Strategies (Pool, Arena, Slab Allocators)](docs/system_design/memory_management.md)
+- [Object-Oriented Design Patterns (Factory, Singleton, Observer, Strategy)](docs/system_design/design_patterns.md)
+- [Concurrency Patterns (Thread Pool, Producer-Consumer, Active Object)](docs/system_design/concurrency_patterns.md)
+- [Lock-Free and Wait-Free Data Structures](docs/system_design/lock_free_structures.md)
+- [Cache-Friendly Data Structures and Data-Oriented Design](docs/system_design/cache_friendly_design.md)
+- [Plugin Architecture and Dynamic Loading](docs/system_design/plugin_architecture.md)
+- [Event-Driven Architecture and State Machines](docs/system_design/event_driven_state_machines.md)
+- [API and ABI Design for C++ Libraries](docs/system_design/api_abi_design.md)
+- [SOLID Principles in C++](docs/system_design/solid_principles.md)
+- [Real-Time Systems Design](docs/system_design/realtime_systems.md)
+- [Embedded Systems Design](docs/system_design/embedded_systems.md)
+- [Game Engine Architecture](docs/system_design/game_engine_architecture.md)
+- [High-Performance Computing (HPC) Patterns](docs/system_design/hpc_patterns.md)
+- [Serialization and Deserialization (Protobuf, FlatBuffers)](docs/system_design/serialization.md)
+- [Error Handling Strategies and Fault Tolerance](docs/system_design/error_handling_strategies.md)
+
 ## [VSCode](#)
 
 - [`tasks.json`, `settings.json`, `launch.json`](docs/vscode.md)
