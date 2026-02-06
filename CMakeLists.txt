@@ -11,6 +11,10 @@ set(CMAKE_CXX_STANDARD 20) # Replace 20 with the version number of the latest C+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Disable C++20 module scanning (CMake 3.28+)
+# Dependencies like yaml-cpp, spdlog don't support C++20 modules yet
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     message("using Visual Studio C++")
 
@@ -553,8 +557,12 @@ endif()
 
 if(ENABLE_SPDLOG)
     message("\n########################################## spdlog ##########################################\n")
-# Fetch spdlog
-FetchContent_Declare(
+
+  # Use std::format (C++20) instead of bundled fmt to avoid Clang/Windows consteval bug
+  set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "Use std::format instead of bundled fmt")
+
+  # Fetch spdlog
+  FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
     GIT_TAG        v1.14.1  # Use a specific tag, branch, or commit
@@ -567,9 +575,6 @@ FetchContent_Declare(
   
   # Link spdlog to your target
   target_link_libraries(spdlog_example PRIVATE spdlog::spdlog)
-  
-  # Optionally, if you want to disable spdlog's automatic formatting, add the following:
-  # target_compile_definitions(MyExecutable PRIVATE SPDLOG_FMT_EXTERNAL)
     
 else()
     message("spdlog is not enabled")
@@ -625,6 +630,6 @@ endif()
 
 
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
-    add_executable(main src/main.cpp)
-endif()
+# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+#     add_executable(main src/main.cpp)
+# endif()
