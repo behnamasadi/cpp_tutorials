@@ -247,7 +247,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
   - [Class Forward Declaration](docs/class_forward_declaration.md)
   - [Class Constructor Initializationlist](src/class/constructor_initialization_list.cpp)
   - [Class Constructor Aggregate/ Copy/ Default/ Direct/ Value/ Uniform/ Zero Initialization, Initializer List](docs/aggregate-copy-default-direct-value-zero_initialization.md)
-  - [Copy/ Move Constructor, rvalue, lvalue, move semantic](docs/copy_constructor_move_constructor_rvalue_lvalue_move_semantic.md)
+  - [Copy Constructor, Copy Assignment, Move Constructor, Assignment](docs/copy_constructor_move_constructor.md)
   - [Cyclic (Circular) Dependency](docs/circular_dependencies.md)
   - [Default(=default), Deleted (=delete) Constructors](docs/default_constructors_=default_0_delete.md)
   - [Diamond Problem Virtual Inheritance](src/class/diamond_problem_virtual_inheritance.cpp)
@@ -304,7 +304,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 - [Pointer to implementation (PIMPL)](docs/PIMPL.md)
 - [Return Type Resolver](docs/return_type_resolver.md)
 - [Resource Acquisition Is Initialization (RAII)](docs/RAII.md)
-- [Rule of 5](docs/rule_of_5.md)
+- [Rule of 3, Rule of 5](docs/rule_of_3_rule_of_5.md)
 - [Substitution failure is not an error (SFINAE)](docs/SFINAE.md)
 - [Stack overflow](docs/stack_overflow.md)
 - [Stack Unwinding](docs/stack_unwinding.md)
@@ -318,6 +318,7 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 - [Printing List of All Included Headers](docs/print_all_included_headers.md)
 - [fPIE (Position Independent Executable) and fPIC(Position Independent Code and) ](docs/fPIE_and_fPIC.md)
 - [Lexical Analyzer](docs/lexical_analyzer.md)
+- [`std::optional`, `std::variant`, and `std::any`](docs/any_variant_optional.md)
 
 ## [Optimizing C++](src/optimizing_cpp)
 

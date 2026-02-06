@@ -189,3 +189,209 @@ In summary, `std::variant` is a powerful tool for managing variables that can ho
 `std::variant` is particularly useful in scenarios where a variable or a function needs to work with multiple types of data, but only one type at a time. It ensures type safety and eliminates the need for manual type management that comes with traditional unions or `void*` pointers. Here are some real-world examples where `std::variant` proves beneficial:
 
 
+
+
+## Real-world API design examples
+
+### 1. Lookup where “not found” is normal → `std::optional<T>`
+
+**Example: map/cache lookup**
+
+```cpp
+std::optional<User> find_user(UserId id) const;
+```
+
+Why: absence is a *valid outcome*, not necessarily an error. You usually don’t need a reason beyond “missing”.
+
+Variant: avoid copies
+
+```cpp
+std::optional<std::reference_wrapper<const User>>
+find_user_ref(UserId id) const;
+```
+
+### 2. Parsing where failure reason matters → `std::expected<T, E>`
+
+**Example: parsing config**
+
+```cpp
+enum class ParseErr { Empty, InvalidNumber, OutOfRange };
+
+std::expected<int, ParseErr> parse_port(std::string_view s);
+```
+
+Why: the caller often wants to report *why* it failed (error message, user feedback, logs), or recover differently.
+
+### 3. File/network/database operations → `std::expected<T, E>` (or exceptions in exception-friendly APIs)
+
+**Example: file read**
+
+```cpp
+struct IoErr {
+  std::error_code ec;
+  std::string path;
+};
+
+std::expected<std::string, IoErr> read_text_file(std::string path);
+```
+
+Why: failures are common and actionable (permissions, missing file, short read).
+
+### 4. Operations where failure is exceptional/unrecoverable in your domain → exceptions (sometimes)
+
+If your library’s style is exception-based and failures are truly exceptional:
+
+```cpp
+std::string read_text_file_or_throw(const std::string& path); // throws
+```
+
+But for systems/robotics/infra-style code, `expected` is often preferred because you can propagate errors cheaply and explicitly.
+
+### 5. “Try” APIs with out parameters → replace with `optional` or `expected`
+
+❌
+
+```cpp
+bool try_parse(std::string_view s, int& out);
+```
+
+✅ optional (only success/fail)
+
+```cpp
+std::optional<int> parse(std::string_view s);
+```
+
+✅ expected (success/fail + reason)
+
+```cpp
+std::expected<int, ParseErr> parse(std::string_view s);
+```
+
+---
+
+## `std::optional<T>` vs `std::expected<T, E>` (decision rules)
+
+### Use `optional` when:
+
+* “No value” is a **normal** and **fully sufficient** outcome
+* There’s no meaningful error to report
+* Callers don’t need branching on error type
+* You want the simplest API surface
+
+Common examples:
+
+* `find_*`
+* `maybe_get_*`
+* best-effort queries (“give me cached value if any”)
+
+### Use `expected` when:
+
+* Failure is common and you want **structured error info**
+* You need to differentiate errors to decide recovery
+* You want to propagate errors without exceptions
+* You want call sites to be explicit without ad-hoc logging
+
+Common examples:
+
+* parsing/validation with user feedback
+* IO, network, database
+* decoding/serialization
+* resource creation (device init, driver open)
+
+---
+
+## “Absence vs error” clarity (the key design point)
+
+If “missing” can happen for multiple reasons and the reason matters:
+
+* `optional` collapses everything into “no”
+* `expected` keeps meaning
+
+Example: config read
+
+**Bad with optional**
+
+```cpp
+std::optional<std::string> read_setting(std::string_view key);
+```
+
+Is it missing? permission denied? corrupted file? parse failed? caller can’t know.
+
+**Good with expected**
+
+```cpp
+enum class SettingsErr { MissingKey, IoFailed, ParseFailed };
+
+std::expected<std::string, SettingsErr>
+read_setting(std::string_view key);
+```
+
+---
+
+## Composability patterns (production-friendly)
+
+### Pattern A: Parse → validate → build (with `expected`)
+
+```cpp
+enum class Err { Parse, Invalid };
+
+std::expected<int, Err> parse_int(std::string_view);
+std::expected<int, Err> validate_positive(int v);
+
+std::expected<int, Err> parse_positive_int(std::string_view s) {
+  auto v = parse_int(s);
+  if (!v) return std::unexpected(Err::Parse);
+  return validate_positive(*v);
+}
+```
+
+### Pattern B: optional-to-expected bridge (common in APIs)
+
+If you have an optional lookup but want structured errors at a higher layer:
+
+```cpp
+enum class Err { NotFound };
+
+std::expected<User, Err> require_user(UserId id) {
+  if (auto u = find_user(id)) return *u;
+  return std::unexpected(Err::NotFound);
+}
+```
+
+---
+
+## Choosing error type `E` in `expected<T, E>`
+
+Good options:
+
+* `std::error_code` (interoperable with system errors)
+* small `enum class` (fast, stable, easy switching)
+* a struct holding `enum + context` (path, id, message, underlying code)
+
+Example:
+
+```cpp
+enum class Errc { NotFound, Permission, Corrupt };
+
+struct Err {
+  Errc code;
+  std::string context;      // optional extra info
+  std::error_code sys = {}; // if relevant
+};
+```
+
+---
+
+## Practical guideline for public library APIs
+
+* Use `optional` for “missing is normal” queries.
+* Use `expected` for operations that can fail in meaningful ways.
+* Avoid mixing exceptions + expected in the same layer unless you have a clear boundary:
+
+  * low-level: `expected`
+  * high-level convenience wrappers: `throw` by converting `expected` to exception
+
+---
+
+If you tell me one concrete API you’re designing (e.g., “parse YAML config”, “load frame from video”, “get camera intrinsic from DB”), I’ll sketch 2–3 clean signatures and show how callers would use them.
+

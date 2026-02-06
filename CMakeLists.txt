@@ -75,6 +75,8 @@ add_executable(algorithms_library src/algorithms_library.cpp)
 
 add_executable(vector src/vector.cpp)
 
+add_executable(queue src/queue.cpp)
+
 add_executable(variadic_templates src/variadic_templates.cpp)
 
 add_executable(enum src/enum.cpp)
@@ -225,13 +227,11 @@ add_executable(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
 
 # add_executable(allocator src/allocator.cpp)
 
-add_executable(noexcept_operator_specifier src/noexcept_operator_specifier.cpp)
-
 add_executable(callbacks src/callbacks.cpp)
 
 add_executable(template_specialization_tag_dispatch src/template_specialization_tag_dispatch.cpp)
 
-#add_executable(copy_move src/class/copy_move.cpp)
+add_executable(copy_constructor_copy_assignment src/copy_constructor_copy_assignment.cpp)
 
 add_executable(forward src/forward.cpp)
 
