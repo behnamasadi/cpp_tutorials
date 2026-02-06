@@ -1,68 +1,45 @@
-- [Exception Handling](#exception-handling)
-- [C++ Standard Exceptions](#c-standard-exceptions)
-  - [bad\_alloc](#bad_alloc)
-    - [nothrow](#nothrow)
-  - [bad\_cast](#bad_cast)
-  - [bad\_typeid](#bad_typeid)
-  - [logic\_error](#logic_error)
-  - [domain\_error](#domain_error)
-  - [invalid\_argument](#invalid_argument)
-  - [length\_error](#length_error)
-  - [out\_of\_range](#out_of_range)
-  - [overflow\_error](#overflow_error)
-  - [range\_error](#range_error)
-- [User defined exceptions](#user-defined-exceptions)
-- [](#)
-- [Catching All Exceptions With Parameter Pack Expansion ...](#catching-all-exceptions-with-parameter-pack-expansion-)
-- [noexcept](#noexcept)
-  - [noexcept specifier](#noexcept-specifier)
-  - [noexcept operator](#noexcept-operator)
-  - [when should we use noexcept](#when-should-we-use-noexcept)
-
-
-
 # Exception Handling
-exception handling has the following form:
+
+Exception handling in C++ allows programs to react to runtime errors in a structured and safe way.
 
 ```cpp
-try
-{
-    some code
+try {
+    // protected code
 }
-catch (Exception1 e)
-{
-    some code
+catch (const ExceptionType& e) {
+    // handle specific exception
 }
-catch (Exception2 e)
-{
-    some code
-}
-catch (...)
-{
-    some code
+catch (...) {
+    // handle any exception
 }
 ```
 
-
-
+---
 
 # C++ Standard Exceptions
 
-1) std::bad_alloc  
-2) std::bad_cast  
-3) std::bad_exception  
-4) std::bad_typeid  
-5) std::logic_error  
-    1) std::domain_error: exception thrown when a mathematically invalid domain is used.  
-    2) std::invalid_argument  
-    3) std::length_error  
-    4) std::out_of_range  
-6) std::runtime_error: An exception that theoretically cannot be detected by reading the code.  
-    1) std::overflow_error
-    2) std::underflow_error  
-    3) std::range_error  
-    
-7) std::ios_base::failure
+The standard library provides a hierarchy of exception types derived from `std::exception`:
+
+* `std::bad_alloc`
+* `std::bad_cast`
+* `std::bad_exception`
+* `std::bad_typeid`
+* `std::logic_error`
+
+  * `std::domain_error`
+  * `std::invalid_argument`
+  * `std::length_error`
+  * `std::out_of_range`
+* `std::runtime_error`
+
+  * `std::overflow_error`
+  * `std::underflow_error`
+  * `std::range_error`
+* `std::ios_base::failure`
+
+
+---
+
 ## bad_alloc
 
 This exception is thrown by the allocation functions to when it failures to allocate memory.
@@ -281,34 +258,6 @@ catch (std::range_error &e)
 }
 ```
 
-# User defined exceptions
-
-Definition:
-```cpp
-struct CustomException : public std::exception
-{
-   const char * what () const throw ()
-   {
-      return "CustomException happened";
-   }
-};
-```
-
-usage:
-```cpp
-try
-{
-    throw CustomException();
-} catch(CustomException& e)
-{
-    std::cout << "CustomException caught" << std::endl;
-    std::cout << e.what() << std::endl;
-} catch(std::exception& e)
-{
-//Other errors
-}
-```
-
 # 
 
 ```cpp
@@ -355,145 +304,215 @@ catch (...)//... Parameter Pack Expansion, will catch any exception
 
 
 
+---
 
-# noexcept 
+# User-defined Exceptions
 
-The `noexcept` specification in C++ is used to indicate that a function is not expected to throw exceptions. This helps in optimizing the code, as the compiler can make certain optimizations knowing that no exceptions will be thrown from that function. However, if an exception is thrown from a `noexcept` function, the program will call `std::terminate`, resulting in a potential program crash.
+## Overriding `std::exception::what()`
 
-### When to Use `noexcept`
-
-1. **Performance Critical Functions**: In functions where performance is critical, and you're sure that no exceptions will be thrown, using `noexcept` can improve performance.
-
-2. **Move Constructors and Move Assignments**: It's generally good practice to mark move constructors and move assignments as `noexcept`. This is because many standard library implementations will only use move semantics if these operations are marked as `noexcept`.
-
-3. **Functions Guaranteed Not to Throw**: If you're certain that a function won't throw an exception (like simple getters or setters that don't do any complex operations), marking them as `noexcept` can be a good practice.
-
-### Real-life Scenario
-
-Imagine you're developing a real-time game engine where performance is critical. You have a function that updates the position of a game object based on its velocity and the elapsed time. This function is straightforward and doesn't involve operations that might throw exceptions (like memory allocation, file I/O, etc.).
+`std::exception` exposes **one virtual function intended for overriding**:
 
 ```cpp
-class GameObject {
-public:
-    // Other members...
+virtual const char* what() const noexcept;
+```
 
-    // Update position - noexcept since it's a simple calculation
-    void updatePosition(float elapsedTime) noexcept {
-        position.x += velocity.x * elapsedTime;
-        position.y += velocity.y * elapsedTime;
-        // Other simple calculations...
-    }
+Important points:
 
-    // Other members...
+* We override **`what()`**, not `throw()`
+* `throw()` is an old C++98 exception specification
+* `noexcept` is the modern replacement
+* The function must **never throw**
+
+Correct modern definition:
+
+```cpp
+struct CustomException : public std::exception {
+  const char* what() const noexcept override {
+    return "CustomException happened";
+  }
+};
+```
+
+Why `what()` is `noexcept`:
+
+* It is usually called while another exception is already being handled
+* Throwing during exception handling is fatal
+* The standard enforces safety via `noexcept`
+
+Usage:
+
+```cpp
+try {
+  throw CustomException();
+} catch (const std::exception& e) {
+  std::cout << e.what() << '
+';
+}
+```
+
+---
+
+# noexcept
+
+## What `noexcept` means
+
+`noexcept` declares a **non-throwing contract**:
+
+> This function guarantees it will not throw exceptions.
+
+If the guarantee is violated, the program calls `std::terminate()` immediately.
+
+### `noexcept` vs `throw()`
+
+| Old syntax      | Modern C++ |
+| --------------- | ---------- |
+| `throw()`       | `noexcept` |
+| `throw(T1, T2)` | ❌ removed |
+
+---
+
+## Stack Unwinding
+
+When an exception is thrown:
+
+1. Normal execution stops
+2. The runtime walks up the call stack
+3. Destructors of fully-constructed objects are invoked
+4. A matching `catch` is searched
+
+This cleanup process is called **stack unwinding**.
+
+---
+
+## Why Destructors MUST be `noexcept`
+
+### Fatal case: throwing during unwinding
+
+```cpp
+struct Bad {
+  ~Bad() {
+    throw std::runtime_error("destructor failed");
+  }
 };
 
-// In the game loop
-gameObject.updatePosition(elapsedTime);
-```
-
-In this scenario, using `noexcept` for `updatePosition` makes sense because:
-1. The function is simple and unlikely to throw exceptions.
-2. The function is likely called very frequently (every frame), so any performance improvement is beneficial.
-3. If an exception does occur here, it likely indicates a severe logic error or a bug that should terminate the program, which is the behavior `noexcept` enforces.
-
-Marking move constructors and move assignments as `noexcept` in C++ is considered good practice for several key reasons:
-
-1. **Optimizations in Standard Library Containers**: Many standard library containers, like `std::vector` and `std::deque`, can perform certain optimizations if they know that move operations do not throw exceptions. For instance, when a `std::vector` resizes, it may choose to move its elements to the new memory location instead of copying them, but only if the move operations are `noexcept`. This can lead to significant performance improvements.
-
-2. **Strong Exception Safety Guarantee**: By marking move operations as `noexcept`, you are ensuring that these operations won't throw exceptions, which aids in providing strong exception safety guarantees. This is particularly important in scenarios where maintaining system state consistency is crucial, and exceptions can lead to partial state changes or leaks.
-
-3. **Better Resource Management and Safety**: In the context of resource management (like memory, file handles, network connections), move semantics allow for efficient transfer of resources. When these operations are `noexcept`, it ensures that the resource transfer is safe and no exceptions will be thrown during the process, preventing resource leaks or undefined states.
-
-4. **Improved Compiler Error Messages**: If you mistakenly use a type in a context that requires a `noexcept` move operation and your type doesn't provide it, the compiler can give a clear and specific error message. This helps in catching potential issues at compile time.
-
-5. **Compatibility with Move-Only Types**: Some types in C++ are move-only (like `std::unique_ptr`). If your class holds move-only members and your move operations are not `noexcept`, this can lead to complications or even prevent your class from being used in certain standard library containers or algorithms.
-
-6. **Semantical Clarity**: Marking move operations as `noexcept` clearly communicates your intent to other developers that these operations are safe and won't throw exceptions. This enhances code readability and maintainability.
-
-In summary, using `noexcept` with move constructors and assignments improves performance and exception safety, ensures better resource management, improves code clarity, and ensures compatibility with certain types and containers in the C++ standard library.
-
-
-## noexcept specifier
-This means if a function specified with noexcept it shouldn't throw exception (evaluation of its operand can propagate an exception).
-
-The bodies of called functions are not examined to check if they actually throw exception or not, and `noexcept` can yield false negatives. 
-In the case of exception `std::sterminate` will be called
-## noexcept operator
-It tests if a function noexcept specification evaluate to true or false at compile time.
-noexcept(some compile time expression) and this returns a boolean
-
-examples:
-
-
-equals to `noexcept(true),`this `func` can not throw exception
-```cpp
-void func1() noexcept 
-{
+void f() {
+  Bad b;
+  throw std::runtime_error("original error");
 }
 ```
 
-equals to not using noexcept, means this func2 can throw exception
-```cpp
-void func2() noexcept (false)
-{
-}
+Execution order:
+
+* `original error` triggers stack unwinding
+* `~Bad()` is invoked
+* `~Bad()` throws another exception
+* Two active exceptions now exist
+
+### Result
+
+```text
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  original error
+Aborted (core dumped)
+
 ```
 
+The C++ standard mandates this behavior: **throwing while another exception is active is fatal**.
 
+---
+
+## Language Rule
+
+Since C++11, destructors are implicitly:
 
 ```cpp
-void bar() noexcept
-{
-}
-
-void baz() noexcept
-{
-    throw std::range_error("range error");
-}
-
-void foo()
-{
-    return;
-}
+~T() noexcept(true);
 ```
 
+Violating this guarantee leads to immediate program termination.
 
-now running the followings:
+---
+
+## Correct RAII Design
+
+### ❌ Incorrect
 
 ```cpp
-std::cout << std::boolalpha;
-std::cout << noexcept(bar()) << '\n';
-std::cout << noexcept(baz()) << '\n';
-std::cout << noexcept(foo()) << '\n';
-std::cout << noexcept(1 + 1) << '\n'; 
-```
-the output is:
-
-```
-true
-true
-false
-true
+struct File {
+  FILE* f;
+  ~File() {
+    if (std::fclose(f) != 0)
+      throw std::runtime_error("close failed");
+  }
+};
 ```
 
-[code](../src/noexcept_operator_specifier.cpp) 
+### ✅ Correct
 
+```cpp
+struct File {
+  FILE* f;
 
-## when should we use noexcept
-1. When using c++ functions in c
-2. when c++ standard requires us.
+  ~File() noexcept {
+    if (f) std::fclose(f); // best-effort cleanup
+  }
 
+  void close() {
+    if (std::fclose(f) != 0)
+      throw std::runtime_error("close failed");
+    f = nullptr;
+  }
+};
+```
 
-Almost every optimization in the compiler uses something called a "flow graph" of a function to reason about what is legal. A flow graph consists of what are generally called "blocks" of the function (areas of code that have a single entrance and a single exit) and edges between the blocks to indicate where flow can jump to. Noexcept alters the flow graph.
+Rule:
 
-A noexcept specification on a function is merely a method for a programmer to inform the compiler whether or not a function should throw exceptions.
+* Destructors clean up resources
+* Errors are reported explicitly via functions
+* Destructors must never throw
 
-The compiler can use this information to enable certain optimizations on non-throwing functions as well as enable the noexcept operator, which can check at compile time if a particular expression is declared to throw any exceptions.
+---
 
+## Other Places `noexcept` Is Required or Critical
 
-Declaring a function noexcept helps optimizers by reducing the number of alternative execution paths. It also speeds up the exit after failure.
+### `std::exception::what()`
 
+```cpp
+virtual const char* what() const noexcept;
+```
 
+Reason:
 
+* Called during exception handling
+* Must be safe and non-throwing
 
-Refs: [1](https://akrzemi1.wordpress.com/2014/04/24/noexcept-what-for/), [2](https://stackoverflow.com/questions/10787766/when-should-i-really-use-noexcept), [3](https://stackoverflow.com/questions/33210169/how-to-use-noexcept-in-c-or-how-does-it-work), [4](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rf-constexpr), [5](https://www.modernescpp.com/index.php/c-core-guidelines-the-noexcept-specifier-and-operator#:~:text=throw()%20is%20equivalent%20to%20noexcept,be%20used%20for%20function%20overloading.)
+---
+
+### Move Constructors and Move Assignment
+
+```cpp
+MyType(MyType&&) noexcept;
+```
+
+Why:
+
+* Standard containers prefer move only if it is `noexcept`
+* Otherwise they fall back to copying
+* Enables faster reallocation and strong exception guarantees
+
+---
+
+## Summary
+
+| Context          | Must be `noexcept`   | Reason                          |
+| ---------------- | -------------------- | ------------------------------- |
+| Destructors      | Yes                  | Prevent fatal double exceptions |
+| `what()`         | Yes                  | Safe error reporting            |
+| Move ctor/assign | Strongly recommended | Container optimizations         |
+| Cleanup code     | Yes                  | Stack unwinding safety          |
+
+---
+
+## One-line Rule
+
+A function must be `noexcept` if it can be executed during stack unwinding or cleanup, because throwing at that point immediately terminates the program.
