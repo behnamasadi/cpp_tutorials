@@ -36,18 +36,22 @@ message("CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
 option(ENABLE_JSON "enable the json example with nlohmann library" ON)
 option(ENABLE_CSV "enable the csv example with fast-cpp-csv-parser library" ON)
 option(ENABLE_YAML "enable the yaml example with yaml-cpp" ON)
-option(ENABLE_BENCHMARKING "enable the code benchmarking with Goolge benchmarking" OFF)
+option(ENABLE_BENCHMARKING "enable the code benchmarking with Google benchmark v1.9.5" OFF)
 option(ENABLE_TRACY "enable the code profiling with tracy" OFF)
 option(ENABLE_XML "enable the xml example with tinyxml2" ON)
 option(ENABLE_TESTING "Enable testing" OFF)
 option(ENABLE_SANITIZE "Add sanitizer flags" OFF)
 option(ENABLE_SPDLOG "Add spdlog for logging" ON)
-option(ENABLE_CPP_REST_SDK "Add CppRestSDK for microservices" OFF)
-
+option(ENABLE_CURL "Enable cURL for REST APIs and Webhooks (HTTP callbacks)" OFF)
+option(ENABLE_GRPC "Enable gRPC for RPC communication" OFF)
+option(ENABLE_WEBSOCKET "Enable IXWebSocket for WebSocket communication" OFF)
+option(ENABLE_WEBRTC "Enable libdatachannel for WebRTC (Data Channels, Media, WebSocket)" OFF)
+option(ENABLE_GRAPHQL "Enable cppgraphqlgen for GraphQL" OFF)
+option(ENABLE_SOAP "Enable XML SOAP example (requires ENABLE_XML and ENABLE_CURL)" OFF)
 
 add_executable(pointers src/pointers/pointers.cpp)
 
-add_executable(string  src/string.cpp )
+add_executable(string  src/string.cpp)
 
 add_executable(exception_handling src/exception_handling.cpp)
 
@@ -237,6 +241,8 @@ add_executable(template_specialization_tag_dispatch src/template_specialization_
 
 add_executable(copy_constructor_copy_assignment src/copy_constructor_copy_assignment.cpp)
 
+add_executable(shallow_copy_deep_copy src/shallow_copy_deep_copy.cpp)
+
 add_executable(forward src/forward.cpp)
 
 add_executable(virtual_destructor_virtual_constructor src/class/virtual_destructor_virtual_constructor.cpp)
@@ -255,11 +261,7 @@ add_executable(set_argv_argc src/set_argv_argc.cpp)
 
 add_executable(arguments_parser_example src/arguments_parser_example.cpp)
 
-add_executable(aggregate-copy-default-direct-value-zero src/{}-operator-aggregate-copy-default-direct-value-zero.cpp)
-
-add_executable(aggregate_initialization src/aggregate_initialization.cpp)
-
-add_executable(default-initialized src/default-initialized.cpp)
+add_executable(initialization src/initialization.cpp)
 
 add_executable(scope_resolution_operator src/scope_resolution_operator.cpp)
 
@@ -366,8 +368,7 @@ if(PRINT_INCLUDES)
 	endif()
 endif()
 
-
-
+message("\n########################################## ctest ##########################################\n")
 
 if(ENABLED_TESTING)
     add_subdirectory(tests)
@@ -375,29 +376,24 @@ else()
     message("testing is not enabled")
 endif()
 
+message("\n########################################## tinyxml2 ##########################################\n")
 if(ENABLE_XML)
-    message("\n########################################## tinyxml2 ##########################################\n")
     
     include(FetchContent)
+
+    set(TINYXML2_VER "11.0.0")
     
     FetchContent_Declare(
         tinyxml2
         GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-        GIT_TAG master
+        GIT_TAG ${TINYXML2_VER}
         GIT_SHALLOW TRUE
         GIT_PROGRESS TRUE
     )
     
     FetchContent_MakeAvailable(tinyxml2)
 
-    message("TINYXML2_FOUND: ${TINYXML2_FOUND}")
-    message("TINYXML2_VERSION: ${TINYXML2_VERSION}")
-    message("TINYXML2_LIBRARIES: ${TINYXML2_LIBRARIES}")
-    message("TINYXML2_INCLUDE_DIRS: ${TINYXML2_INCLUDE_DIRS}")
-    message("TINYXML2_LIBRARY_DIRS: ${TINYXML2_LIBRARY_DIRS}")
-
-    include_directories(${TINYXML2_INCLUDE_DIRS})
-    link_directories(${TINYXML2_LIBRARY_DIRS})
+    message(STATUS "tinyxml2 version: ${TINYXML2_VER}")
 
     add_executable(tinyxml2_demo src/tinyxml2_demo.cpp)
     target_link_libraries(tinyxml2_demo tinyxml2)
@@ -407,28 +403,22 @@ else()
 endif()
 
 
+message("\n########################################## yaml-cpp ##########################################\n")
 if(ENABLE_YAML)
-    message("\n########################################## yaml-cpp ##########################################\n")
+    set(YAML_CPP_VER "0.9.0")
 
     FetchContent_Declare(
-    yaml-cpp
-    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-    GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+        yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG yaml-cpp-${YAML_CPP_VER}
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
     )
-    FetchContent_GetProperties(yaml-cpp)
-
-    if(NOT yaml-cpp_POPULATED)
-    message(STATUS "Fetching yaml-cpp...")
-    FetchContent_Populate(yaml-cpp)
-    add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
-    endif()
 
     FetchContent_MakeAvailable(yaml-cpp)
-    FetchContent_GetProperties(yaml-cpp)
 
+    message(STATUS "yaml-cpp version: ${YAML_CPP_VER}")
 
-    message("yaml-cpp_FOUND:" ${yaml-cpp_FOUND})
-    message("yaml-cpp_VERSION:" ${yaml-cpp_VERSION})
     add_executable(yaml-cpp_example src/yaml-cpp_example.cpp)
     target_link_libraries(yaml-cpp_example yaml-cpp)
 else()
@@ -436,52 +426,44 @@ else()
 endif()
 
 
-
+message("\n########################################## Google benchmark ##########################################\n")
 if(ENABLE_BENCHMARKING)
-    message("\n########################################## Google benchmark ##########################################\n")
+    set(BENCHMARK_VER "1.9.5")
 
     FetchContent_Declare(
         benchmark
         GIT_REPOSITORY https://github.com/google/benchmark
-        GIT_TAG main # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+        GIT_TAG v${BENCHMARK_VER}
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
     )
     set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
-    FetchContent_GetProperties(benchmark)
 
-    if(NOT benchmark_POPULATED)
-        message(STATUS "Fetching benchmark...")
-        FetchContent_Populate(benchmark)
-        add_subdirectory(${benchmark_SOURCE_DIR} ${benchmark_BINARY_DIR})
-    endif()
+    FetchContent_MakeAvailable(benchmark)
 
-    message("BENCHMARK_FOUND:" ${BENCHMARK_FOUND})
-    message("BENCHMARK_VERSION:" ${BENCHMARK_VERSION})
-    message("BENCHMARK_LIBRARIES:" ${BENCHMARK_LIBRARIES})
-    message("BENCHMARK_INCLUDE_DIRS:" ${BENCHMARK_INCLUDE_DIRS})
-    message("BENCHMARK_LIBRARY_DIRS:" ${BENCHMARK_LIBRARY_DIRS})
+    message(STATUS "Google benchmark version: ${BENCHMARK_VER}")
 
-    include_directories(${BENCHMARK_INCLUDE_DIRS}) # Corrected to use benchmark include directories
-    link_directories(${BENCHMARK_LIBRARY_DIRS})    # Corrected to use benchmark library directories
     add_executable(benchmark_demo src/benchmark_demo.cpp)
-    target_link_libraries(benchmark_demo ${BENCHMARK_LIBRARIES} pthread)
+    target_link_libraries(benchmark_demo benchmark::benchmark pthread)
 else()
     message("Benchmarking is not enabled")
 endif()
 
 
-
+message("\n########################################## json ##########################################\n")
 if(ENABLE_JSON)
-    message("\n########################################## json ##########################################\n")
-
+    set(NLOHMANN_JSON_VER "3.12.0")
     FetchContent_Declare(
         json
         GIT_REPOSITORY https://github.com/nlohmann/json
-        GIT_TAG v3.11.3
+        GIT_TAG v${NLOHMANN_JSON_VER}
         GIT_SHALLOW TRUE
         GIT_PROGRESS TRUE
     )
 
     FetchContent_MakeAvailable(json)
+
+    message(STATUS "nlohmann/json version: ${NLOHMANN_JSON_VER}")
 
     add_executable(json_example src/json_example.cpp)
 
@@ -501,135 +483,251 @@ endif()
 
 
 
-
+message("\n########################################## tracy ##########################################\n")
 if(ENABLE_TRACY)
-    message("\n########################################## tracy ##########################################\n")
+    set(TRACY_VER "0.11.0")
+
     include(FetchContent)
-    FetchContent_Declare (tracy
-    GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-    GIT_TAG v0.11.0
-    GIT_SHALLOW TRUE
-    GIT_PROGRESS TRUE)
+    FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG v${TRACY_VER}
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
 
     FetchContent_MakeAvailable(tracy)
 
-
-
-    FetchContent_GetProperties(tracy)
-    # if(NOT tracy_POPULATED)
-    # #   FetchContent_Populate(tracy)
-    # #   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-    # message("-------------------")
-    # else()
-    # message("++++++++++++++++")
-    # endif()
-
+    message(STATUS "tracy version: ${TRACY_VER}")
 
     add_executable(tracy_profile src/tracy_profile.cpp)
-    target_link_libraries ( tracy_profile PUBLIC TracyClient )
+    target_link_libraries(tracy_profile PUBLIC TracyClient)
 
 else()
     message("tracy is not enabled")
 endif()
 
 
-if(ENABLE_CSV)
 message("\n########################################## fast-cpp-csv-parser ##########################################\n")
-include(FetchContent)
-FetchContent_Declare (fast-cpp-csv-parser
-GIT_REPOSITORY https://github.com/ben-strasser/fast-cpp-csv-parser
-GIT_TAG master
-GIT_SHALLOW TRUE
-GIT_PROGRESS TRUE)
+if(ENABLE_CSV)
 
-FetchContent_MakeAvailable(fast-cpp-csv-parser)
-FetchContent_GetProperties(fast-cpp-csv-parser)
+    # No versioned releases; pinned to latest commit (2025-02-02)
+    set(FAST_CPP_CSV_PARSER_COMMIT "574a9fe4d323ba63416877a4a5fe59088d37aa34")
 
-add_executable(csv_reading_example src/csv_reading_example.cpp)
-target_compile_definitions(csv_reading_example PRIVATE CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-target_include_directories(csv_reading_example PRIVATE ${fast-cpp-csv-parser_SOURCE_DIR})
+    include(FetchContent)
+    FetchContent_Declare(
+        fast-cpp-csv-parser
+        GIT_REPOSITORY https://github.com/ben-strasser/fast-cpp-csv-parser
+        GIT_TAG ${FAST_CPP_CSV_PARSER_COMMIT}
+        GIT_PROGRESS TRUE
+    )
+
+    FetchContent_MakeAvailable(fast-cpp-csv-parser)
+    FetchContent_GetProperties(fast-cpp-csv-parser)
+
+    string(SUBSTRING ${FAST_CPP_CSV_PARSER_COMMIT} 0 7 FAST_CPP_CSV_PARSER_SHORT)
+    message(STATUS "fast-cpp-csv-parser commit: ${FAST_CPP_CSV_PARSER_SHORT} (2025-02-02, header-only, no versioned releases)")
+
+    add_executable(csv_reading_example src/csv_reading_example.cpp)
+    target_compile_definitions(csv_reading_example PRIVATE CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+    target_include_directories(csv_reading_example PRIVATE ${fast-cpp-csv-parser_SOURCE_DIR})
 
 else()
-message("fast-cpp-csv-parser is not enabled")
-
+    message("fast-cpp-csv-parser is not enabled")
 endif()
 
 
+message("\n########################################## spdlog ##########################################\n")
 if(ENABLE_SPDLOG)
-    message("\n########################################## spdlog ##########################################\n")
+    set(SPDLOG_VER "1.14.1")
 
-  # Use std::format (C++20) instead of bundled fmt to avoid Clang/Windows consteval bug
-  set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "Use std::format instead of bundled fmt")
+    # Use std::format (C++20) instead of bundled fmt to avoid Clang/Windows consteval bug
+    set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "Use std::format instead of bundled fmt")
 
-  # Fetch spdlog
-  FetchContent_Declare(
-    spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    GIT_TAG        v1.14.1  # Use a specific tag, branch, or commit
-  )
-  
-  FetchContent_MakeAvailable(spdlog)
-  
-  # Create an executable or library
-  add_executable(spdlog_example src/spdlog_example.cpp)
-  
-  # Link spdlog to your target
-  target_link_libraries(spdlog_example PRIVATE spdlog::spdlog)
-    
+    # Fetch spdlog
+    FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v${SPDLOG_VER}
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+
+    FetchContent_MakeAvailable(spdlog)
+
+    message(STATUS "spdlog version: ${SPDLOG_VER}")
+
+    add_executable(spdlog_example src/spdlog_example.cpp)
+    target_link_libraries(spdlog_example PRIVATE spdlog::spdlog)
+
 else()
     message("spdlog is not enabled")
 endif()
 
 
-if(ENABLE_CPP_REST_SDK)
-    message("\n########################################## CppRestSDK ##########################################\n")
-    # Download and add CppRestSDK as a dependency
-# Fetch CppRestSDK
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error")
+message("\n########################################## cURL (REST APIs / Webhooks) ##########################################\n")
+if(ENABLE_CURL)
+    FetchContent_Declare(
+        curl
+        GIT_REPOSITORY https://github.com/curl/curl.git
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
 
-FetchContent_Declare(
-  CppRestSDK
-  GIT_REPOSITORY https://github.com/microsoft/cpprestsdk.git
-  GIT_TAG        v2.10.18 # Replace with the desired version
-)
+    set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)
+    set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
+    set(CURL_USE_LIBIDN2 OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(CppRestSDK)
+    FetchContent_MakeAvailable(curl)
 
+    message(STATUS "cURL version: ${CURL_VERSION}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error")
-
-
-# # Print some CMake variables related to CppRestSDK
-# get_target_property(cpprestsdk_INCLUDE_DIR cpprestsdk::cpprest INTERFACE_INCLUDE_DIRECTORIES)
-# get_target_property(cpprestsdk_LIBRARIES cpprestsdk::cpprest INTERFACE_LINK_LIBRARIES)
-
-# message(STATUS "CppRestSDK include directories: ${cpprestsdk_INCLUDE_DIR}")
-# message(STATUS "CppRestSDK libraries: ${cpprestsdk_LIBRARIES}")
-
-
-    # # Add your executable
-    # add_executable(user_service src/user_service.cpp)
-
-    # # Link CppRestSDK with your application
-    # target_link_libraries(user_service PRIVATE cpprest)
-    # target_compile_options(user_service PRIVATE -Wno-error)
-
-
-
-    #payment_service.cpp
-    #product_service.cpp
-    #order_service.cpp
-
+    # cURL is a solid C++ client for REST APIs.
+    # Webhooks are typically just HTTP callbacks, so cURL works for those too.
+    # add_executable(curl_rest_example src/curl_rest_example.cpp)
+    # target_link_libraries(curl_rest_example PRIVATE CURL::libcurl)
 
 else()
-    message("CppRestSDK is not enabled")
+    message("cURL is not enabled")
 endif()
 
 
+message("\n########################################## gRPC ##########################################\n")
+if(ENABLE_GRPC)
+    FetchContent_Declare(
+        gRPC
+        GIT_REPOSITORY https://github.com/grpc/grpc.git
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+
+    set(gRPC_INSTALL OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "" FORCE)
+    set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(gRPC)
+
+    message(STATUS "gRPC version: ${gRPC_CPP_VERSION}")
+
+    # Official gRPC C++ support for RPC-style communication.
+    # gRPC fetches its own dependencies (abseil, protobuf, re2, etc.) automatically.
+    # add_executable(grpc_example src/grpc_example.cpp)
+    # target_link_libraries(grpc_example PRIVATE grpc++ protobuf::libprotobuf)
+
+else()
+    message("gRPC is not enabled")
+endif()
 
 
+message("\n########################################## IXWebSocket ##########################################\n")
+if(ENABLE_WEBSOCKET)
+    FetchContent_Declare(
+        ixwebsocket
+        GIT_REPOSITORY https://github.com/machinezone/IXWebSocket.git
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
 
-# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
-#     add_executable(main src/main.cpp)
-# endif()
+    set(USE_TLS OFF CACHE BOOL "" FORCE)
+    set(USE_ZLIB OFF CACHE BOOL "" FORCE)
+    set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(ixwebsocket)
+
+    message(STATUS "IXWebSocket version: ${ixwebsocket_VERSION}")
+
+    # IXWebSocket: actively maintained C++11 WebSocket client/server.
+    # No Boost dependency. Optional TLS via mbedtls (set USE_TLS=ON).
+    # WebSockets are often used for WebRTC signaling or standalone real-time communication.
+    # add_executable(websocket_example src/websocket_example.cpp)
+    # target_link_libraries(websocket_example PRIVATE ixwebsocket::ixwebsocket ${THREADING_LIB})
+
+else()
+    message("IXWebSocket is not enabled")
+endif()
+
+
+message("\n########################################## libdatachannel (WebRTC) ##########################################\n")
+if(ENABLE_WEBRTC)
+    FetchContent_Declare(
+        libdatachannel
+        GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+
+    set(NO_MEDIA OFF CACHE BOOL "" FORCE)
+    set(NO_WEBSOCKET OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(libdatachannel)
+
+    message(STATUS "libdatachannel version: ${libdatachannel_VERSION}")
+
+    # libdatachannel is a C++17 standalone implementation of WebRTC Data Channels,
+    # Media Transport, and WebSockets. The native WebRTC library (libwebrtc) is
+    # primarily C++ but uses the GN build system; libdatachannel is CMake-friendly.
+    # add_executable(webrtc_example src/webrtc_example.cpp)
+    # target_link_libraries(webrtc_example PRIVATE LibDataChannel::LibDataChannel)
+
+else()
+    message("libdatachannel (WebRTC) is not enabled")
+endif()
+
+
+message("\n########################################## cppgraphqlgen (GraphQL) ##########################################\n")
+if(ENABLE_GRAPHQL)
+    FetchContent_Declare(
+        cppgraphqlgen
+        GIT_REPOSITORY https://github.com/microsoft/cppgraphqlgen.git
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+
+    FetchContent_MakeAvailable(cppgraphqlgen)
+
+    message(STATUS "cppgraphqlgen version: ${cppgraphqlgen_VERSION}")
+
+    # cppgraphqlgen (Microsoft) provides a C++ GraphQL service and client implementation.
+    # add_executable(graphql_example src/graphql_example.cpp)
+    # target_link_libraries(graphql_example PRIVATE cppgraphqlgen::graphqlservice)
+
+else()
+    message("cppgraphqlgen (GraphQL) is not enabled")
+endif()
+
+
+message("\n########################################## XML SOAP (tinyxml2 + cURL) ##########################################\n")
+if(ENABLE_SOAP)
+    if(NOT ENABLE_XML)
+        message(FATAL_ERROR "ENABLE_SOAP requires ENABLE_XML=ON (tinyxml2)")
+    endif()
+    if(NOT ENABLE_CURL)
+        message(FATAL_ERROR "ENABLE_SOAP requires ENABLE_CURL=ON (libcurl)")
+    endif()
+
+    message(STATUS "XML SOAP example enabled (using tinyxml2 + cURL)")
+
+    add_executable(xml_soap_example src/xml_soap_example.cpp)
+    target_link_libraries(xml_soap_example PRIVATE tinyxml2 CURL::libcurl)
+
+else()
+    message("XML SOAP is not enabled")
+endif()
+
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+    add_executable(main src/main.cpp)
+endif()
+
+message("\n########################################## System Design  ##########################################\n")
+
+add_executable(reusable_library src/reusable_library.cpp)

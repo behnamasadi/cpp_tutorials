@@ -1,5 +1,260 @@
-# Queue 
-## 1. **Queue Processing Systems**
+# Queue
+
+## 1) Queue processing systems
+
+A **queue** is a FIFO data structure: first in, first out.
+
+In C++, there are three related types you’ll see a lot:
+
+* `std::vector` (a real container, contiguous)
+* `std::deque` (a real container, segmented storage, fast at both ends)
+* `std::queue` (NOT a container; an adaptor on top of another container, default is `deque`)
+
+---
+
+## `std::vector`
+
+✅ **Contiguous memory**
+
+* Elements live in one continuous block.
+* `push_back` is **amortized O$1$**.
+* `push_front` **does not exist** (for a reason).
+* If you simulate `push_front` using `insert(begin(), x)` → **all elements are moved** → **O$n$**.
+
+That’s exactly why `vector` is not used as a queue.
+
+### Visual intuition
+
+`std::vector`
+
+```
+| 1 | 2 | 3 | 4 | 5 |
+```
+
+Insert at front:
+
+```
+| X | 1 | 2 | 3 | 4 | 5 |   ← everything moved ❌
+```
+
+---
+
+## `std::queue`
+
+❌ **Not a container itself**
+
+`std::queue` is a **container adaptor**.
+
+This:
+
+```cpp
+std::queue<int> q;
+```
+
+does **NOT** mean:
+
+* `queue` has its own storage
+* or `queue` is a real container like `vector`
+
+Instead, it means:
+
+> `std::queue` **wraps another container** and exposes a restricted FIFO interface.
+
+### The actual type (conceptually)
+
+```cpp
+template<
+    class T,
+    class Container = std::deque<T>
+>
+class queue;
+```
+
+So:
+
+```cpp
+std::queue<int> q;
+```
+
+is equivalent to:
+
+```cpp
+std::queue<int, std::deque<int>> q;
+```
+
+That is what “actually `std::deque<int>` underneath” means.
+
+### What `std::queue` does
+
+`std::queue`:
+
+* stores elements **inside** its underlying container
+* forwards operations to that container
+* hides operations that would break FIFO
+
+Example:
+
+```cpp
+q.push(10);   // calls deque.push_back(10)
+q.pop();      // calls deque.pop_front()
+q.front();    // calls deque.front()
+```
+
+You **cannot**:
+
+```cpp
+q[3];            // ❌ no random access
+q.push_front(5); // ❌ forbidden
+```
+
+Even though `std::deque` supports them.
+
+### Why `std::queue` exists
+
+Why not just use `std::deque` directly?
+
+Because `std::queue` **enforces intent**:
+
+If you expose a `deque`, someone can:
+
+* pop from the back
+* insert in the middle
+* break FIFO invariants
+
+If you expose a `queue`, FIFO is enforced by the type system.
+
+This is **API design**, not performance.
+
+### You can choose a different underlying container
+
+As long as it supports:
+
+* `push_back`
+* `pop_front`
+* `front`
+* `back`
+
+Example:
+
+```cpp
+std::queue<int, std::list<int>> q;
+```
+
+But this is **rare** — `deque` is almost always the best choice.
+
+### Important implications
+
+1. **Memory layout**
+
+* `queue` memory layout = underlying container memory layout
+* Default → **non-contiguous**, because default is `deque`
+
+2. **Complexity**
+
+* `push` → O$1$
+* `pop` → O$1$
+
+3. **You cannot rely on contiguity**
+   This is **invalid**:
+
+```cpp
+int* p = &q.front();   // ❌ meaningless assumption about contiguity
+```
+
+### Mental model
+
+Think of `std::queue` as:
+
+```cpp
+class queue {
+private:
+    std::deque<T> data;
+public:
+    void push(const T&);
+    void pop();
+    T& front();
+};
+```
+
+It’s **composition**, not inheritance.
+
+### One-line takeaway
+
+`std::queue` is **not a container**, it is a **restricted interface on top of** (by default) `std::deque`, enforcing FIFO.
+
+---
+
+## std::deque (what `std::queue` uses by default)
+
+❌ **NOT contiguous**
+
+* Internally: **multiple fixed-size blocks**
+* Plus a small index structure pointing to those blocks
+* Elements are **not stored in one contiguous chunk**
+
+### Key properties
+
+✅ `push_back` → **O$1$**
+✅ `push_front` → **O$1$**
+❌ No shifting of existing elements
+❌ Not as cache-friendly as `vector`
+
+### Important point
+
+**`push_front` does NOT move all elements**.
+
+Instead:
+
+* a new block may be allocated (if needed)
+* front pointer/index is adjusted
+
+### Visual intuition
+
+`std::deque`
+
+```
+Block A: | 1 | 2 |
+Block B: | 3 | 4 |
+Block C: | 5 |
+```
+
+Push front:
+
+```
+Block X: | X |
+Block A: | 1 | 2 |
+Block B: | 3 | 4 |
+Block C: | 5 |
+```
+
+Only pointers/indices change ✅
+
+---
+
+## Summary table
+
+| Container     | Contiguous | push_back  | push_front | Moves elements? |
+| ------------- | ---------- | ---------- | ---------- | --------------- |
+| `std::vector` | ✅ Yes      | O$1$ amort | ❌ O$n$     | ❌ Yes           |
+| `std::deque`  | ❌ No       | O$1$       | O$1$       | ✅ No            |
+| `std::queue`  | ❌ No       | O$1$       | O$1$       | ✅ No            |
+
+---
+
+## Practical rule (interview-grade)
+
+* `vector` → fast iteration, cache-friendly, no front operations
+* `deque` → real double-ended queue
+* `queue` → FIFO abstraction, usually backed by `deque`
+* Need push/pop at both ends → `deque`
+* Need contiguous memory → `vector`
+
+---
+
+# Real-world `deque` / queue use cases
+
+## 1) Job / task queue system
+
 ```cpp
 // Job/task queue system
 std::deque<Job> jobQueue;
@@ -21,7 +276,10 @@ void addBackgroundJob(const Job& job) {
 }
 ```
 
-## 2. **Sliding Window Maximum/Minimum**
+---
+
+## 2) Sliding window maximum / minimum (LeetCode 239)
+
 ```cpp
 // Algorithm for sliding window maximum (LeetCode 239)
 vector<int> maxSlidingWindow(vector<int>& nums, int k) {
@@ -50,7 +308,10 @@ vector<int> maxSlidingWindow(vector<int>& nums, int k) {
 }
 ```
 
-## 3. **LRU (Least Recently Used) Cache Implementation**
+---
+
+## 3) LRU (Least Recently Used) cache implementation
+
 ```cpp
 class LRUCache {
 private:
@@ -89,7 +350,10 @@ public:
 };
 ```
 
-## 4. **Undo/Redo System**
+---
+
+## 4) Undo / redo system
+
 ```cpp
 class TextEditor {
     std::deque<std::string> undoStack;
@@ -123,7 +387,10 @@ public:
 };
 ```
 
-## 5. **Priority Queue Simulation**
+---
+
+## 5) Priority queue simulation (two-level)
+
 ```cpp
 // Simple priority system where front has highest priority
 template<typename T>
@@ -164,7 +431,10 @@ public:
 };
 ```
 
-## 6. **File Buffer with Line Access**
+---
+
+## 6) File buffer with line access
+
 ```cpp
 class FileBuffer {
     std::deque<std::string> lines;
@@ -198,7 +468,10 @@ public:
 };
 ```
 
-## 7. **Real-time Data Processing**
+---
+
+## 7) Real-time data processing (keep last N samples)
+
 ```cpp
 // Processing streaming sensor data (keep only last N samples)
 class SensorDataBuffer {
@@ -235,7 +508,10 @@ public:
 };
 ```
 
-## 8. **Browser History Navigation**
+---
+
+## 8) Browser history navigation
+
 ```cpp
 class BrowserHistory {
     std::deque<std::string> history;
@@ -269,20 +545,24 @@ public:
 };
 ```
 
-## When to Prefer `front()`/`back()` over `begin()`/`end()`:
+---
 
-**Use `front()`/`back()` when:**
-- You need direct access to first/last elements
-- Implementing FIFO/LIFO structures
-- Maintaining sliding windows
-- Accessing boundaries of data
-- Simple queue/dequeue operations
+# When to prefer `front()` / `back()` over `begin()` / `end()`
 
-**Use `begin()`/`end()` when:**
-- You need to iterate through elements
-- Using STL algorithms
-- Working with ranges
-- Need iterator arithmetic
-- Generic programming
+Use `front()` / `back()` when:
+
+* you need direct access to first/last elements
+* implementing FIFO/LIFO structures
+* maintaining sliding windows
+* accessing boundaries of data
+* simple queue/deque operations
+
+Use `begin()` / `end()` when:
+
+* you need to iterate through elements
+* using STL algorithms
+* working with ranges
+* need iterator arithmetic
+* generic programming
 
 The choice depends on whether you need **element access** (`front/back`) or **position/ranges** (`begin/end`).

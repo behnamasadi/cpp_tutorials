@@ -7,42 +7,63 @@ Here is an example demonstrating an asynchronous call in C++ using `std::async`:
 
 ```c++
 #include <iostream>
+#include <string>   // For std::string
 #include <future>   // For std::async and std::future
 #include <thread>   // For std::this_thread::sleep_for
 #include <chrono>   // For std::chrono::seconds
 
-// A function that simulates some work by sleeping for 3 seconds
-void do_work() {
-    std::cout << "Work started\n";
+// A function that takes an input, simulates work, and produces an output
+int do_work(int input_value, std::string& out_status) {
+    std::cout << "Work started with input: " << input_value << "\n";
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    std::cout << "Work completed\n";
+
+    int result = input_value * 2;          // dummy computation as output
+    out_status = "completed successfully";  // out parameter set after work is done
+
+    std::cout << "Work completed, result: " << result << "\n";
+    return result;
 }
 
 int main() {
-    // Launch do_work in a separate thread
-    std::future<void> work_future = std::async(std::launch::async, do_work);
-    
+    std::string status;  // will be filled by do_work (out parameter)
+    int input = 42;      // input value passed to the async function
+
+    // Launch do_work in a separate thread, passing input by value
+    // and status by reference (wrapped in std::ref so std::async
+    // forwards the reference correctly).
+    std::future<int> work_future = std::async(
+        std::launch::async, do_work, input, std::ref(status)
+    );
+
+    // The main thread is NOT blocked here — it keeps running while
+    // do_work executes on another thread.
     std::cout << "Main thread continues executing\n";
-    
-    // Optionally, wait for the asynchronous task to complete
-    work_future.get();
-    
+
+    // .get() blocks the main thread until do_work finishes and
+    // returns the result. After this call:
+    //   - 'result' holds the return value (the "out" via return)
+    //   - 'status' has been written to by do_work (the "out" via reference)
+    int result = work_future.get();
+
+    std::cout << "Async result : " << result << "\n";
+    std::cout << "Out status   : " << status << "\n";
     std::cout << "Main thread completed\n";
-    
+
     return 0;
 }
 ```
 
 Explanation:
-1. We first include the necessary headers: `<future>`, `<thread>`, and `<chrono>`.
-2. We define a function `do_work` that simulates some work by sleeping for 3 seconds.
-3. In `main`, we launch `do_work` asynchronously using `std::async` with the launch policy `std::launch::async`, which ensures that `do_work` runs in a separate thread.
-4. `std::async` returns a `std::future<void>` which we store in `work_future`. This `std::future` will become ready once `do_work` completes.
-5. We print a message in the main thread to show that it continues executing while `do_work` is running.
-6. Optionally, we call `work_future.get()` to wait for `do_work` to complete. This is useful if we need to ensure that `do_work` has completed before proceeding.
-7. Finally, we print a message to indicate that the main thread has completed.
+1. We include the necessary headers: `<future>`, `<thread>`, and `<chrono>`.
+2. `do_work` now accepts an **input** parameter (`int input_value`) and an **out** parameter (`std::string& out_status`). It also **returns** an `int` result, giving us two ways to get data out of the function.
+3. In `main`, we launch `do_work` asynchronously using `std::async` with the launch policy `std::launch::async`, which ensures it runs in a separate thread.
+4. Because `std::async` copies its arguments by default, we wrap `status` with `std::ref()` so that the function receives a real reference and can write back to our local variable.
+5. `std::async` returns a `std::future<int>` (matching the return type of `do_work`). We store it in `work_future`.
+6. The main thread keeps running after the `std::async` call -- it is **not** blocked. This is the whole point of asynchronous execution.
+7. Calling `work_future.get()` does two things: it **blocks** until `do_work` finishes, and it **returns** the value that `do_work` returned. After this call both the return value (`result`) and the out parameter (`status`) are ready to use.
+8. If `do_work` threw an exception, `work_future.get()` would re-throw it in the calling thread, so error handling works naturally.
 
-In this example, `do_work` runs asynchronously with respect to the main thread, allowing both to execute concurrently.
+In this example, `do_work` runs asynchronously with respect to the main thread, allowing both to execute concurrently. The pattern of passing inputs by value and outputs by `std::ref` reference is common when working with `std::async`.
 
 
 When you're working with asynchronous calls and lambda functions in C++, how you pass parameters to another lambda depends on the context and what you want to achieve. If you want to ensure that the lambda has its own copy of the parameters and that these copies won't be affected by any changes in the caller or other threads, then you should capture by value.
