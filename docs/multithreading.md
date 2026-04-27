@@ -1,1196 +1,1269 @@
-- [Thread](#thread)
-- [Creation and Termination](#creation-and-termination)
-  - [Function pointer](#function-pointer)
-  - [Thread Callable Objects](#thread-callable-objects)
-  - [Function object](#function-object)
-  - [Lambda expression](#lambda-expression)
-  - [Transferring ownership of a thread](#transferring-ownership-of-a-thread)
-  - [Waiting for a thread to complete (Joining Threads)](#waiting-for-a-thread-to-complete-joining-threads)
-  - [Detaching Threads](#detaching-threads)
-- [Order Execution of Threads](#order-execution-of-threads)
-- [Thread Oversubscription](#thread-oversubscription)
-- [Getting Thread ID](#getting-thread-id)
-- [Putting Threads Into Sleeping](#putting-threads-into-sleeping)
-- [Thread Yield](#thread-yield)
-- [Thread Synchronization](#thread-synchronization)
-  - [Synchronization Primitive](#synchronization-primitive)
-  - [Racing Condition](#racing-condition)
-    - [Racing Condition Example: Job ID](#racing-condition-example-job-id)
-    - [Racing Condition Example: Wallet Example](#racing-condition-example-wallet-example)
-    - [Racing Condition Example: Common Source Example](#racing-condition-example-common-source-example)
-  - [Semaphor](#semaphor)
-  - [Mutex](#mutex)
-    - [Dead Lock](#dead-lock)
-    - [Avoiding Deadlock tips](#avoiding-deadlock-tips)
-    - [scoped\_lock](#scoped_lock)
-    - [unique\_lock](#unique_lock)
-    - [lock\_guard vs scoped\_lock vs unique\_lock](#lock_guard-vs-scoped_lock-vs-unique_lock)
-  - [Condition Variable](#condition-variable)
-  - [Semaphores vs Mutexes vs Condition Variable](#semaphores-vs-mutexes-vs-condition-variable)
-- [std::future](#stdfuture)
-  - [std::async](#stdasync)
-    - [launch policy](#launch-policy)
-  - [packaged\_task](#packaged_task)
-  - [promise](#promise)
-  - [When to use promise over async or packaged\_task](#when-to-use-promise-over-async-or-packaged_task)
-- [std::atomic](#stdatomic)
-- [Threadsafe Code](#threadsafe-code)
-  - [How to make an application thread safe](#how-to-make-an-application-thread-safe)
+# Multithreading in C++
 
-# Thread
-It is most effective on multi-processor or multi-core systems where the process flow can be scheduled to run on another processor 
-thus gaining speed through parallel or distributed processing. Thread can be initiated faster because there is less for the 
-Operating System to set up.
-Threads require less overhead than "forking" or spawning a new process because the system does not initialize a new system virtual memory
- space and environment for the process. While most effective on a multiprocessor system, gains are also found on uni processor systems which exploit latency in I/O and other system functions which may halt process execution. (One thread may execute while another is waiting for I/O or some other system latency.)  
+- [1. Overview](#1-overview)
+  - [1.1. Process vs Thread](#11-process-vs-thread)
+  - [1.2. Shared and Per-Thread State](#12-shared-and-per-thread-state)
+- [2. Creating and Terminating Threads](#2-creating-and-terminating-threads)
+  - [2.1. Function Pointer](#21-function-pointer)
+  - [2.2. Member Function](#22-member-function)
+  - [2.3. Function Object (Functor)](#23-function-object-functor)
+  - [2.4. Lambda Expression](#24-lambda-expression)
+  - [2.5. Passing Arguments by Reference](#25-passing-arguments-by-reference)
+  - [2.6. Move-Only Semantics](#26-move-only-semantics)
+  - [2.7. Joining Threads](#27-joining-threads)
+  - [2.8. Detaching Threads](#28-detaching-threads)
+  - [2.9. std::jthread (C++20)](#29-stdjthread-c20)
+- [3. Thread Properties](#3-thread-properties)
+  - [3.1. Order of Execution](#31-order-of-execution)
+  - [3.2. Hardware Concurrency and Oversubscription](#32-hardware-concurrency-and-oversubscription)
+  - [3.3. Thread Identity](#33-thread-identity)
+  - [3.4. Sleeping](#34-sleeping)
+  - [3.5. Yielding](#35-yielding)
+- [4. Synchronization](#4-synchronization)
+  - [4.1. Race Conditions](#41-race-conditions)
+    - [4.1.1. Race Condition vs Data Race](#411-race-condition-vs-data-race)
+    - [4.1.2. Example: Lost Update](#412-example-lost-update)
+    - [4.1.3. Example: Interleaved Output](#413-example-interleaved-output)
+  - [4.2. Mutex](#42-mutex)
+    - [4.2.1. Why Not Manual lock()/unlock()](#421-why-not-manual-lockunlock)
+    - [4.2.2. std::scoped_lock](#422-stdscoped_lock)
+    - [4.2.3. Deadlock](#423-deadlock)
+    - [4.2.4. Avoiding Deadlock](#424-avoiding-deadlock)
+    - [4.2.5. lock_guard vs scoped_lock vs unique_lock](#425-lock_guard-vs-scoped_lock-vs-unique_lock)
+    - [4.2.6. unique_lock — When You Need It](#426-unique_lock--when-you-need-it)
+  - [4.3. Semaphores](#43-semaphores)
+    - [4.3.1. std::counting_semaphore — Limit Concurrent Access](#431-stdcounting_semaphore--limit-concurrent-access)
+    - [4.3.2. std::binary_semaphore — One-Shot Signaling](#432-stdbinary_semaphore--one-shot-signaling)
+  - [4.4. Condition Variables](#44-condition-variables)
+    - [4.4.1. Spurious Wakeups](#441-spurious-wakeups)
+    - [4.4.2. Worked Example: Producer–Consumer](#442-worked-example-producerconsumer)
+  - [4.5. Choosing the Right Primitive](#45-choosing-the-right-primitive)
+- [5. Async Tasks and std::future](#5-async-tasks-and-stdfuture)
+  - [5.1. std::async and Launch Policy](#51-stdasync-and-launch-policy)
+  - [5.2. std::packaged_task](#52-stdpackaged_task)
+  - [5.3. std::promise](#53-stdpromise)
+  - [5.4. std::shared_future](#54-stdshared_future)
+  - [5.5. When to Use Which](#55-when-to-use-which)
+- [6. std::atomic](#6-stdatomic)
+  - [6.1. Atomics vs Mutex](#61-atomics-vs-mutex)
+  - [6.2. Common Atomic Operations](#62-common-atomic-operations)
+  - [6.3. std::atomic_flag and Spinlocks](#63-stdatomic_flag-and-spinlocks)
+  - [6.4. Memory Ordering](#64-memory-ordering)
+  - [6.5. compare_exchange and the ABA Problem](#65-compare_exchange-and-the-aba-problem)
+- [7. Designing Thread-Safe Classes](#7-designing-thread-safe-classes)
+  - [7.1. Combining Read-Then-Modify Operations](#71-combining-read-then-modify-operations)
 
-If you two thread running independently it is not deterministic which thread will run faster unless you put some synchronization mechanism.
+---
 
+# 1. Overview
 
-Thread operations include **thread creation**, **termination**, **synchronization (joins,blocking)**, **scheduling**, **data management** and **process interaction**.
-A thread does not maintain a list of created threads, nor does it know the thread that created it.
-All threads within a process share the same address space.
+A **thread** is the smallest unit of execution scheduled by the operating system. Multiple threads inside the same process run concurrently and share the process's address space, which makes communication cheap but synchronization mandatory.
 
-Threads in the same process share:
- - Process instructions
- - Most data
- - open files (descriptors)
- - signals and signal handlers
- - current working directory
- - User and group id
+Threads shine when work is parallelizable across cores or when one thread can make progress while another waits on I/O. They also matter on single-core systems for hiding latency.
 
-Each thread has a unique:
- - Thread ID
- - set of registers, stack pointer
- - stack for local variables, return addresses
- - signal mask
- - priority
- - Return value: errno
+If two threads run independently with no synchronization, you cannot predict which one runs faster, in what order their statements interleave, or whether they observe each other's writes promptly.
 
+## 1.1. Process vs Thread
 
-# Creation and Termination
+|  | Process | Thread |
+|---|---|---|
+| Address space | Private | Shared with peers |
+| Creation cost | High (new VM, page tables, FDs) | Low |
+| Communication | IPC (pipes, sockets, shared memory) | Shared variables |
+| Crash isolation | Strong | None — one bad thread can take down the whole process |
 
-std::thread is the thread class that represents a single thread in C++. To start a thread we simply need to create a new thread object and pass the executing code to be called (i.e, a callable object) into the constructor of the object. 
+## 1.2. Shared and Per-Thread State
 
-<b>Once the object is created, a new thread is launched</b> which will execute the code specified in callable.
+Threads in the same process **share**:
+- Code (instructions)
+- Heap and global/static data
+- Open file descriptors
+- Signal handlers and current working directory
+- User and group IDs
 
-A callable can be either of the three
- - A function pointer
- - A function object
- - A lambda expression
+Each thread has its **own**:
+- Thread ID
+- Registers and stack pointer
+- Stack (local variables, return addresses)
+- Signal mask, priority
+- `errno` (per-thread on POSIX)
+- Storage declared `thread_local`
 
+---
 
+# 2. Creating and Terminating Threads
 
+`std::thread` represents a single thread. Construct one with any *callable* and the new thread starts immediately:
 
-## Function pointer
+```cpp
+#include <thread>
+
+void task();
+std::thread t(task);   // task() begins running on a new thread
+t.join();              // wait for it to finish
 ```
-void functionPointer(int n)
-{
-    std::cout<<++n <<std::endl;
+
+Callables that work as the thread function:
+- A free function or function pointer
+- A pointer-to-member function plus an instance
+- A function object (a class with `operator()`)
+- A lambda expression
+
+## 2.1. Function Pointer
+
+```cpp
+#include <iostream>
+#include <thread>
+
+void greet(int n) {
+    std::cout << "hello from thread, n = " << n << '\n';
 }
 
-std::thread t1(functionPointer,n );
-std::thread t2{functionPointer,n };
+int main() {
+    std::thread t(greet, 42);   // arguments are forwarded after the callable
+    t.join();
+}
 ```
 
+## 2.2. Member Function
 
-## Thread Callable Objects
+Pass a pointer-to-member as the callable, then the instance, then the arguments:
 
 ```cpp
-class myClass
-{
+class Worker {
 public:
-    void f(int x, char c){}
-    long g(double x){return 0;}
-    int operator()(int n){return 0;}
-};
-```
-
-This make a copy of `myObject`
-
-```cpp
-myClass myObject;
-std::thread t1(myObject,6);
-```
-
-This will launch `myObject()` in a different thread:
-```cpp
-std::thread t2(std::ref(myObject),myObject,6);
-```
-
-This will launch a temporarily instance of `myClass` and it will be moved to thread object.
-```cpp
-std::thread t3(myClass(),6);
-
-```
-
-This will create a copy of `myObject` and invoke `f()`
-```cpp
-std::thread t5(&myClass::f,myObject,7,8,'w');
-```
-We can also avoid copying:
-
-```cpp
-std::thread t6(&myClass::f, &myObject,7,8,'w');
-```
-
-
-We can move objects from parent thread to child thread but then `myObject` is no longer useable in the parent thread:
-```cpp
-std::thread t8(&myClass::f, std::move(myObject),8,'w');
-```
-
-## Function object
-```cpp
-class callableObject1
-{
-public:
-    void operator ()(int n)
-    {
-        std::cout<<++n <<std::endl;
-    }
+    void run(int x, char c) { /* ... */ }
 };
 
-class callableObject2
-{
-public:
-    void operator()()
-    {
+Worker w;
+std::thread t1(&Worker::run, &w, 7, 'a');           // by pointer — no copy
+std::thread t2(&Worker::run, w, 7, 'a');            // by value — copies w
+std::thread t3(&Worker::run, std::move(w), 7, 'a'); // by move — w is gone after this
+```
 
+`std::thread` arguments are *decay-copied* by default, so passing `w` by value really does copy it into the new thread's storage. Use `&w` (raw pointer) or `std::ref(w)` if you mean to share.
+
+## 2.3. Function Object (Functor)
+
+A class with `operator()` is a callable:
+
+```cpp
+struct PrintN {
+    void operator()(int n) const {
+        std::cout << "n = " << n << '\n';
     }
 };
 
-
-// function object
-std::thread t3(callableObject1(),n);
-
-
-// This will not compile and cause most vexing parse error
-// std::thread t4(callableObject2());
-
-// first solution
-std::thread t4((callableObject2()));
-
-// second solution
-callableObject2 threadObj ;
-std::thread t5(threadObj);
-
+std::thread t(PrintN{}, 5);
+t.join();
 ```
 
-Parameters will be always passed by value even if you define your function by ref, so to pass them by ref you should use `std::ref()`
+> **Most vexing parse.** This line:
+>
+> ```cpp
+> std::thread t(PrintN());   // ⚠️ declares a function, not a thread
+> ```
+>
+> is parsed as a function declaration. Two ways to fix it:
+>
+> ```cpp
+> std::thread t1((PrintN()));   // extra parens
+> std::thread t2{PrintN{}};     // brace init
+> ```
+
+## 2.4. Lambda Expression
+
+The most common style today:
 
 ```cpp
-void functionPointerByRef(std::string &msg)
-{
-    msg="New value!";
+int n = 10;
+std::thread t([n] { std::cout << "n = " << n << '\n'; });
+t.join();
+```
+
+## 2.5. Passing Arguments by Reference
+
+`std::thread` copies arguments into its internal storage, so a reference parameter binds to that *copy*, not your original — a classic surprise:
+
+```cpp
+void modify(std::string& msg) { msg = "new value"; }
+
+std::string s = "old";
+std::thread t(modify, s);            // ⚠️ compile error in modern compilers,
+                                     //    or modifies a copy on older ones
+```
+
+To actually share the original, wrap it in `std::ref`:
+
+```cpp
+std::thread t(modify, std::ref(s));
+t.join();
+std::cout << s << '\n';              // "new value"
+```
+
+For read-only sharing use `std::cref`.
+
+## 2.6. Move-Only Semantics
+
+`std::thread` cannot be copied — it owns an OS resource. It can be moved:
+
+```cpp
+std::thread t1(task);
+std::thread t2 = std::move(t1);   // t1 is now empty, t2 owns the thread
+// t1.join();  // would throw — t1 is empty
+t2.join();
+```
+
+Full example: [creating_and_terminating_threads.cpp](../src/multithreading/creating_and_terminating_threads.cpp).
+
+## 2.7. Joining Threads
+
+`t.join()` blocks the calling thread until `t` finishes. You **must** call either `join()` or `detach()` before `t` is destroyed — otherwise its destructor calls `std::terminate()`.
+
+```cpp
+std::thread t(task);
+// ... do other work ...
+t.join();   // wait, then continue
+```
+
+Common pattern: launch a fleet of workers, then join them at the end:
+
+```cpp
+std::vector<std::thread> pool;
+for (int i = 0; i < 4; ++i)
+    pool.emplace_back(worker, i);
+for (auto& t : pool)
+    t.join();
+```
+
+## 2.8. Detaching Threads
+
+`t.detach()` gives up ownership; the thread runs on its own and is cleaned up by the runtime when it finishes. After detaching you cannot `join()` it again, and you have no way to communicate with it.
+
+```cpp
+std::thread t(background_log_flusher);
+t.detach();   // runs in the background; no further control
+```
+
+Detaching is rarely the right choice in modern C++. If the parent thread exits before a detached thread finishes, that thread's lifetime is up to the OS — usually it's killed mid-operation. Prefer `join()`, or `std::jthread` for the auto-join behavior.
+
+Always check `t.joinable()` before calling `join()` if there's any chance the thread was already moved-from or detached:
+
+```cpp
+if (t.joinable()) t.join();
+```
+
+Full example: [join_detach_threads.cpp](../src/multithreading/join_detach_threads.cpp).
+
+## 2.9. std::jthread (C++20)
+
+`std::thread` has two sharp edges: forgetting to `join()` calls `std::terminate()`, and there's no built-in way to ask a thread to stop. `std::jthread` ("joining thread") fixes both:
+
+1. **Auto-joins on destruction** — the destructor calls `join()` for you (RAII).
+2. **Cooperative cancellation** — the thread carries a `std::stop_token`; the parent flips it via `request_stop()`.
+
+```cpp
+#include <thread>
+#include <chrono>
+#include <iostream>
+
+void worker(std::stop_token stoken) {
+    while (!stoken.stop_requested()) {
+        std::cout << "working...\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    std::cout << "stopped cleanly\n";
 }
 
-std::string msg="Old Value";
-std::thread  t7(functionPointerByRef, std::ref(msg));
-t7.join();
-std::cout<< msg<<std::endl;
-
+int main() {
+    std::jthread t(worker);                                // stop_token injected automatically
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    t.request_stop();                                      // ask the thread to exit
+}                                                          // destructor: request_stop() + join()
 ```
 
+If the first parameter of the callable is `std::stop_token`, `jthread` passes one in. Otherwise it works just like `std::thread`. The destructor calls `request_stop()` then `join()`, so leaving scope is always safe.
 
-Thread can not be copied and can only be moved:
+**Rule of thumb:** prefer `std::jthread` over `std::thread` in new C++20 code. Use `std::thread` only when targeting an older standard or when you genuinely need detach semantics.
+
+### How std::stop_token actually works
+
+There are three cooperating types in `<stop_token>`:
+
+| Type | Role |
+|---|---|
+| `std::stop_source` | The "issuer." Owns a shared state. Calling `request_stop()` on it flips a flag that everyone observing the same state can see. |
+| `std::stop_token` | The "observer." Cheap, copyable, hands out a read-only view of the state. The thread checks `stop_requested()` on it. |
+| `std::stop_callback` | RAII helper. When the stop is requested, runs a callback you registered. Useful for **waking up** a thread that's blocked on something other than a polling loop. |
+
+Inside `std::jthread`, the framework creates a `stop_source` and passes a `stop_token` from it into your function. The `jthread`'s `request_stop()` is just `stop_source::request_stop()`.
+
+**Cooperative.** Nothing forces the worker to stop — it must check the token itself (or have it wired into a callback). The OS does not interrupt the thread.
+
+**Once-shot.** Once requested, the state stays "stop requested" forever. There's no reset.
+
+**Multiple observers, one source.** You can copy the token freely, hand it to many sub-threads, and any of them can see the request:
 
 ```cpp
-t2=std::moved(t1);
+std::stop_source src;
+std::jthread a(worker, src.get_token());
+std::jthread b(worker, src.get_token());
+// later:
+src.request_stop();   // wakes both a and b
 ```
 
-## Lambda expression
-```cpp
-auto lambdaExpression = [](int n) {std::cout<<++n <<std::endl;};
-std::thread t6(lambdaExpression,n);
+This is how you'd implement a "stop the whole job" button.
 
-```
+### Example: stop_callback to interrupt a blocking wait
 
-Full example [here](../src/multithreading/creating_and_terminating_threads.cpp). 
+A polling worker is fine, but most real threads block on something — a condition variable, a socket read, a sleep. A naïve `while (!stoken.stop_requested())` loop won't help if the thread is parked inside `cv.wait()`. That's what `stop_callback` is for: it runs a function the moment a stop is requested, and you can use that function to wake the blocked thread.
 
-## Transferring ownership of a thread
-
-
-## Waiting for a thread to complete (Joining Threads)
-Join will pause the current thread until the called threads are done, imagine in your main you have 10 threads to load the GUI,...you need to wait until they all done then you can continue. if you don't put join thread, you main function might return before even your threads finish their jobs
-
-
-`child_thread.join()` will wait for the child_thread to finish it task otherwise if the main thread finish we might have some unfinished tasks in child_thread.
-
-
-## Detaching Threads
-If we instead of join() we call detach() the child thread will become <b>demean thread</b> and it will run freely on its on. detach() leaves the thread to run in the background, with no direct means of communicating with it. 
-
-
-Once you detached a thread you can't call join() again so before joining check if it is joinable()
-Full example [here](../src/multithreading/join_detach_threads.cpp).
-
-# Order Execution of Threads 
-It is totally up to the operating system in which order threads are scheduled. You can assume it is totally random.
-
-# Thread Oversubscription
-If you create more thread than your hardware support it will reduce your performance since switching between thread is expensive.
+The standard library hands you the most common case for free: `std::condition_variable_any::wait` has overloads that take a `stop_token` and return early when stop is requested.
 
 ```cpp
-unsigned int con_threads; 
-// calculating number of concurrent threads  supported in the hardware implementation 
-con_threads = std::thread::hardware_concurrency(); 
-std::cout << "Number of concurrent threads supported are: " << con_threads << std::endl;
+#include <condition_variable>
+#include <iostream>
+#include <mutex>
+#include <thread>
+#include <queue>
 
-```
+std::mutex                    mu;
+std::condition_variable_any   cv;
+std::queue<int>               jobs;
 
-# Getting Thread ID
+void worker(std::stop_token stoken) {
+    while (true) {
+        std::unique_lock lock(mu);
 
-You can use  `std::this_thread::get_id()` to get the thread ID.
-```cpp
+        // Returns false if stop was requested AND queue is still empty.
+        const bool got = cv.wait(lock, stoken,
+                                 [] { return !jobs.empty(); });
+        if (!got) {
+            std::cout << "worker stopping\n";
+            return;
+        }
 
-std::cout << "Thread ID is: " << std::this_thread::get_id() << '\n';
-std::cout << "Function ID is: " << __func__ << '\n';
-```
-Full example [here](../src/multithreading/differentiating_between_threads.cpp).
-
-# Putting Threads Into Sleeping 
-
-```cpp
-std::this_thread::sleep_for(std::chrono::microseconds(numberOfMicroseconds));
-usleep(numberOfMicroseconds);
-
-```
-
-Full example [here](../src/multithreading/sleeping_threads.cpp). 
-
-# Thread Yield
-
-You can indicate to the OS that the current thread can be rescheduled so that other threads can run instead. 
-For this, one uses the `std::this_thread::yield()` function. The precise result of this function depends on the 
-OS and its scheduler. Within the case of a FIFO scheduler, it's likely that the calling thread will be put at the back of the line.
-
-
-# Thread Synchronization
-Thread synchronization is defined as a mechanism which ensures that two or more concurrent processes or threads do not simultaneously execute some particular program segment known as a **critical section**.  A critical section is a piece of code that must not be run by multiple threads at once because the code accesses shared resources. When one thread starts executing the critical section  the other thread should wait until the first thread finishes. If proper synchronization techniques are not applied, it may cause a race condition where the values of variables may be unpredictable.
-
-## Synchronization Primitive
-
-Some common synchronization primitives (in order of least to most computationally expensive):
-1. Mutual exclusion (mutexes)
-2. Semaphores: It's  a way to limit the number of consumers for a specific resource. For instance, limit the number of simultaneous calls to a database. 
-3. Condition variables
-
-Refs: [1](https://stackoverflow.com/questions/2332765/what-is-the-difference-between-lock-mutex-and-semaphore)
-
-## Racing Condition
-
-A race condition occurs when two or more threads can access shared data and they try to change it at the same time. Because the thread scheduling algorithm can swap between threads at any time, you don't know the order in which the threads will attempt to access the shared data. Therefore, the result of the change in data is dependent on the thread scheduling algorithm
-
-
-### Racing Condition Example: Job ID
-In the following example we expect to get the same job id when entering the worker function and wehn we exit:
-
-```cpp
-int counter=0;
-
-void worker()
-{
-    counter++;
-    std::cout<<"job number: "<<counter<<" started" <<std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::cout<<"job number: "<<counter<<" finished" <<std::endl;
+        int job = jobs.front();
+        jobs.pop();
+        lock.unlock();
+        std::cout << "processing " << job << '\n';
+    }
 }
 
-int main()
-{
-    std::thread t1(worker);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::thread t2(worker);
-    t1.join();
-    t2.join();
-}
-```
+int main() {
+    std::jthread t(worker);
 
-Expectation:
-```
-job number: 1 started
-job number: 1 finished
-job number: 2 started
-job number: 2 finished
-```
-But we will get:
-```
-job number: 1 started
-job number: 2 started
-job number: 2 finished
-job number: 2 finished
-
-```
-### Racing Condition Example: Wallet Example
-The following problem happens in the case for example:
-
-
-```cpp
-class wallet 
-{
-public:
-    int money;
-    wallet():money(0){}
-    void increaseMoney(int amount)
     {
-       money=money+amount; 
+        std::scoped_lock lock(mu);
+        jobs.push(1);
+        jobs.push(2);
+    }
+    cv.notify_all();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // jthread destructor: request_stop() → wakes the cv.wait → join()
+}
+```
+
+The key line is `cv.wait(lock, stoken, predicate)`. Internally that registers a `stop_callback` so the moment `request_stop()` runs, the callback calls `cv.notify_all()` — which wakes our wait. No polling, no spurious-timeout heuristic, no manual plumbing.
+
+For your own blocking primitive (e.g. interrupting a custom socket read), wire it up by hand:
+
+```cpp
+void blocking_worker(std::stop_token stoken) {
+    std::stop_callback cb(stoken, [] {
+        // runs when request_stop() is called
+        cancel_blocking_io();   // your code: signal the I/O to abort
+    });
+
+    do_blocking_io();           // returns early when canceled
+}
+```
+
+The callback runs on whatever thread called `request_stop()`. It must be safe to invoke from any thread.
+
+---
+
+# 3. Thread Properties
+
+## 3.1. Order of Execution
+
+The OS scheduler decides which thread runs and when. Treat the order as **random** unless you've added explicit synchronization. Two consecutive `std::thread` constructions don't guarantee the first one starts first.
+
+## 3.2. Hardware Concurrency and Oversubscription
+
+Creating more threads than the CPU can run simultaneously slows you down: the kernel has to context-switch between them, which costs cache state and a few microseconds per swap.
+
+```cpp
+unsigned hw = std::thread::hardware_concurrency();
+std::cout << "Cores available: " << hw << '\n';   // 0 means "unknown"
+```
+
+A reasonable default for CPU-bound thread pools is `hardware_concurrency()`. For I/O-bound work (where threads spend most of their time waiting), a higher count can be better.
+
+## 3.3. Thread Identity
+
+Each thread has a unique ID:
+
+```cpp
+std::cout << "this thread: " << std::this_thread::get_id() << '\n';
+
+std::thread t([] {
+    std::cout << "child thread: " << std::this_thread::get_id() << '\n';
+});
+std::cout << "child's id seen from parent: " << t.get_id() << '\n';
+t.join();
+```
+
+`std::thread::id` is comparable (`==`, `<`) and hashable, so you can store it in `std::set` / `std::unordered_map` for per-thread bookkeeping.
+
+Full example: [differentiating_between_threads.cpp](../src/multithreading/differentiating_between_threads.cpp).
+
+## 3.4. Sleeping
+
+```cpp
+#include <chrono>
+#include <thread>
+
+std::this_thread::sleep_for(std::chrono::milliseconds(250));
+std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::seconds(1));
+```
+
+Prefer the `<chrono>` overloads over the C-style `usleep` — they're type-safe, clearer at the call site, and don't get confused between µs and ms.
+
+Full example: [sleeping_threads.cpp](../src/multithreading/sleeping_threads.cpp).
+
+## 3.5. Yielding
+
+`std::this_thread::yield()` is a hint to the scheduler that this thread has nothing useful to do right now. Other ready threads may run instead:
+
+```cpp
+while (!flag.load(std::memory_order_acquire))
+    std::this_thread::yield();   // back off rather than burning a core
+```
+
+It's a hint, not a guarantee. Don't rely on yield for correctness, only for friendliness.
+
+---
+
+# 4. Synchronization
+
+A **critical section** is code that must not run on two threads at once because it accesses shared mutable state. Without synchronization you get **race conditions**: results that depend on scheduler timing.
+
+Common primitives, roughly cheapest to most expensive:
+1. `std::atomic` — single-variable lock-free updates
+2. Mutexes (`std::mutex`, `std::shared_mutex`)
+3. Semaphores (`std::counting_semaphore`)
+4. Condition variables (`std::condition_variable`)
+
+## 4.1. Race Conditions
+
+A race condition occurs when two threads access the same data and at least one writes, with no ordering between them. Outcomes depend on which thread won the race that particular run — making bugs hard to reproduce and even harder to diagnose.
+
+### 4.1.1. Race Condition vs Data Race
+
+These terms get used interchangeably but mean different things:
+
+- **Data race** — *unsynchronized* concurrent access to the same memory location, with at least one write. The C++ standard says this is **undefined behavior**: anything can happen, including torn reads, missing updates, or a compiler optimizing the code based on the assumption a race can't occur.
+- **Race condition** — a *logical* bug where the program's correctness depends on thread interleaving, even when every individual access is properly synchronized. (Example: check-then-act sequences like `if (!exists(k)) insert(k, v);` where two threads both see "not exists" before either inserts.)
+
+Fixing data races needs synchronization primitives. Fixing race conditions needs redesigning the API so the dangerous interleaving is impossible (see [§7.1](#71-combining-read-then-modify-operations)).
+
+### 4.1.2. Example: Lost Update
+
+```cpp
+class Wallet {
+public:
+    int balance = 0;
+    void deposit(int amount) {
+        balance = balance + amount;   // read → add → write: three steps, not one
     }
 };
-
 ```
 
+The line `balance = balance + amount` is **not atomic**. Compiled, it's at least:
 
-| Thread 1                                    |                  Thread 2                   |
-| ------------------------------------------- | :-----------------------------------------: |
-| load walletObject.money into memory         |                                             |
-|                                             |     load walletObject.money into memory     |
-| increaseMoney() is being called             |                                             |
-|                                             |       increaseMoney() is being called       |
-| update walletObject.money from CPU register |                                             |
-|                                             | update walletObject.money from CPU register |
+1. Load `balance` into a register.
+2. Add `amount`.
+3. Store the register back to `balance`.
 
-let say "walletObject.money" was 10. 10 will be loaded. Both thread increase the value
-to 11, while it should be increased to 11 and then 12. so the correct value is 12 while we write back into memory 11, which wrong.
-                                             
-### Racing Condition Example: Common Source Example
-In this example both threads race for accessing shared resource `std::cout`
+Two threads can interleave:
+
+| Thread 1 | Thread 2 | balance |
+|---|---|---|
+| load balance (=10) |  | 10 |
+|  | load balance (=10) | 10 |
+| add 5 → reg=15 |  | 10 |
+|  | add 5 → reg=15 | 10 |
+| store 15 |  | 15 |
+|  | store 15 | 15 |
+
+Two `+5` deposits, but the final balance is 15 instead of 20 — one update was lost. Fix it with a mutex (§4.2) or `std::atomic<int>` for a counter (§6).
+
+### 4.1.3. Example: Interleaved Output
+
+`std::cout` is itself a shared resource. Two threads writing to it produce garbled output:
 
 ```cpp
-void function2()
-{
-    unsigned int sleepTime=1;//milliseconds
-    for(std::size_t i=0;i<100;i++)
-    {
-        std::cout<<"Message from function2: " <<i<<std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime) );
-    }
+#include <iostream>
+#include <thread>
+
+void log(const std::string& tag) {
+    for (int i = 0; i < 5; ++i)
+        std::cout << "[" << tag << "] " << i << '\n';
 }
 
-void function1()
-{
-    unsigned int sleepTime=1;//milliseconds
-    for(int i=0;i>-100;i--)
-    {
-        std::cout<<"Message from function1: " <<i<<std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime) );
-    }
-}
-
-int main()
-{
-    std::thread t1(function1);
-    std::thread t2(function2);
-    t1.join();
-    t2.join();
+int main() {
+    std::thread a(log, "A");
+    std::thread b(log, "B");
+    a.join();
+    b.join();
 }
 ```
-Therefore the output would be messy. 
 
+Possible (messy) output:
 
 ```
-Message from function1: -67
-Message from function2: 68Message from function1: -68
-
-Message from function1: -69Message from function2: 69
-
-Message from function2: 70
+[A] 0
+[B] [A] 10
+[A] 2
+[B] 1[A] 3
 ```
-Refs: [1]([3](https://thispointer.com//c11-multithreading-part-4-data-sharing-and-race-conditions/),)
 
+The fix is to wrap the print in a mutex — see §4.2.
 
-Full example [here](../src/multithreading/race_condition.cpp).
+Full example: [race_condition.cpp](../src/multithreading/race_condition.cpp).
 
-## Semaphor
-Semaphor use signaling while Mutex is an object.
+## 4.2. Mutex
 
-Full example [here](../src/multithreading/semaphor.cpp).
+A **mutex** (mutual exclusion) guarantees that only one thread at a time holds it. Threads that try to lock an already-held mutex block until it's released.
 
-
-## Mutex
-A Mutex is a lock that we set before using a shared resource and release after using it.
-When the lock is set, no other thread can access the locked region of code.
+### 4.2.1. Why Not Manual lock()/unlock()
 
 ```cpp
 std::mutex mu;
-void sharedPrinter(std::string s,int id)
-{
+
+void bad() {
     mu.lock();
-    std::cout<<"Message from function"<<id<<": " <<s<<std::endl;
+    if (some_check())
+        return;            // ⚠️ leaks the lock — mutex stays held forever
+    do_work();
     mu.unlock();
 }
-
-void function2()
-{
-    unsigned int sleepTime=1;//milliseconds
-    for(std::size_t i=0;i<100;i++)
-    {
-        sharedPrinter( std::to_string(i) ,2);
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime) );
-    }
-}
-
-void function1()
-{
-    unsigned int sleepTime=1;//milliseconds
-    for(int i=0;i>-100;i--)
-    {
-        sharedPrinter( std::to_string(i) ,1);
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime) );
-    }
-}
 ```
-This will solve the problem but we might create other problems. The first problem is if for any reason mutex doesn't get unclocked, our program will get stock forever. 
 
-Here when guard goes out of scope, mutex get unlocked automatically:
+If an exception is thrown, or you take an early return, or you forget the `unlock()`, the mutex stays locked and every other thread that wants it blocks forever. **Always use a RAII wrapper.**
+
+### 4.2.2. std::scoped_lock
+
+`std::scoped_lock` (C++17) is the modern default. It locks on construction, unlocks on destruction, and accepts any number of mutexes — when given more than one, it acquires them atomically using a deadlock-avoidance algorithm.
 
 ```cpp
-void sharedPrinter(std::string s,int id)
-{
-    
-    std::lock_guard<std::mutex> guard(mu);
-    std::cout<<"Message from function"<<id<<": " <<s<<std::endl;
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+std::mutex io_mu;
+
+void log(const std::string& tag, int i) {
+    std::scoped_lock lock(io_mu);          // locks here
+    std::cout << "[" << tag << "] " << i << '\n';
+}                                          // unlocks here, even on exception
+
+int main() {
+    std::thread a([] { for (int i = 0; i < 5; ++i) log("A", i); });
+    std::thread b([] { for (int i = 0; i < 5; ++i) log("B", i); });
+    a.join();
+    b.join();
 }
 ```
-But the other problem is that `std::cout` might be still manipulated outside of code and it is not still under protection of mutex. 
-Full example [here](../src/multithreading/mutex.cpp).
 
+Output is now interleaved by line (the granularity at which we hold the lock), but never garbled within a line.
 
+For multiple mutexes (e.g. transferring between two accounts):
 
-### Dead Lock
-In the following example two function are depending on each other lock:
+```cpp
+struct Account { std::mutex mu; int balance; };
+
+void transfer(Account& from, Account& to, int amount) {
+    std::scoped_lock lock(from.mu, to.mu);   // both at once, deadlock-free
+    from.balance -= amount;
+    to.balance   += amount;
+}                                            // both released here
+```
+
+Full examples: [mutex.cpp](../src/multithreading/mutex.cpp), [scoped_lock.cpp](../src/multithreading/scoped_lock.cpp).
+
+### 4.2.3. Deadlock
+
+A deadlock happens when two threads each hold a mutex the other one wants. Naively locking two mutexes in different orders is the textbook case:
 
 ```cpp
 std::mutex mu1, mu2;
 
-void func1DeadLock()
-{
-    mu2.lock();
-    std::cout<<"func1" <<std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mu1.lock();
-    mu2.unlock();
-    mu1.unlock();
+// Thread A
+void func_a() {
+    std::scoped_lock l1(mu1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::scoped_lock l2(mu2);   // blocks if Thread B already holds mu2
+    /* ... */
 }
 
-void func2DeadLock()
-{
-    mu1.lock();
-    std::cout<<"func2" <<std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mu2.lock();
-    mu1.unlock();
-    mu2.unlock();
-}
-
-
-int main()
-{
-    std::thread thread1(func1DeadLock);
-    std::thread thread2(func2DeadLock);
-    thread1.join();
-    thread2.join();
+// Thread B
+void func_b() {
+    std::scoped_lock l1(mu2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::scoped_lock l2(mu1);   // blocks if Thread A already holds mu1
+    /* ... */
 }
 ```
 
-First solution would be to lock mutex on correct order:
+Both threads block waiting on the other — neither can ever proceed.
+
+**Solution:** lock all required mutexes in a single `std::scoped_lock`. The constructor uses a deadlock-avoidance algorithm (`std::lock`) and order no longer matters:
 
 ```cpp
-void func1DeadLockSolved()
-{
-    mu1.lock();
-    std::cout<<"func1" <<std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mu2.lock();
-    mu2.unlock();
-    mu1.unlock();
+void func_a_safe() {
+    std::scoped_lock lock(mu1, mu2);   // safe regardless of caller order
+    /* ... */
 }
 
-void func2DeadLockSolved()
-{
-    mu1.lock();
-    std::cout<<"func2" <<std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mu2.lock();
-    mu1.unlock();
-    mu2.unlock();
+void func_b_safe() {
+    std::scoped_lock lock(mu2, mu1);   // also safe
+    /* ... */
 }
 ```
-Full example [here](../src/multithreading/dead_lock.cpp).
-The second solution is using `std::lock` and extra parameters `std::adopt_lock` for `lock_guard`:
 
+Full example: [dead_lock.cpp](../src/multithreading/dead_lock.cpp).
 
-### Avoiding Deadlock tips
- - Prefer locking single mutex.
- - Avoid locking a mutex and then calling a user provided function.
- - user `std::lock()` to lock more than one mutex
- - Lock the mutex in same order.
+### 4.2.4. Avoiding Deadlock
 
+- **Prefer locking a single mutex.** Most class designs can be reduced to one mutex.
+- **Don't call user-provided code (callbacks, virtual functions) while holding a lock.** They might re-enter and try to lock again.
+- **When you must lock multiple mutexes, use a single `std::scoped_lock`** — never two nested ones.
+- **Keep critical sections small** — but not so small that lock/unlock overhead dominates the work.
+- **Define a global lock order** if you can't acquire all locks at once. Document it; everyone follows the same order.
 
-If you lock small part of your code many times, you program will become very complicated, if you lock piece of code, you might lose 
-the advantageous of concurrent programming since your program need requeir lots of resources for switching between threads.
-Full example [here](../src/multithreading/lock_guard.cpp).
+### 4.2.5. lock_guard vs scoped_lock vs unique_lock
 
-### scoped_lock
+| Wrapper | # mutexes | Can unlock/relock? | When to use |
+|---|---|---|---|
+| `std::scoped_lock` (C++17) | one or many | no | **Default choice.** Use everywhere. |
+| `std::lock_guard` (C++11) | exactly one | no | Legacy code only — `scoped_lock` is a strict superset. |
+| `std::unique_lock` (C++11) | exactly one | yes | When you need `condition_variable::wait`, deferred locking, `try_lock`, or to unlock partway through a scope. Slightly more expensive than `scoped_lock`. |
+
+**Rule of thumb:** use `std::scoped_lock` by default. Reach for `std::unique_lock` only when condition variables or manual unlock/relock are involved. You can ignore `std::lock_guard` in new code.
+
+### 4.2.6. unique_lock — When You Need It
+
+The two cases you'll actually meet `std::unique_lock` are:
+
+1. **`std::condition_variable::wait` requires it** (because `wait` needs to unlock and relock).
+2. **You want to unlock and relock several times within one scope** (e.g. reduce contention while doing local work).
 
 ```cpp
-{
-   std::scoped_lock lock{mut};  // protect this block
-   ...
-}
+std::unique_lock<std::mutex> lock(mu, std::defer_lock);   // not yet locked
+// ... work that doesn't need the lock ...
+lock.lock();
+// ... critical section ...
+lock.unlock();
+// ... more lock-free work ...
+lock.lock();
+// ... another critical section ...
 ```
-A `scoped_lock` is a wrapper for mutex, which handles the obtaining of a lock on the
-mutex object as well as its release when the lock goes out of scope. It differs from a
- `lock_guard` in that it is a wrapper for not one, but multiple mutexes.
-This can be useful when one deals with multiple mutexes in a single scope. 
 
-When mutex goes out of scope it will unlock the mutex. 
+Constructor flags:
+- *(default)* — locks immediately.
+- `std::defer_lock` — don't lock yet.
+- `std::try_to_lock` — non-blocking attempt; check `lock.owns_lock()` afterward.
+- `std::adopt_lock` — assume the caller already holds the mutex.
+
+For one-time initialization across threads, prefer `std::call_once` with a `std::once_flag` over rolling your own check-then-lock:
 
 ```cpp
-std::mutex mu;
+std::once_flag flag;
+std::call_once(flag, [&]{ file.open("log.txt"); });
+```
 
-void sharedPrinter(int funcid, int message) {
-  std::scoped_lock<std::mutex> gaurd(mu);
-  std::cout << "Message from function: " << funcid
-            << " and message is: " << message << std::endl;
-}
+Full example: [unique_lock.cpp](../src/multithreading/unique_lock.cpp).
 
-void function2() {
-  unsigned int sleepTime = 1; // milliseconds
-  for (std::size_t i = 0; i < 100; i++) {
-    sharedPrinter(2, i);
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
-  }
-}
+## 4.3. Semaphores
 
-void function1() {
-  unsigned int sleepTime = 1; // milliseconds
-  for (int i = 0; i > -100; i--) {
-    sharedPrinter(1, i);
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
-  }
+A **semaphore** is a counter with two atomic operations: `acquire()` decrements and blocks if zero; `release()` increments and wakes one waiter. Where a mutex enforces *exclusive* ownership by exactly one thread, a semaphore controls *how many* threads can pass at once.
+
+> **Are semaphores actually used?** Yes — but for **specific** problems, not as a general-purpose primitive. The three places they show up most:
+>
+> 1. **Resource pools** — capping concurrent connections to a database, sockets to a service, file handles, GPU contexts.
+> 2. **Rate limiting / throttling** — at most N requests in flight, the rest queue up.
+> 3. **Single-shot signaling between threads** — "data is ready," "shutdown started." A binary semaphore is often simpler than a `mutex + condition_variable` pair for this.
+>
+> Real-world appearances: thread pools (worker count), web crawlers (concurrent fetches), video encoders (GPU/encoder slots), embedded RTOS code (interrupts releasing semaphores that wake tasks).
+>
+> What they're **not** for: protecting a critical section (use a mutex — semaphores can't tell if the "owner" releases) or waiting for a complex predicate over shared state (use a condition variable). For those, mutex and CV remain the workhorses.
+
+C++20 (`<semaphore>`) provides two flavors:
+
+| Type | Use case |
+|---|---|
+| `std::counting_semaphore<N>` | Limit *N* concurrent users of a resource (connection pool, rate limiter, bounded buffer slots). |
+| `std::binary_semaphore` | Alias for `counting_semaphore<1>`. Used for **signaling** between threads — one waits, another wakes it. |
+
+### 4.3.1. std::counting_semaphore — Limit Concurrent Access
+
+Cap the number of in-flight database queries at three:
+
+```cpp
+#include <semaphore>
+#include <thread>
+#include <vector>
+
+std::counting_semaphore<3> db_slots(3);   // up to 3 concurrent queries
+
+void query(int id) {
+    db_slots.acquire();                   // blocks if 3 are already in flight
+    do_db_work(id);
+    db_slots.release();                   // free a slot
 }
 
 int main() {
-  std::thread t1(function1);
-  std::thread t2(function2);
-  t1.join();
-  t2.join();
-  return 0;
+    std::vector<std::jthread> pool;
+    for (int i = 0; i < 10; ++i)
+        pool.emplace_back(query, i);
 }
 ```
-Full example [here](../src/multithreading/scoped_lock.cpp). 
-### unique_lock
-In the following logger, we reviewed two way for locking the mutex, calling `mutex.lock()` and using `lock_guard`. 
+
+The first three workers run immediately; the rest queue up at `acquire()` until a slot is released.
+
+### 4.3.2. std::binary_semaphore — One-Shot Signaling
+
+A producer thread prepares some data, and a consumer thread waits for the "go" signal:
+
 ```cpp
-class LogFile
-{
-    std::mutex mu;
-    std::ofstream file;
-public:
-    LogFile()
+#include <semaphore>
+#include <thread>
+
+std::binary_semaphore data_ready(0);      // starts "empty" — consumer will block
+
+int shared_value = 0;
+
+void producer() {
+    shared_value = compute();             // prepare
+    data_ready.release();                 // signal: "go"
+}
+
+void consumer() {
+    data_ready.acquire();                 // block until producer signals
+    use(shared_value);
+}
+```
+
+A binary semaphore and a condition variable can both signal, but `binary_semaphore::release()` doesn't need a held mutex and isn't subject to spurious wakeups.
+
+Full example: [semaphor.cpp](../src/multithreading/semaphor.cpp).
+
+## 4.4. Condition Variables
+
+Without a condition variable, a thread that wants to wait for some predicate (`queue not empty`, `data ready`, `stop requested`) has only two options:
+
+1. **Spin** — keep checking in a loop, burning CPU.
+2. **Sleep + retry** — same idea, less wasteful, but sluggish.
+
+A `std::condition_variable` lets a thread sleep efficiently until *another* thread changes the predicate and calls `notify_one()` / `notify_all()`. It's always paired with a mutex that protects the shared state.
+
+The pattern:
+
+- **Waiter:** lock mutex → call `cv.wait(lock, predicate)` → on wakeup, mutex is held again and predicate is true.
+- **Notifier:** lock mutex → modify shared state → unlock (or stay locked) → call `cv.notify_one()`.
+
+### 4.4.1. Spurious Wakeups
+
+A thread blocked in `cv.wait(lock)` can wake up *without* anyone calling `notify_*`. The standard allows it, and POSIX implementations exhibit it in practice. This is why you must always re-check the predicate:
+
+```cpp
+// ❌ BAD — wakes once and proceeds even if the predicate is still false
+cv.wait(lock);
+if (!ready) { /* corrupted logic */ }
+
+// ✅ GOOD — explicit while loop
+while (!ready)
+    cv.wait(lock);
+
+// ✅ BEST — predicate form, equivalent to the loop above
+cv.wait(lock, []{ return ready; });
+```
+
+Same rule for `wait_for` and `wait_until`: always re-check after they return.
+
+### 4.4.2. Worked Example: Producer–Consumer
+
+The simplest version: one consumer waits until the producer signals "data is ready."
+
+```cpp
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <iostream>
+
+std::mutex              mu;
+std::condition_variable cv;
+int  data  = 0;
+bool ready = false;
+
+void producer() {
+    std::this_thread::sleep_for(std::chrono::seconds(1));   // pretend to compute
     {
-        file.open("log.txt");
+        std::scoped_lock lock(mu);
+        data  = 42;
+        ready = true;
     }
-
-    void sharedPrint(std::string msg, int id)
-    {
-        std::lock_guard<std::mutex> locker(mu);
-        file<<"From "<<id <<": "<<msg<<std::endl;
-    }
-};
-```
-The third way is using `unique_lock`. If we have some operations after opening the file that doesn't need any lock we can 
-explicitly only lock the part that we need and unlock it when we don't need lock.
-
-`unique_lock` use the `RAII` pattern. When you want to lock a mutex, you create a local variable of type `unique_lock` passing the mutex as parameter. When the `unique_lock`is constructed it will lock the mutex, and it gets destructed it will unlock the mutex. More importantly: If a exceptions is thrown, the unique_lock destructer will be called and so the mutex will be **unlocked**.
-
-```cpp
-class LogFile
-{
-std::mutex mu;
-std::ofstream file;
-public:
-LogFile()
-{
-    file.open("log.txt");
+    cv.notify_one();              // wake the consumer
 }
 
-void sharedPrint(std::string msg, int id)
-{
-    std::unique_lock<std::mutex> locker(mu,std::defer_lock);
-
-    //some operation here
-    locker.lock();
-    file<<"From "<<id <<": "<<msg<<std::endl;
-    locker.unlock();
-    //some operation here
-    locker.lock();
-    //...
-    locker.unlock();
-}
-};
-```
-
-
-
-Lazy initialization and `once_flag`: 
-
-In our log class example, we opened the log file in the constructor but we might need to open the log file when we need it, for instance in 
-`sharedPrint` function.
-
-```cpp
-void sharedPrint(std::string msg, int id)
-{
-    if(!file.is_open())
-    {
-        file.open("log.txt");
-    }
-}
-```
-This is **Lazy Initialization** or **Initialization Upon First Use**. But this is not thread safe since `file.is_open()` is not synchronized.
-By making the following changes it will became thread safe:
-```cpp
-void sharedPrint(std::string msg, int id)
-        {
-            {
-                std::unique_lock<std::mutex> locker2(mu_open_file);
-                if(!file.is_open())
-                {
-                    file.open("log.txt");
-                }
-            }
-            std::unique_lock<std::mutex> locker(mu,std::defer_lock);
-
-            //some operation here
-            locker.lock();
-            file<<"From "<<id <<": "<<msg<<std::endl;
-            locker.unlock();
-            //some operation here
-            locker.lock();
-            //...
-            locker.unlock();
-
-        }
-```
-But we are repeating locking and locking file status checking every time we want to print something, so the solution is using `once_flag`
-```cpp
-std::call_once(flag,[&](){file.open("log.txt");});
-```
-File will be opened once only by one thread.
-
-Whether a unique lock instance has ownership of its mutex, and whether it's locked or not,
-is first determined when creating the lock, as can be seen with its constructors. For example:
-```cpp
-std::mutex m0, m1, m2, m3;
-std::unique_lock<std::mutex> lock1(m1);
-std::unique_lock<std::mutex> lock1(m1, std::defer_lock);
-std::unique_lock<std::mutex> lock2(m2, std::try_lock);
-std::unique_lock<std::mutex> lock3(m3, std::adopt_lock);
-```
-The first locks the associated mutex by calling m0.lock()
-The second one constructor in the last code does not lock the assigned mutex (defers). 
-The third one attempts to lock the mutex using try_lock(). 
-Finally, the last constructor assumes that it already owns the provided mutex.
-
-Full example [here](../src/multithreading/unique_lock.cpp). 
-
-### lock_guard vs scoped_lock vs unique_lock
-
- `std::scoped_lock` does the same as `std::lock_guard` and more ( it is a wrapper for not one, but multiple mutexes). Simply use `std::scoped_lock` everywhere. 
- use `unique_lock` if you need to unlock within the scope of the block.
- The difference between `lock_guard` and `unique_lock`: you can lock and unlock a `unique_lock`. `std::lock_guard` will be locked only once on construction and unlocked on destruction. The `unique_lock` is computationally more expensive than the `lock_guard` so if the performance issue should be considered when using it.
-
-
-## Condition Variable
-Without condition variables, the programmer would need to have threads continually polling (possibly in a critical section), to check if the condition is met. A condition variable is a way to achieve the same goal without polling.
-Condition variables are used for two purposes:
-1. Notify other threads
-2. Waiting for some condition
-
-In the following example:
-
-
-
-
-```cpp
-std::mutex mu;
-std::condition_variable cond;
-
-// shared variable
-int result = 0;
-
-
-// I) The thread that modify the shared variable must do the followings::
-
-void worker() {
-  // 1. Acquiring a mutex
-  std::scoped_lock<std::mutex> lock(mu);
-  // 2. Modify the shared variable while the lock is owned, some heavy processing operations, might take time...
-  std::cout << "worker is working..." << std::endl;
-
-  std::this_thread::sleep_for(std::chrono::seconds(5));
-
-  result = 10;
-  std::cout << "worker has reached the end, result is ready..." << std::endl;
-
-  //3. Call notify_one (or notify_all ) on the std::condition_variable
-  cond.notify_one();
-}
-
-// II) Any thread/ function that is waiting for shared variable must do the followings:
-void waitingForWorker() {
-  // 1. Acquire a std::unique_lock<std::mutex> on the mutex used to protect the shared variable
-  std::unique_lock<std::mutex> lock(mu);
-
-
-  //2. Call wait, wait_for, or wait_until
-  cond.wait(lock, [] {
-    std::cout << "result is: " << result << std::endl;
-    //if you don't return true, the waitingForWorker thread will run forever
-    return true;
-  });
-
-  // or just 
- //cond.wait(lock);
-
-    // this will be that last line of the code 
-    std::cout << "end of waitingForWorker" << std::endl;
-
+void consumer() {
+    std::unique_lock lock(mu);
+    cv.wait(lock, [] { return ready; });   // sleeps until producer sets ready=true
+    std::cout << "got data = " << data << '\n';
 }
 
 int main() {
-  std::thread t1(worker);
-  std::cout << "before calling waitingForWorker" << std::endl;
-  std::thread t2(waitingForWorker);
-  std::cout << "after waitingForWorker has been called " << std::endl;
-  t1.join();
-  t2.join();
-  return 0;
+    std::jthread t1(producer);
+    std::jthread t2(consumer);
 }
 ```
 
+Five things worth absorbing from this small example:
 
-An other example, we only want to withdraw after we added some money, so `withdrawMoney` is waiting for `addMoney`:
+- **The mutex protects `data` and `ready` together.** Both threads touch them; both lock `mu` before reading or writing.
+- **`unique_lock` on the wait side, `scoped_lock` on the notify side.** `wait()` needs to release and reacquire the mutex, and only `unique_lock` supports that. The producer doesn't wait, so `scoped_lock` is fine.
+- **The predicate form of `wait`** (`cv.wait(lock, predicate)`) handles spurious wakeups for free — it re-checks the predicate on every wake-up.
+- **You can `notify_*` outside the lock.** Many examples notify while holding the mutex; releasing first is a tiny optimization that avoids the woken thread immediately blocking on the still-held lock.
+- **`notify_one` vs `notify_all`.** Use `notify_one` when only one waiter can make progress (one item produced → one consumer wakes). Use `notify_all` when the state change might let multiple waiters proceed (e.g. broadcasting a "shutdown" flag).
 
-
-```cpp
-std::condition_variable cond;
-std::mutex mu;
-
-int balance = 0;
-
-
-void addMoney(int amount)
-{
-	std::unique_lock<std::mutex> lock(mu);
-	balance = balance + amount;
-	std::cout << "Amount added, new balance is: " << balance << std::endl;
-	cond.notify_one();
-}
-
-void withdrawMoney(int amount) 
-{
-	std::unique_lock<std::mutex> lock(mu);
-	cond.wait(lock, [] {if (balance == 0) return false; else return true; });
-	balance = balance - amount;
-	std::cout<<"Amount withdrawn, new balance is: "<< balance <<std::endl;
-}
-
-
-
-int main()
-{
-	int amountToAdd, amountToWithdraw;
-	amountToAdd=200;
-	amountToWithdraw=100;
-	std::thread t_add(addMoney, amountToAdd);
-	std::thread t_withdrawMoney(withdrawMoney, amountToWithdraw);
-
-	t_add.join();
-	t_withdrawMoney.join();
-}
-```
-We don't know the order that threads will be run, but logically we only want to withdraw money only if we have added
-some money first. So in this example in the line:
-`cond.wait(lock, [] {if (balance == 0) return false; else return true; });`
-our conditional variable `cond` will lock the mutex, then check the condition, if it is not true, it will suspend the 
-current thread, put it in the waiting list, release the mutex so the other thread `t_add` can continue.
-
-In the thread `t_add` after we added the amount, we call `cond.notify_one();`. This will awake the thread in the 
-waiting list, if the condition is true, it resume the `t_withdrawMoney` from the line after `cond.wait()`   
-
-Refs: [1](https://www.youtube.com/watch?v=eh_9zUNmTig)
-
-In the other example the `worker_func()` should waits until `main` has pre-processed the data.
-Then `worker_func()` can start working on the data. When the worker finished it job, then the main can 
-do its job with the processed data. The function `wait()` from `std::condition_variable` has the following signature:  
-
-`wait(unique_lock<mutex>& lock, Predicate pred)`:
-Atomically unlocks lock, causes the current thread to block, adds it to the list of threads waiting on `*this`
-until `notify_all()` or `notify_one()` is executed
-
-`Predicate()`:
-A callable object or function that takes no arguments and returns a value that can be evaluated as a bool.
-This is called repeatedly until it evaluates to true.
-
-
-
-Full example [here](../src/multithreading/condition_variable.cpp).
-
-## Semaphores vs Mutexes vs Condition Variable
-
-Refs: [1](https://barrgroup.com/embedded-systems/how-to/rtos-mutex-semaphore), [2](https://stackoverflow.com/questions/2350544/in-what-situation-do-you-use-a-semaphore-over-a-mutex-in-c/2350628#2350628), [3](https://stackoverflow.com/questions/4742196/advantages-of-using-condition-variables-over-mutex), [4](https://cs61.seas.harvard.edu/site/2018/Synch3/)
-
-
-# std::future
-`future` facilities **asynchronous** access to values set by providers:
-1. `std::async`
-2. `std::packaged_task`
-3. `std::promise` 
-
-
-## std::async 
-The function template  `std::async` asynchronously runs the function `f`  and returns a `std::future` that holds the result of that function call.
-
-### launch policy
-1. `std::launch::async`:  passed function will be executed in separate thread.
-2. `std::launch::deferred`: function will be called when other thread will call get() on future to access the shared state.
-3. `std::launch::async | std::launch::deferred`: default behavior, with this launch policy it can run asynchronously or not depending on the load on system (we have no control over it.)
-
+`wait`'s contract:
 
 ```cpp
-std::future<int> future_function= std::async(std::launch::deferred, factorial,input);
-
-```
-We can ask `std::async` to create a thread for the function call or not. If we add `std::launch::deferred` to the list of parameters, it won't
-create a thread and just create a function call.
-
-
-If you want to make sure a separate thread will be created use `std::launch::async` in the parameters list:
-
-```cpp
-std::async(std::launch::async, factorial,input);
+cv.wait(unique_lock<mutex>& lock, Predicate pred);
 ```
 
+Atomically: unlocks `lock`, blocks the thread, reacquires `lock` on wakeup, re-checks `pred`, returns when `pred` is true.
+
+Full example: [condition_variable.cpp](../src/multithreading/condition_variable.cpp).
+
+## 4.5. Choosing the Right Primitive
+
+| Need | Use |
+|---|---|
+| Protect a small block of code accessing shared data | `std::mutex` + `std::scoped_lock` |
+| One thread signals another that it's done | `std::binary_semaphore` |
+| Cap the number of concurrent users of a resource | `std::counting_semaphore<N>` |
+| Wait until some condition over shared state holds | `std::mutex` + `std::condition_variable` |
+| Atomic counter, flag, or pointer | `std::atomic` |
+| One-time initialization | `std::once_flag` + `std::call_once` |
+
+Refs: [Mutex vs semaphore](https://barrgroup.com/embedded-systems/how-to/rtos-mutex-semaphore), [SO: when semaphore over mutex](https://stackoverflow.com/questions/2350544/in-what-situation-do-you-use-a-semaphore-over-a-mutex-in-c), [SO: condition variables vs mutex](https://stackoverflow.com/questions/4742196/advantages-of-using-condition-variables-over-mutex), [Harvard CS61 Synch3](https://cs61.seas.harvard.edu/site/2018/Synch3/).
+
+---
+
+# 5. Async Tasks and std::future
+
+A `std::future<T>` is a *handle* to a value that will be available later. The producer side is one of:
+
+1. `std::async` — launches a task and gives you back a future.
+2. `std::packaged_task` — wraps a callable so its return value goes into a future.
+3. `std::promise` — manual: you create both ends and set the value yourself.
+
+In all three cases the consumer calls `future.get()` to retrieve the value (blocking if needed). `get()` can be called **only once**; calling it twice throws `std::future_error`.
+
+## 5.1. std::async and Launch Policy
+
+`std::async(f, args...)` runs `f(args...)` and returns a `std::future` for the result. The launch policy controls *how*:
+
+| Policy | Behavior |
+|---|---|
+| `std::launch::async` | Runs `f` on a new thread immediately. |
+| `std::launch::deferred` | Doesn't run until `future.get()` / `wait()` is called — and then synchronously on the *calling* thread. |
+| `std::launch::async \| std::launch::deferred` | **Default.** Implementation chooses. **Avoid relying on it** — you can't tell which you got. |
 
 ```cpp
-std::string whoisLookup(std::string domain) {
+#include <future>
+#include <iostream>
+#include <chrono>
 
-  std::cout << "thread ID of whoisLookup func is: "
-            << std::this_thread::get_id() << std::endl;
-  std::this_thread::sleep_for(std::chrono::seconds(3));
-
-  return "foo";
+int factorial(int n) {
+    int v = 1;
+    for (int i = 1; i <= n; ++i) v *= i;
+    return v;
 }
 
 int main() {
-  std::string domain = "www.google.com";
-
-  std::cout << "thread ID of main calling whoisLookup func is: "
-            << std::this_thread::get_id() << std::endl;
-
-  std::cout << "calling an async call" << std::endl;
-  std::future<std::string> whoisresult =
-      std::async(std::launch::async, whoisLookup, domain);
-
-  std::cout << "continue after async call" << std::endl;
-  std::cout
-      << "Will block till data is available in future<std::string> object."
-      << std::endl;
-
-  std::cout << "waiting..." << std::endl;
-  std::future_status status;
-  do {
-
-    switch (status = whoisresult.wait_for(std::chrono::seconds(1)); status) {
-    case std::future_status::deferred:
-      std::cout << "deferred" << std::endl;
-      break;
-    case std::future_status::timeout:
-      std::cout << "timeout" << std::endl;
-      break;
-    case std::future_status::ready:
-      std::cout << "ready" << std::endl;
-      break;
-      break;
-    }
-
-  } while (status != std::future_status::ready);
-
-  std::cout << "the result of future object is: " << whoisresult.get()
-            << std::endl;
-  std::cout << "end" << std::endl;
+    auto fut = std::async(std::launch::async, factorial, 10);
+    // ... do other work ...
+    std::cout << "10! = " << fut.get() << '\n';   // blocks if not yet ready
 }
 ```
 
+**Always pass an explicit policy** — usually `std::launch::async`. The default is a portability trap.
 
+Polling for completion:
 
-
-## packaged_task
-It can link a callable object (function, lambda expression, bind expression, or another function object) to a future so that it can be 
-invoked asynchronously.
 ```cpp
+auto fut = std::async(std::launch::async, slow_lookup, "example.com");
+
+while (true) {
+    auto status = fut.wait_for(std::chrono::milliseconds(100));
+    if (status == std::future_status::ready) break;
+    if (status == std::future_status::deferred) { fut.wait(); break; }
+    std::cout << "still waiting...\n";
+}
+std::cout << "result: " << fut.get() << '\n';
+```
+
+> **Gotcha:** the destructor of a future returned by `std::async` *blocks* until the task finishes. So `std::async(std::launch::async, slow_thing);` (no variable) launches and immediately waits — defeating the point. Always store the future.
+
+## 5.2. std::packaged_task
+
+A `packaged_task` wraps a callable and exposes its result as a future. Useful when you want to control where/when the task runs (a custom thread, a task queue, a thread pool):
+
+```cpp
+#include <future>
+#include <thread>
+#include <iostream>
+
 int main() {
-  std::string domain = "www.google.com";
+    std::packaged_task<int(int)> task(factorial);
+    std::future<int> fut = task.get_future();
 
-  std::cout << "thread ID of main calling whoisLookup func is: "
-            << std::this_thread::get_id() << std::endl;
+    std::thread t(std::move(task), 10);   // run the task on this thread
+    t.join();
 
-  std::packaged_task<std::string(std::string)> task([](std::string domain) {
-    std::cout << "thread ID of lambda package task is: "
-              << std::this_thread::get_id() << std::endl;
-
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-    return "foo";
-  });
-
-  std::cout << "getting future object from task" << std::endl;
-  std::future<std::string> whoisresult = task.get_future();
-
-  std::cout << "calling the task" << std::endl;
-  // task(domain);
-
-//The thread starts running immediately. 
-  std::thread thr(std::move(task), domain);
-
-  std::cout << "continue after calling task" << std::endl;
-  std::cout
-      << "Will block till data is available in future<std::string> object."
-      << std::endl;
-
-  std::cout << "waiting..." << std::endl;
-  std::future_status status;
-  do {
-
-    switch (status = whoisresult.wait_for(std::chrono::seconds(1)); status) {
-    case std::future_status::deferred:
-      std::cout << "deferred" << std::endl;
-      break;
-    case std::future_status::timeout:
-      std::cout << "timeout" << std::endl;
-      break;
-    case std::future_status::ready:
-      std::cout << "ready" << std::endl;
-      break;
-      break;
-    }
-
-  } while (status != std::future_status::ready);
-  thr.join();
-  std::cout << "the result of future object is: " << whoisresult.get()
-            << std::endl;
-  std::cout << "end" << std::endl;
+    std::cout << "10! = " << fut.get() << '\n';
 }
 ```
 
+It's the building block for thread pools — the pool stores `packaged_task`s in a queue, and worker threads pick them up.
 
+Full example: [packaged_task.cpp](../src/multithreading/packaged_task.cpp).
 
+Refs: [std::promise on SO](https://stackoverflow.com/questions/11004273/what-is-stdpromise), [cppreference](https://en.cppreference.com/w/cpp/thread/packaged_task), [thread pool implementation](https://codereview.stackexchange.com/questions/221617/thread-pool-c-implementation), [video](https://www.youtube.com/watch?v=eWTGtp3HXiw), [Vorbrodt thread pool](https://vorbrodt.blog/2019/02/12/simple-thread-pool/).
 
-Full example [here](../src/multithreading/packaged_task.cpp).
+## 5.3. std::promise
 
-Refs: [1](https://stackoverflow.com/questions/11004273/what-is-stdpromise#:~:text=You%20want%20to%20pass%20something,This%20is%20the%20promise%20.), [2](https://en.cppreference.com/w/cpp/thread/packaged_task), [3](https://codereview.stackexchange.com/questions/221617/thread-pool-c-implementation), [4](https://www.youtube.com/watch?v=eWTGtp3HXiw), [5](https://vorbrodt.blog/2019/02/12/simple-thread-pool/)
- 
+A `std::promise<T>` is the manual mode: you hand the future to the consumer, then call `set_value(v)` (or `set_exception`) when ready. The consumer's `get()` unblocks.
 
-## promise
-
-Let say you need to pass some value from child thread to parent thread and you want to make sure the value is correctly computed:
-
-```cpp
-void factorial(int input, int &output)
-{
-    int value=1;
-    for(int i=1;i<=input;i++)
-        value=i*value;
-
-    output=value;
-}
-
-int main()
-{
-    int input=8;
-    int output;
-
-    std::thread t1(factorial,input,std::ref(output));
-    t1.join();
-    std::cout<< output<<std::endl;
-}
-```
-you can use `condition_variable` and `mutex` but it would look complicated. There is an easier way, instead of creating a thread object, we can 
-use some function call:
+Pass a value into a child thread *some time after* it has started:
 
 ```cpp
-int factorial(int input)
-{
-    int value=1;
-    for(int i=1;i<=input;i++)
-        value=i*value;
-    return value;
+#include <future>
+#include <thread>
+#include <iostream>
+
+int factorial_from_future(std::future<int> in) {
+    int n = in.get();             // blocks until promise is fulfilled
+    int v = 1;
+    for (int i = 1; i <= n; ++i) v *= i;
+    return v;
 }
 
-int main()
-{
-    int input=8;
-    int output;
-    std::future<int> future_thread= std::async(factorial,input);
-    output=future_thread.get();
-    std::cout<< output<<std::endl;
-}
-```
- 
-`future_thread.get()` function will wait for child thread to get finished and the return the value. If you call `future_thread.get()` again, your program will crash.
-
-
-We can also set a parameter from parent thread to child thread not in the creation time but in the future:
-
-```cpp
-int factorialFuture(std::future<int>& f)
-{
-    int value=1;
-    int n=f.get();
-    for(int i=1;i<=n;i++)
-        value=i*value;
-    return value;
-}
-
-
-int main()
-{
-    int input=8;
+int main() {
     std::promise<int> p;
-    std::future<int> inputFuture=p.get_future();
-    std::future<int> future_promise_factorial= std::async(std::launch::async, factorialFuture,std::ref(inputFuture) );
-    //some code here
-    p.set_value(input);
-    std::cout<< future_promise_factorial.get()<<std::endl;
+    std::future<int> input  = p.get_future();
+    std::future<int> result = std::async(std::launch::async,
+                                          factorial_from_future, std::move(input));
+
+    // ... some time later ...
+    p.set_value(10);
+
+    std::cout << "10! = " << result.get() << '\n';
 }
 ```
 
-If we can't set value for the future we will get an exception. To avoid that we can set the exception:
+Reporting an error instead of a value:
 
 ```cpp
-p.set_exception(std::make_exception_ptr(std::runtime_error("Value couldn't be assigned")));
+p.set_exception(std::make_exception_ptr(std::runtime_error("input invalid")));
 ```
 
+The consumer's `get()` will rethrow that exception. Promises and futures are move-only.
 
-and you can only `std::move()` future and promise.
+## 5.4. std::shared_future
 
-
-If you need to send a `future` into multiple thread, since you can not copy it and calling `future.get()` will raise an exception, you can use the following:
-
+`std::future<T>` can be `get()` only once. If multiple threads need to read the same result, share a `std::shared_future<T>`:
 
 ```cpp
-int factorialSharedFuture(std::shared_future<int> f)
-{
-    int value=1;
-    int n=f.get();
-    for(int i=1;i<=n;i++)
-        value=i*value;
-    return value;
-}
+std::promise<int> p;
+std::shared_future<int> shared = p.get_future().share();
 
-int main()
-{
-    std::promise<int> p;
-    std::future inputFuture=p.get_future();
-    std::shared_future<int> inputFutureShared=inputFuture.share();
-    std::future<int> future_promise_factorial1= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
-    std::future<int> future_promise_factorial2= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
-    std::future<int> future_promise_factorial3= std::async(std::launch::async, factorialSharedFuture,inputFutureShared );
+auto a = std::async(std::launch::async, [shared] { return shared.get() + 1; });
+auto b = std::async(std::launch::async, [shared] { return shared.get() * 2; });
+
+p.set_value(10);
+std::cout << a.get() << ' ' << b.get() << '\n';   // 11 20
+```
+
+Each consumer holds its own copy of the `shared_future` and can call `get()` independently.
+
+Full example: [async_future_promise.cpp](../src/multithreading/async_future_promise.cpp).
+
+## 5.5. When to Use Which
+
+| You want… | Use |
+|---|---|
+| Run a function asynchronously, get its return value | `std::async(std::launch::async, f, args)` |
+| Run on *your* thread (custom pool, specific OS thread) | `std::packaged_task` + `std::thread` |
+| Deliver a value computed by code that wasn't designed around futures | `std::promise` |
+| Multiple readers of one result | `std::shared_future` |
+
+Refs: [SO: when promise over async/packaged_task](https://stackoverflow.com/questions/17729924/when-to-use-promise-over-async-or-packaged-task).
+
+---
+
+# 6. std::atomic
+
+`std::atomic<T>` makes operations on `T` indivisible: no other thread observes a half-written value, and the compiler/CPU is told it must not reorder these operations across this point in ways that would break inter-thread visibility.
+
+## 6.1. Atomics vs Mutex
+
+Mutexes are correct but heavy: lock/unlock costs tens to hundreds of nanoseconds, and contention forces threads to sleep. For a single counter, flag, or pointer swap, an atomic op is often **10–100×** faster and lock-free.
+
+```cpp
+#include <atomic>
+#include <thread>
+#include <vector>
+#include <iostream>
+
+std::atomic<int> counter{0};
+
+int main() {
+    std::vector<std::jthread> pool;
+    for (int i = 0; i < 8; ++i)
+        pool.emplace_back([] {
+            for (int j = 0; j < 100'000; ++j)
+                ++counter;            // atomic read-modify-write — no mutex
+        });
+    for (auto& t : pool) t.join();
+    std::cout << counter << '\n';      // exactly 800000
 }
 ```
-Full example [here](../src/multithreading/(async_future_promise.cpp).
 
-		
-Ref: [1](https://stackoverflow.com/questions/11004273/what-is-stdpromise#:~:text=You%20want%20to%20pass%20something,This%20is%20the%20promise%20.)
+A plain `int counter;` here would lose updates non-deterministically. A mutex would be ~10× slower.
 
+**What types are supported?** Anything `TriviallyCopyable` (no user-defined copy/move/destructor). Built-ins (`int`, `bool`, pointers) and small POD structs are typical. Whether the type is *lock-free* depends on hardware:
 
-## When to use promise over async or packaged_task
-Refs: [1](https://stackoverflow.com/questions/17729924/when-to-use-promise-over-async-or-packaged-task)
+```cpp
+std::atomic<int> a;
+std::cout << a.is_lock_free() << '\n';    // usually true for word-sized types
 
-
-
-# std::atomic
-
-
-
-# Threadsafe Code
-A class is thread-safe if it behaves correctly when accessed from multiple threads, regardless of the scheduling or interleaving of the execution of those threads by the runtime environment, and with no additional synchronization or other coordination on the part of the calling code
-
-Refs: [1](https://www.youtube.com/watch?v=pWTtPnwialI), [2](https://www.youtube.com/watch?v=s5PCh_FaMfM), 
-
-## How to make an application thread safe
-
-Let say we have the following stack data structure:
+std::atomic<std::array<int, 16>> big;
+std::cout << big.is_lock_free() << '\n';  // usually false — uses an internal mutex
 ```
-template<typename T>
-class stack
-{
-private:
-    std::mutex mx;
-    std::vector<T> data;
+
+If `is_lock_free()` is false, the standard library uses an internal mutex behind your back — performance benefit is gone. Stick to word-sized types when you care.
+
+## 6.2. Common Atomic Operations
+
+| Operation | Effect |
+|---|---|
+| `load()` | Atomically read |
+| `store(v)` | Atomically write |
+| `exchange(v)` | Atomically swap, return old value |
+| `fetch_add(n)` / `fetch_sub(n)` | `+= n` / `-= n`, return old value |
+| `fetch_and` / `fetch_or` / `fetch_xor` | Bitwise ops |
+| `compare_exchange_weak` / `_strong` | Compare-and-swap (CAS) — see §6.5 |
+
+```cpp
+std::atomic<int> x{0};
+int old  = x.fetch_add(5);    // x is now 5,  old  = 0
+int prev = x.exchange(42);    // x is now 42, prev = 5
+```
+
+Atomic types overload arithmetic and compound-assignment operators, so `++x`, `x += 3`, `x &= mask` all do the right thing — but **`x = x + 1` is two operations** and is *not* atomic. Use `++x` or `x.fetch_add(1)`.
+
+## 6.3. std::atomic_flag and Spinlocks
+
+`std::atomic_flag` is the only atomic type **guaranteed lock-free** on every platform. It supports just `test_and_set` and `clear` — enough to build a primitive spinlock:
+
+```cpp
+class Spinlock {
+    std::atomic_flag locked = ATOMIC_FLAG_INIT;
 public:
-    T top()
-    {
-        return data.back();
+    void lock() {
+        while (locked.test_and_set(std::memory_order_acquire))
+            std::this_thread::yield();   // back off to be friendly
     }
-
-    void pop()
-    {
-        data.pop_back();
+    void unlock() {
+        locked.clear(std::memory_order_release);
     }
-
-    void push(T element)
-    {
-        data.push_back(element);
-    }
-
-};
-
-int main()
-{
-    stack<int> myStack;
-    myStack.push(2);
-    myStack.push(4);
-    myStack.push(6);
-}
-
-```
-
-and we have the following call from a function:
-
-
-
-| Thread 1                    |          Thread 2           |
-| --------------------------- | :-------------------------: |
-| int a= myStack.top();   a=6 |                             |
-|                             | int b= myStack.top();  b=6  |
-| myStack.pop();  6 is poped  |                             |
-|                             | myStack.pop();  4 is poped! |
-                                            
-   
-so we have poped the wrong value in the second thread. The solution is to merge `pop()` and `top()` fuctionality in one function:
-
-```
-class stack
-{
-private:
-    std::mutex mx;
-    std::vector<T> data;
-public:
-    T pop()
-    {
-        T tmp=data.back();
-        data.pop_back();
-        return tmp;
-    }
-
-    void push(T element)
-    {
-        data.push_back(element);
-    }
-
 };
 ```
-Full example [here](thread_safe.cpp).
-Refs: [1](https://stackoverflow.com/questions/5125241/how-to-make-an-application-thread-safe)
+
+Spinlocks are useful when contention is rare and the critical section is microseconds short. Otherwise prefer `std::mutex` — spinning burns CPU.
+
+## 6.4. Memory Ordering
+
+When a thread writes to memory, *when* other threads see the write — and the order they see it relative to other writes — is governed by the **memory model**. Every atomic operation takes an optional `std::memory_order` argument:
+
+| Order | Cost | Meaning |
+|---|---|---|
+| `memory_order_relaxed` | cheapest | Atomicity only. No ordering guarantees with surrounding operations. |
+| `memory_order_acquire` | medium | On a load: no later read/write in this thread can be reordered before it. Pairs with `release`. |
+| `memory_order_release` | medium | On a store: no earlier read/write in this thread can be reordered after it. Pairs with `acquire`. |
+| `memory_order_acq_rel` | medium | Both, for read-modify-write ops. |
+| `memory_order_seq_cst` | most expensive | **Default.** Sequentially consistent: a single global order all threads agree on. |
+
+### When `relaxed` is enough
+
+A pure counter that's only read at the end:
+
+```cpp
+std::atomic<int> hits{0};
+
+void on_request() {
+    hits.fetch_add(1, std::memory_order_relaxed);   // no ordering needed
+}
+```
+
+The increment is still atomic (no torn reads or lost updates), but the compiler is free to reorder surrounding code.
+
+### Acquire/release for a producer–consumer flag
+
+```cpp
+std::atomic<bool> ready{false};
+int data = 0;
+
+// Producer
+data = 42;                                          // (1) plain write
+ready.store(true, std::memory_order_release);       // (2) publishes (1)
+
+// Consumer
+while (!ready.load(std::memory_order_acquire)) {}   // (3) sees (2) → also sees (1)
+assert(data == 42);                                 // (4) guaranteed
+```
+
+`release` on (2) means everything *before* it in this thread (including the write to `data`) is visible to any other thread that does an `acquire` load that observes the released value. Without acquire/release pairing, the consumer might see `ready == true` but stale `data`.
+
+### `seq_cst` — the default, the safe choice
+
+If you can't reason about acquire/release pairings, leave the default `seq_cst`. It's slower on weakly-ordered CPUs (ARM, POWER) but correct by construction. Every read and write participates in a single global total order.
+
+> **Beginner advice:** start with the default `seq_cst` everywhere. Only relax to `acquire`/`release`/`relaxed` once you have benchmarks proving it matters and a clear argument for why the weaker ordering is sufficient.
+
+## 6.5. compare_exchange and the ABA Problem
+
+**Compare-and-swap (CAS)** is the building block of lock-free algorithms: "if the value is still what I expected, replace it with this new value, atomically — otherwise tell me what's there now."
+
+```cpp
+std::atomic<int> x{10};
+int expected = 10;
+bool ok = x.compare_exchange_strong(expected, 20);
+// if x was 10 → x becomes 20, ok = true,  expected unchanged
+// if x was  7 → x unchanged,  ok = false, expected now equals 7
+```
+
+Typical usage is a retry loop. `compare_exchange_weak` is the loop-form variant — cheaper, but allowed to fail spuriously (returns `false` even when the comparison would have succeeded), so you must put it in a loop:
+
+```cpp
+std::atomic<int> x{0};
+
+void increment_doubled() {
+    int old = x.load();
+    int next;
+    do {
+        next = old * 2 + 1;
+    } while (!x.compare_exchange_weak(old, next));   // retries with refreshed `old`
+}
+```
+
+Use `compare_exchange_strong` when you can't loop (e.g. one-shot publication).
+
+### The ABA Problem
+
+CAS only checks that the *value* matches. It can't tell that the value changed and changed *back* while you weren't looking.
+
+> 1. Thread A reads pointer `p`, sees value `X`.
+> 2. Thread A is preempted.
+> 3. Thread B pops `X` from a list, frees it, allocates a new node — the allocator gives back the same address `X` — and pushes it back.
+> 4. Thread A resumes, does `compare_exchange(p, X, …)` — succeeds, even though the structure underneath has completely changed.
+
+Mitigations:
+
+- **Tagged pointers / version counters.** Pack a counter into spare bits and bump it on every update — now `(X, 5)` ≠ `(X, 7)`.
+- **Hazard pointers** or **RCU.** Defer reclamation until no thread is observing the old value.
+- **`std::atomic<std::shared_ptr<T>>`** (C++20). Reference counting sidesteps ABA for many node-based structures.
+
+Lock-free programming is genuinely hard. The right level for most code is "mutexes by default, atomics for counters and flags, and read a book before writing a lock-free queue." Recommended reading: *C++ Concurrency in Action* by Anthony Williams.
+
+For when you've decided you really do need a lock-free queue or ring buffer, see **[lock_free_data_structures.md](lock_free_data_structures.md)** — covers SPSC ring buffer (the simple correct one), SPSC/MPSC unbounded queues, the SPMC and MPMC escalation, and reclamation strategies (hazard pointers, RCU, atomic `shared_ptr`).
+
+---
+
+# 7. Designing Thread-Safe Classes
+
+A class is **thread-safe** if it behaves correctly when called concurrently from multiple threads, with no extra synchronization required from the caller.
+
+Adding a mutex to every method gets you *individually* atomic methods, but not necessarily a thread-safe *interface*. The trap:
+
+## 7.1. Combining Read-Then-Modify Operations
+
+A naïve thread-safe stack:
+
+```cpp
+template <typename T>
+class Stack {
+public:
+    T    top()           { std::scoped_lock l(mu_); return data_.back(); }
+    void pop()           { std::scoped_lock l(mu_); data_.pop_back(); }
+    void push(T element) { std::scoped_lock l(mu_); data_.push_back(std::move(element)); }
+private:
+    std::mutex     mu_;
+    std::vector<T> data_;
+};
+```
+
+Every method is internally atomic — and the class is still broken. Consider:
+
+| Thread 1 | Thread 2 |
+|---|---|
+| `T a = s.top();` *(reads 6)* |  |
+|  | `T b = s.top();` *(also reads 6)* |
+| `s.pop();` *(removes 6)* |  |
+|  | `s.pop();` *(removes 4 — wrong!)* |
+
+Both threads observed `top()` returning 6, but only one of those 6's is real. The other thread silently popped a different value.
+
+The fix is to **redesign the API so the dangerous interleaving is impossible** — combine the read and the modification into one atomic operation:
+
+```cpp
+template <typename T>
+class Stack {
+public:
+    // Pops and returns. std::optional handles "empty" without throwing.
+    std::optional<T> pop() {
+        std::scoped_lock l(mu_);
+        if (data_.empty()) return std::nullopt;
+        T value = std::move(data_.back());
+        data_.pop_back();
+        return value;
+    }
+
+    void push(T element) {
+        std::scoped_lock l(mu_);
+        data_.push_back(std::move(element));
+    }
+private:
+    std::mutex     mu_;
+    std::vector<T> data_;
+};
+```
+
+Notice what disappeared: `top()`. There's no safe way to expose it on a concurrent stack — by the time the caller acts on the returned reference, another thread may have popped it. The only thread-safe peek is "peek and remove together."
+
+Lessons that generalize:
+
+- **Per-method locking ≠ thread safety.** Composed operations need their own atomic step.
+- **Avoid returning references or iterators into shared state.** They become dangling the moment the lock is released.
+- **Move work *into* the class.** Instead of `if (!q.empty()) q.front();`, expose a `try_pop(T&)` or `pop() -> optional<T>`.
+- **Document what's atomic.** "All public methods are individually atomic" vs "Sequences of public method calls are atomic" are very different guarantees.
+
+Full example: [thread_safe.cpp](../src/multithreading/thread_safe.cpp).
+
+Refs: [SO: how to make an application thread-safe](https://stackoverflow.com/questions/5125241/how-to-make-an-application-thread-safe), [Herb Sutter — Lock-Free Programming I](https://www.youtube.com/watch?v=c1gO9aB9nbs), [Herb Sutter — Lock-Free Programming II](https://www.youtube.com/watch?v=CmxkPChOcvw).

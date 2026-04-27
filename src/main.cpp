@@ -157,7 +157,7 @@ struct cell {
 
 bool operator<(const cell &lhs, const cell &rhs) { return lhs.cost < rhs.cost; }
 
-int main() {
+int main1() {
   // double number = 3.1914;
 
   // std::cout << "default std::cout.precision(): " << std::cout.precision()
@@ -340,3 +340,41 @@ int main() {
 
   return 0;
 }
+
+/*
+one thread producing sensor data
+multiple consumers (perception, logging, visualization)
+*/
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
+// std::lock_guard
+// std::mutex
+// std::scoped_lock<std::mutex> lock;
+
+std::mutex mu;
+
+void func(std::string id) {
+
+  for (std::size_t i = 0; i < 100; i++) {
+    // mu.lock();
+    std::scoped_lock<std::mutex> guard(mu);
+    std::cout << "thread id: " << id << " i: " << i << std::endl;
+    // mu.unlock();
+  }
+  return;
+}
+void worker(std::stop_token stoken) {
+  while (!stoken.stop_requested()) {
+    std::cout << "working...\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  std::cout << "stopped cleanly\n";
+}
+
+int main() {
+  std::jthread t(worker); // stop_token injected automatically
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  t.request_stop(); // ask the thread to exit
+} // destructor: request_stop() + join()

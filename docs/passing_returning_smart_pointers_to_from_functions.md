@@ -1,333 +1,330 @@
+# Passing and Returning Smart Pointers
 
-# Passing and Returning Smart Pointers in C++
+How to write function signatures that handle smart pointers correctly — without leaking ownership semantics, without unnecessary refcount bumps, and without the common anti-patterns.
 
-This document explains **when and how to pass or return smart pointers** in C++, with correct ownership semantics and interview-safe rules.
+> **The single most important rule** (from the [C++ Core Guidelines, R.30](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#r30-take-smart-pointers-as-parameters-only-to-explicitly-express-lifetime-semantics)):
+>
+> A function should take a smart pointer **only if it needs to express ownership or lifetime semantics**. Otherwise, pass the object itself: `T&`, `const T&`, or `T*`.
 
-> **Key rule (C++ Core Guidelines)**
-> A function should take a smart pointer **only if it needs to express ownership or lifetime semantics**.
-> Otherwise, pass the object itself (`T&`, `const T&`, or `T*`).
+The function signature is documentation. Reading `void f(std::shared_ptr<S>)` should immediately tell the caller "this function will share ownership of the object." If it actually just reads from the object, that signature is lying.
 
-Reference:[isocpp](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#r30-take-smart-pointers-as-parameters-only-to-explicitly-express-lifetime-semantics)
+- [1. Decision Table](#1-decision-table)
+- [2. unique_ptr](#2-unique_ptr)
+  - [2.1. Don't pass a unique_ptr if you only need the object](#21-dont-pass-a-unique_ptr-if-you-only-need-the-object)
+  - [2.2. Transfer ownership: by value with std::move](#22-transfer-ownership-by-value-with-stdmove)
+  - [2.3. Mutate the pointer itself: by reference](#23-mutate-the-pointer-itself-by-reference)
+  - [2.4. Returning unique_ptr (factory pattern)](#24-returning-unique_ptr-factory-pattern)
+  - [2.5. Borrowing the underlying object via .get()](#25-borrowing-the-underlying-object-via-get)
+- [3. shared_ptr](#3-shared_ptr)
+  - [3.1. Don't pass a shared_ptr if you only need the object](#31-dont-pass-a-shared_ptr-if-you-only-need-the-object)
+  - [3.2. Take a copy to share ownership: by value](#32-take-a-copy-to-share-ownership-by-value)
+  - [3.3. Just observe, don't bump refcount: const shared_ptr<T>&](#33-just-observe-dont-bump-refcount-const-shared_ptrt)
+  - [3.4. Mutate the pointer itself: by reference](#34-mutate-the-pointer-itself-by-reference)
+  - [3.5. Returning shared_ptr](#35-returning-shared_ptr)
+  - [3.6. enable_shared_from_this for self-sharing](#36-enable_shared_from_this-for-self-sharing)
+  - [3.7. Anti-patterns](#37-anti-patterns)
+- [4. weak_ptr](#4-weak_ptr)
+  - [4.1. Pass by value](#41-pass-by-value)
+  - [4.2. Always lock before use](#42-always-lock-before-use)
+- [5. Cheat Sheet](#5-cheat-sheet)
 
 ---
 
-## Example type
+# 1. Decision Table
+
+| Function intent | Take | Why |
+|---|---|---|
+| Read the object, can't be null | `const T&` | Cheapest, clearest, no ownership claim. |
+| Read or modify the object, can't be null | `T&` | Same, mutable. |
+| Read the object, may be null | `const T*` | Pointer signals nullability. |
+| Read or modify the object, may be null | `T*` | Same, mutable. |
+| **Take ownership** (caller gives it up) | `std::unique_ptr<T>` | The signature *announces* ownership transfer. |
+| **Share ownership** (caller and callee both keep) | `std::shared_ptr<T>` (by value) | One refcount bump per call. |
+| Observe a `shared_ptr` without bumping refcount | `const std::shared_ptr<T>&` | Hot-loop callers in shared-pointer-heavy codebases. |
+| Mutate the smart pointer itself (re-target it) | `std::unique_ptr<T>&` / `std::shared_ptr<T>&` | Rare; document it. |
+| Watch a `shared_ptr`-managed object that may die | `std::weak_ptr<T>` | Caller hasn't extended its lifetime. |
+| **Return** an owned new object | `std::unique_ptr<T>` | Factory pattern; transfers ownership. |
+| **Return** a co-owned object | `std::shared_ptr<T>` | When the receiver participates in shared ownership. |
+
+---
+
+# 2. unique_ptr
+
+`std::unique_ptr<T>` expresses **exclusive ownership**. Use the example type below for all the snippets:
 
 ```cpp
-#include <iostream>
-
 struct S {
     int m_id;
-
-    explicit S(int id) : m_id(id) {
-        std::cout << "ctor " << m_id << std::endl;
-    }
-
-    ~S() {
-        std::cout << "dtor " << m_id << std::endl;
-    }
-
+    explicit S(int id) : m_id(id) { std::cout << "ctor " << m_id << '\n'; }
+    ~S()                          { std::cout << "dtor " << m_id << '\n'; }
     S(S&&) = default;
     S& operator=(S&&) = default;
-
     S(const S&) = delete;
     S& operator=(const S&) = delete;
 };
 ```
 
----
+## 2.1. Don't pass a unique_ptr if you only need the object
 
-## std::unique_ptr
-
-`std::unique_ptr<T>` expresses **exclusive ownership**.
-
-### Good Practices
-
-### 1. Pass the object, not the smart pointer, if ownership is not involved
-
-❌ Bad (leaks ownership semantics):
+❌ Wrong — leaks ownership semantics into the signature for no reason:
 
 ```cpp
-void useResource(std::unique_ptr<S>& ptr);
+void use(std::unique_ptr<S>& ptr);
+void use(const std::unique_ptr<S>& ptr);
 ```
 
-✅ Correct:
+✅ Right:
 
 ```cpp
-void useResource(S& s) {
-    // uses the object, no ownership semantics
-}
+void use(S& s);              // non-null
+void use(const S& s);        // read-only, non-null
+void use(const S* s);        // may be null
 ```
 
-Nullable case:
+The caller writes `use(*ptr);` or `use(ptr.get());`. The signature now says exactly what `use` needs.
+
+## 2.2. Transfer ownership: by value with std::move
+
+To take ownership, take the `unique_ptr` by value. The caller must `std::move` it in:
 
 ```cpp
-void useResource(const S* s) {
-    if (!s) return;
+void take(std::unique_ptr<S> ptr) {
+    // `ptr` now owns the resource and will destroy it on scope exit
 }
+
+auto p = std::make_unique<S>(10);
+take(std::move(p));
+// p is empty; do not dereference
 ```
 
----
+`std::move` is **required** at the call site — `unique_ptr` has no copy constructor.
 
-### 2. Transfer ownership explicitly with `std::move`
+## 2.3. Mutate the pointer itself: by reference
+
+Rare. Use only when the function genuinely needs to *re-target* the caller's pointer:
 
 ```cpp
-void takeOwnership(std::unique_ptr<S> ptr) {
-    // now owns the resource
-}
-
-int main() {
-    auto p = std::make_unique<S>(10);
-    takeOwnership(std::move(p));
-    // p is now empty
+void replace(std::unique_ptr<S>& ptr) {
+    ptr = std::make_unique<S>(99);
 }
 ```
 
-This clearly communicates **ownership transfer**.
+This is unusual enough that you should document it at the declaration.
 
----
+## 2.4. Returning unique_ptr (factory pattern)
 
-### 3. Modify the pointer itself via reference (rare but valid)
-
-```cpp
-void reset(std::unique_ptr<S>& ptr) {
-    ptr.reset();
-}
-```
-
-Use this **only** when the function must change the pointer.
-
----
-
-### Returning `std::unique_ptr`
-
-Returning a `std::unique_ptr` is the **standard factory pattern**.
+Returning `unique_ptr` by value is the standard factory:
 
 ```cpp
-std::unique_ptr<S> createResource() {
-    return std::make_unique<S>(10);
+std::unique_ptr<S> create() {
+    return std::make_unique<S>(10);    // no std::move needed
 }
 
-int main() {
-    auto ptr = createResource();
-}
+auto p = create();
 ```
 
 Notes:
-
-* The managed object is heap-allocated
-* Ownership is transferred safely
-* No `std::move` is required
-* Copy elision / move semantics are handled by the language
-
-❌ **Never** do this:
+- Do **not** write `return std::move(local);` — that disables NRVO and is no faster.
+- Do **not** return a `unique_ptr` that owns a stack object:
 
 ```cpp
 std::unique_ptr<S> bad() {
     S local(10);
-    return std::unique_ptr<S>(&local); // undefined behavior
+    return std::unique_ptr<S>(&local);   // ⚠️ undefined behavior — &local is on the stack
 }
 ```
 
----
+## 2.5. Borrowing the underlying object via .get()
 
-### Raw pointers alongside `unique_ptr`
+If a function takes `const S*` (because it may be null), call it with `ptr.get()`:
 
 ```cpp
-void observe(const S* s);
+void inspect(const S* s);
 
-int main() {
-    auto ptr = std::make_unique<S>(10);
-    observe(ptr.get()); // OK if pointer is not stored or deleted
-}
+auto p = std::make_unique<S>(10);
+inspect(p.get());                        // OK — p still owns the resource
 ```
 
-This is safe **only if** the raw pointer:
-
-* does not escape
-* is not deleted
-* does not outlive the `unique_ptr`
+Safe **only** if the called function:
+- doesn't store the raw pointer beyond its scope,
+- doesn't `delete` it,
+- doesn't outlive the `unique_ptr`.
 
 ---
 
-## `std::shared_ptr`
+# 3. shared_ptr
 
-`std::shared_ptr<T>` expresses **shared ownership**.
+`std::shared_ptr<T>` expresses **shared ownership**. The same example type `S` from §2 applies.
 
-### Good Practices
+## 3.1. Don't pass a shared_ptr if you only need the object
 
-### 1. Pass by value to share ownership
-
-```cpp
-#include <memory>
-
-void process(std::shared_ptr<S> p) {
-    std::cout << p.use_count() << std::endl;
-}
-
-int main() {
-    auto sp = std::make_shared<S>(42);
-    process(sp);
-}
-```
-
-This explicitly extends the object’s lifetime.
-
----
-
-### 2. Pass the object if ownership is not needed
-
-❌ Bad:
+❌ Wrong:
 
 ```cpp
 void read(std::shared_ptr<S> p);
 ```
 
-✅ Correct:
+This bumps the refcount on every call (atomic operation, not free) for nothing.
+
+✅ Right:
 
 ```cpp
 void read(const S& s);
 ```
 
----
+## 3.2. Take a copy to share ownership: by value
 
-### Returning `std::shared_ptr`
+When the callee genuinely participates in ownership — e.g. stores the pointer in a member, hands it off to a worker thread — take it by value:
 
 ```cpp
-std::shared_ptr<S> createShared() {
-    return std::make_shared<S>(100);
-}
-
-int main() {
-    auto sp = createShared();
-}
+class Scheduler {
+    std::vector<std::shared_ptr<Task>> queue_;
+public:
+    void enqueue(std::shared_ptr<Task> t) {
+        queue_.push_back(std::move(t));   // refcount stays at the right level
+    }
+};
 ```
 
-Notes:
+The function commits to extending the object's lifetime.
 
-* No extra reference count increment is required
-* Copy elision applies
-* Do **not** write `return std::move(ptr);`
+## 3.3. Just observe, don't bump refcount: const shared_ptr<T>&
 
-❌ Anti-pattern:
+If a function needs to *know* it's looking at a shared pointer (perhaps to re-share it conditionally) but most calls won't actually share it, take by `const&` to skip the refcount bump:
 
 ```cpp
-return std::move(ptr); // disables NRVO, no benefit
-```
-
----
-
-### Bad Practices
-
-### 1. Modifying a `shared_ptr` via reference
-
-```cpp
-void dangerous(std::shared_ptr<S>& p) {
-    p = std::make_shared<S>(20);
-}
-```
-
-This silently replaces ownership and is usually surprising.
-
----
-
-### 2. Creating `shared_ptr` from stack objects
-
-```cpp
-std::shared_ptr<S> bad() {
-    S local(10);
-    return std::shared_ptr<S>(&local); // undefined behavior
-}
-```
-
-Correct approach:
-
-```cpp
-return std::make_shared<S>(10);
-```
-
----
-
-### 3. Multiple `shared_ptr`s from the same raw pointer
-
-```cpp
-S* raw = new S(10);
-std::shared_ptr<S> p1(raw);
-std::shared_ptr<S> p2(raw); // double delete
-```
-
-Always create **one** owning `shared_ptr`.
-
----
-
-## `std::weak_ptr`
-
-`std::weak_ptr<T>` is a **non-owning observer** of a `shared_ptr`-managed object.
-
-### Good Practices
-
-### 1. Pass by value
-
-```cpp
-void observe(std::weak_ptr<S> wp) {
-    if (auto sp = wp.lock()) {
-        std::cout << sp->m_id << std::endl;
+void maybe_share(const std::shared_ptr<S>& sp) {
+    if (some_condition()) {
+        registry.add(sp);          // copy here — refcount goes up only if needed
     }
 }
 ```
 
-* `lock()` returns a `shared_ptr`
-* The object is guaranteed alive during that scope
+This is mostly relevant in performance-sensitive code that calls into a `shared_ptr`-heavy API. For pure read access, prefer `const T&` (§3.1) — the cleaner signature.
 
----
+## 3.4. Mutate the pointer itself: by reference
 
-### 2. Return `weak_ptr` to avoid extending lifetime
+Same as `unique_ptr` — rare. Reach for non-const reference only when the function must replace the caller's pointer:
 
 ```cpp
-std::weak_ptr<S> getWeak(const std::shared_ptr<S>& sp) {
-    return sp;
+void rotate(std::shared_ptr<S>& current) {
+    current = std::make_shared<S>(next_id());
 }
 ```
 
----
-
-### Bad Practices
-
-### 1. Using `weak_ptr` without locking
-
-❌ Bad:
+## 3.5. Returning shared_ptr
 
 ```cpp
-*weakPtr.lock(); // ignoring result validity
-```
-
-✅ Correct:
-
-```cpp
-if (auto sp = weakPtr.lock()) {
-    // safe
+std::shared_ptr<S> create() {
+    return std::make_shared<S>(100);
 }
 ```
 
+Notes:
+- Return by value. RVO/NRVO handles the move; no `std::move` needed.
+- Do **not** write `return std::move(local);` — disables NRVO.
+- Do **not** construct from a stack object:
+
+```cpp
+std::shared_ptr<S> bad() {
+    S local(10);
+    return std::shared_ptr<S>(&local);   // ⚠️ deletes a stack address — UB
+}
+```
+
+## 3.6. enable_shared_from_this for self-sharing
+
+If a member function needs to hand out a `shared_ptr` to itself (e.g. registering with a callback queue), inheriting from `std::enable_shared_from_this<T>` is the only correct way:
+
+```cpp
+class Worker : public std::enable_shared_from_this<Worker> {
+public:
+    void schedule(Queue& q) {
+        q.push(shared_from_this());      // ✅ shares the existing control block
+    }
+};
+```
+
+Never write `std::shared_ptr<Worker>(this)` — that creates a *second* control block, leading to a double-delete when both refcounts hit zero. See [smart_pointers.md §3.4](smart_pointers.md#34-enable_shared_from_this).
+
+`shared_from_this()` only works after the object is already managed by some `shared_ptr` — calling it from a constructor throws `std::bad_weak_ptr`.
+
+## 3.7. Anti-patterns
+
+### Two shared_ptrs from the same raw pointer
+
+```cpp
+S* raw = new S(10);
+std::shared_ptr<S> p1(raw);
+std::shared_ptr<S> p2(raw);   // ⚠️ both delete on destruction — double-free
+```
+
+Each `shared_ptr` constructor from a raw pointer creates its own control block. They don't know about each other.
+
+✅ Right:
+
+```cpp
+auto p1 = std::make_shared<S>(10);
+auto p2 = p1;                  // copy — same control block
+```
+
+### Storing a shared_ptr to *this* without enable_shared_from_this
+
+Same root cause as above — see §3.6.
+
 ---
 
-### 2. Treating `weak_ptr` as a permanent reference
+# 4. weak_ptr
 
-A `weak_ptr` **does not guarantee existence**.
-It must be checked every time it is used.
+A `std::weak_ptr<T>` is a non-owning observer. Use it when you want to *check* whether a shared object is still alive without keeping it alive yourself.
+
+## 4.1. Pass by value
+
+```cpp
+void observe(std::weak_ptr<S> wp) {
+    if (auto sp = wp.lock()) {
+        std::cout << sp->m_id << '\n';   // sp keeps the object alive in this scope
+    } else {
+        std::cout << "object is gone\n";
+    }
+}
+```
+
+`weak_ptr` is cheap to copy — by-value is fine.
+
+## 4.2. Always lock before use
+
+```cpp
+*wp.lock();                     // ⚠️ if expired, lock() returns empty shared_ptr — UB
+```
+
+```cpp
+if (auto sp = wp.lock()) {      // ✅ check first
+    // sp is alive here for the rest of the scope
+}
+```
+
+`expired()` is a cheaper check, but in multithreaded code its answer can change between the call and the next instruction. **Prefer `lock()`** — it's atomic.
 
 ---
 
-## Summary Cheat Sheet
+# 5. Cheat Sheet
 
-| Intent                 | Use                      |
-| ---------------------- | ------------------------ |
-| Use object only        | `T&`, `const T&`, `T*`   |
-| Transfer ownership     | `std::unique_ptr<T>`     |
-| Share ownership        | `std::shared_ptr<T>`     |
-| Observe without owning | `std::weak_ptr<T>`       |
-| Factory function       | return smart pointer     |
-| Just reading           | never pass smart pointer |
+| Intent | Pass as | Return as |
+|---|---|---|
+| Read object only, non-null | `const T&` | — |
+| Read object only, may be null | `const T*` | — |
+| Modify object, non-null | `T&` | — |
+| Take ownership (caller gives up) | `std::unique_ptr<T>` (move at call) | `std::unique_ptr<T>` (factory) |
+| Share ownership (callee keeps it) | `std::shared_ptr<T>` (by value) | `std::shared_ptr<T>` |
+| Observe a `shared_ptr` without bumping count | `const std::shared_ptr<T>&` | rare |
+| Watch but don't extend lifetime | `std::weak_ptr<T>` | `std::weak_ptr<T>` |
+| Replace the caller's pointer | `std::unique_ptr<T>&` / `std::shared_ptr<T>&` | — |
 
----
+**Never:**
+- Pass a smart pointer "just to be safe" if you don't need ownership semantics.
+- `return std::move(local_smart_ptr);` — disables RVO/NRVO.
+- Build two `shared_ptr`s from the same raw pointer.
+- Build a `shared_ptr<T>(this)` inside a member; use `enable_shared_from_this`.
 
+**See also:** [smart_pointers.md](smart_pointers.md) for the underlying types, [smart_pointers_class_member.md](smart_pointers_class_member.md) for owning resources via class members.
