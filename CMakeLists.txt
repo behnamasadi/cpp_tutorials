@@ -728,6 +728,42 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_executable(main src/main.cpp)
 endif()
 
+message("\n########################################## clang-format ##########################################\n")
+find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format clang-format-18 clang-format-17 clang-format-16 clang-format-15)
+if(CLANG_FORMAT_EXECUTABLE)
+    execute_process(
+        COMMAND ${CLANG_FORMAT_EXECUTABLE} --version
+        OUTPUT_VARIABLE CLANG_FORMAT_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    message(STATUS "clang-format found: ${CLANG_FORMAT_EXECUTABLE}")
+    message(STATUS "clang-format version: ${CLANG_FORMAT_VERSION}")
+else()
+    message(WARNING "clang-format is not installed. Install it to enable format-on-save in VS Code.\n"
+                    "  Ubuntu/Debian: sudo apt install clang-format\n"
+                    "  macOS:         brew install clang-format\n"
+                    "  Windows:       choco install llvm   (or install LLVM from https://releases.llvm.org)")
+endif()
+
+
+message("\n########################################## clang-tidy ##########################################\n")
+find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16 clang-tidy-15)
+if(CLANG_TIDY_EXECUTABLE)
+    execute_process(
+        COMMAND ${CLANG_TIDY_EXECUTABLE} --version
+        OUTPUT_VARIABLE CLANG_TIDY_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXECUTABLE}")
+    message(STATUS "clang-tidy version:\n${CLANG_TIDY_VERSION}")
+else()
+    message(WARNING "clang-tidy is not installed. Install it to enable static analysis / linting.\n"
+                    "  Ubuntu/Debian: sudo apt install clang-tidy\n"
+                    "  macOS:         brew install llvm   (clang-tidy ships with LLVM)\n"
+                    "  Windows:       choco install llvm  (or install LLVM from https://releases.llvm.org)")
+endif()
+
+
 message("\n########################################## System Design  ##########################################\n")
 
 add_executable(reusable_library src/reusable_library.cpp)
