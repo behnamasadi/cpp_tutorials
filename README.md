@@ -391,22 +391,52 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 
 ## [C++ System Design](#)
 
-- [Memory Management Strategies (Pool, Arena, Slab Allocators)](docs/system_design/memory_management.md)
-- [Object-Oriented Design Patterns (Factory, Singleton, Observer, Strategy)](docs/system_design/design_patterns.md)
-- [Concurrency Patterns (Thread Pool, Producer-Consumer, Active Object)](docs/system_design/concurrency_patterns.md)
-- [Lock-Free Data Structures (SPSC/SPMC/MPMC, ring buffers, hazard pointers, RCU)](docs/lock_free_data_structures.md)
-- [Cache-Friendly Data Structures and Data-Oriented Design](docs/system_design/cache_friendly_design.md)
-- [Plugin Architecture and Dynamic Loading](docs/system_design/plugin_architecture.md)
-- [Event-Driven Architecture and State Machines](docs/system_design/event_driven_state_machines.md)
-- [API and ABI Design for C++ Libraries](docs/system_design/api_abi_design.md)
+### Principles and Foundations
+
 - [SOLID Principles in C++](docs/system_design/solid_principles.md)
-- [Real-Time Systems Design](docs/system_design/realtime_systems.md)
-- [Embedded Systems Design](docs/system_design/embedded_systems.md)
-- [Game Engine Architecture](docs/system_design/game_engine_architecture.md)
-- [High-Performance Computing (HPC) Patterns](docs/system_design/hpc_patterns.md)
-- [Serialization and Deserialization (Protobuf, FlatBuffers)](docs/system_design/serialization.md)
-- [Error Handling Strategies and Fault Tolerance](docs/system_design/error_handling_strategies.md)
-- [Design a reusable library](docs/system_design/design_a_reusable_library.md)
+- [Design a Reusable Library](docs/system_design/design_a_reusable_library.md)
+- [API and ABI Design for C++ Libraries (versioning, symbol visibility, stable ABI)](docs/system_design/api_abi_design.md)
+- [Exception Safety Guarantees (basic, strong, no-throw)](docs/system_design/exception_safety_guarantees.md)
+- [Error Handling Strategies and Fault Tolerance (error codes, exceptions, `std::expected`, `tl::expected`)](docs/system_design/error_handling_strategies.md)
+- [Dependency Injection and Inversion of Control](docs/system_design/dependency_injection.md)
+- [Resource Management Patterns (RAII, scope guards, `unique_resource`)](docs/system_design/resource_management_patterns.md)
+
+### Design Patterns
+
+- [Object-Oriented Design Patterns (Factory, Singleton, Observer, Strategy, Visitor, Decorator, Adapter)](docs/system_design/design_patterns.md)
+- [Concurrency Patterns (Thread Pool, Producer-Consumer, Active Object, Reactor, Proactor)](docs/system_design/concurrency_patterns.md)
+- [Event-Driven Architecture and State Machines (HSM, `boost::sml`)](docs/system_design/event_driven_state_machines.md)
+- [Pipeline and Dataflow Architectures](docs/system_design/pipeline_dataflow.md)
+
+### Memory and Performance
+
+- [Memory Management Strategies (Pool, Arena, Slab, Bump/Linear Allocators)](docs/system_design/memory_management.md)
+- [Cache-Friendly Data Structures and Data-Oriented Design](docs/system_design/cache_friendly_design.md)
+- [False Sharing, Cache Line Padding, NUMA Awareness](docs/system_design/false_sharing_numa.md)
+- [Lock-Free Data Structures (SPSC/SPMC/MPMC, ring buffers, hazard pointers, RCU)](docs/lock_free_data_structures.md)
+- [Branch Prediction, Prefetching, and SIMD](docs/system_design/branch_prediction_simd.md)
+- [High-Performance Computing (HPC) Patterns (SPMD, fork-join, work stealing)](docs/system_design/hpc_patterns.md)
+
+### Architecture and Modularity
+
+- [Plugin Architecture and Dynamic Loading](docs/system_design/plugin_architecture.md)
+- [Modular Design with C++20 Modules and Build-System Architecture](docs/system_design/modular_design.md)
+- [Serialization and Deserialization (Protobuf, FlatBuffers, Cap'n Proto, MessagePack)](docs/system_design/serialization.md)
+- [Inter-Process Communication and Shared Memory (mmap, Boost.Interprocess)](docs/system_design/ipc_shared_memory.md)
+- [Configuration Management (compile-time vs runtime, feature flags)](docs/system_design/configuration_management.md)
+
+### Observability and Testability
+
+- [Logging, Metrics, and Distributed Tracing (OpenTelemetry C++)](docs/system_design/observability.md)
+- [Testing Strategies (mocking, fuzzing, property-based, contract testing)](docs/system_design/testing_strategies.md)
+- [Designing for Testability (seams, dependency injection, fakes vs mocks)](docs/system_design/designing_for_testability.md)
+
+### Domain-Specific Architectures
+
+- [Real-Time Systems Design (deadlines, priority inversion, deterministic latency)](docs/system_design/realtime_systems.md)
+- [Embedded Systems Design (no-heap, no-exceptions, freestanding C++)](docs/system_design/embedded_systems.md)
+- [Game Engine Architecture (ECS, scene graphs, frame pacing)](docs/system_design/game_engine_architecture.md)
+- [Distributed Systems Patterns in C++ (RPC, sharding, consensus, backpressure)](docs/system_design/distributed_systems_patterns.md)
 
 ## [VSCode](#)
 
