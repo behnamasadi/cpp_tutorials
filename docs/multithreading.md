@@ -761,6 +761,33 @@ A binary semaphore and a condition variable can both signal, but `binary_semapho
 
 Full example: [semaphor.cpp](../src/multithreading/semaphor.cpp).
 
+### 4.3.3. Mutex vs Semaphore
+
+They look superficially similar — both can make a thread block until another thread takes some action — but they answer different questions. A mutex answers *"who currently owns this resource?"*; a semaphore answers *"how many slots are left?"*.
+
+| Aspect | `std::mutex` | `std::counting_semaphore<N>` |
+|---|---|---|
+| **Conceptual model** | Exclusive ownership token | Counter of available slots |
+| **Counter range** | 0 or 1 (locked / unlocked) | 0 to *N* |
+| **Ownership** | Yes — only the locking thread may unlock | None — *any* thread may `release()` |
+| **Acquire/release symmetry** | Must be the same thread | Different threads OK (often the point) |
+| **Recursive locking by owner** | UB on plain `std::mutex` (use `recursive_mutex`) | N/A — no concept of owner |
+| **Initial state** | Unlocked | You choose: `counting_semaphore<N>(k)` starts with *k* slots free |
+| **Primary use** | Protect a critical section | Limit concurrency, signal across threads |
+| **Pairs naturally with** | `std::condition_variable` for waiting on predicates | Nothing — `acquire()` is already the wait |
+| **Priority inversion mitigation** | Some platforms support priority inheritance | No |
+
+**When to reach for which:**
+
+- **Protecting shared data** — mutex. A semaphore *can* be initialized to 1 and used like a mutex ("binary semaphore as lock"), but it loses ownership tracking: thread A could `acquire()` and thread B could `release()`, silently breaking your invariants. Use a mutex.
+- **Capping concurrent users of a resource** (connection pool, GPU slots, bounded buffer) — semaphore. A mutex only gives you *one* user at a time; a `counting_semaphore<N>` gives you *N*.
+- **Signaling "event happened" across threads** — `binary_semaphore` is often the simplest option (no mutex, no predicate, no spurious wakeups). Use a condition variable instead when waiters need to re-check a complex predicate over shared state.
+- **Producer/consumer queue with backpressure** — typically *both*: a mutex protecting the queue's internals, plus semaphores counting filled slots and empty slots.
+
+**Why "binary semaphore as mutex" is a trap:** the mutex's ownership invariant is what makes higher-level patterns work. Lock hierarchies for deadlock avoidance, RAII guards (`scoped_lock`), `condition_variable::wait` (which requires a `unique_lock<mutex>`), and priority inheritance all assume one specific thread owns the lock. A semaphore has no owner, so none of those apply.
+
+A useful mental shortcut: **mutex = lock, semaphore = counter**. If you find yourself thinking "I want to lock this," reach for a mutex. If you're thinking "I want at most N of these at once" or "I want to wake another thread," reach for a semaphore.
+
 ## 4.4. Condition Variables
 
 Without a condition variable, a thread that wants to wait for some predicate (`queue not empty`, `data ready`, `stop requested`) has only two options:
@@ -794,9 +821,9 @@ cv.wait(lock, []{ return ready; });
 
 Same rule for `wait_for` and `wait_until`: always re-check after they return.
 
-### 4.4.2. Worked Example: Producer–Consumer
+### 4.4.2. Worked Example: Worker Notifies Main
 
-The simplest version: one consumer waits until the producer signals "data is ready."
+A minimal pattern: main launches a worker, blocks until the worker is done, then continues.
 
 ```cpp
 #include <condition_variable>
@@ -806,38 +833,40 @@ The simplest version: one consumer waits until the producer signals "data is rea
 
 std::mutex              mu;
 std::condition_variable cv;
-int  data  = 0;
-bool ready = false;
+bool done = false;
 
-void producer() {
-    std::this_thread::sleep_for(std::chrono::seconds(1));   // pretend to compute
+void worker() {
+    for (int i = 0; i < 5; ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));   // pretend to work
     {
         std::scoped_lock lock(mu);
-        data  = 42;
-        ready = true;
+        done = true;
     }
-    cv.notify_one();              // wake the consumer
-}
-
-void consumer() {
-    std::unique_lock lock(mu);
-    cv.wait(lock, [] { return ready; });   // sleeps until producer sets ready=true
-    std::cout << "got data = " << data << '\n';
+    cv.notify_one();              // wake main
 }
 
 int main() {
-    std::jthread t1(producer);
-    std::jthread t2(consumer);
+    std::jthread t(worker);
+    std::unique_lock lock(mu);
+    cv.wait(lock, []{ return done; });
+    std::cout << "worker finished\n";
 }
 ```
 
-Five things worth absorbing from this small example:
+Four things worth absorbing:
 
-- **The mutex protects `data` and `ready` together.** Both threads touch them; both lock `mu` before reading or writing.
-- **`unique_lock` on the wait side, `scoped_lock` on the notify side.** `wait()` needs to release and reacquire the mutex, and only `unique_lock` supports that. The producer doesn't wait, so `scoped_lock` is fine.
+- **The mutex protects `done`.** Both threads touch it; both lock `mu` before reading or writing. Without the mutex it's a data race — undefined behavior — and you also expose yourself to the lost-wakeup race below.
+- **`unique_lock` on the wait side, `scoped_lock` on the notify side.** `cv.wait` *requires* `std::unique_lock<std::mutex>` because it needs to atomically unlock the mutex while sleeping and relock it on wake-up. `scoped_lock` doesn't expose lock/unlock, so it can't be used with `cv.wait`. The worker doesn't wait, so `scoped_lock` is fine there.
 - **The predicate form of `wait`** (`cv.wait(lock, predicate)`) handles spurious wakeups for free — it re-checks the predicate on every wake-up.
-- **You can `notify_*` outside the lock.** Many examples notify while holding the mutex; releasing first is a tiny optimization that avoids the woken thread immediately blocking on the still-held lock.
-- **`notify_one` vs `notify_all`.** Use `notify_one` when only one waiter can make progress (one item produced → one consumer wakes). Use `notify_all` when the state change might let multiple waiters proceed (e.g. broadcasting a "shutdown" flag).
+- **`notify_*` outside the lock.** Releasing first is a tiny optimization that avoids the woken thread immediately blocking on the still-held lock. That's why the worker scopes the lock to `{ done = true; }` and calls `notify_one()` *after* the block ends.
+
+**Why the mutex matters even with `notify_one`.** Without the mutex you can hit the classic lost-wakeup race:
+
+1. Main checks `done` → false.
+2. Worker sets `done = true` and calls `notify_one()`.
+3. Main calls `cv.wait` — and sleeps forever, because the notify already fired.
+
+The mutex serializes "check predicate" (main) and "set predicate + notify" (worker) so this interleaving cannot happen: while main holds `mu` inside `cv.wait`'s predicate check, worker can't set `done`; once main is sleeping inside `wait`, the lock is released and worker can run, set `done`, and notify.
 
 `wait`'s contract:
 
@@ -1014,6 +1043,39 @@ Full example: [async_future_promise.cpp](../src/multithreading/async_future_prom
 | Multiple readers of one result | `std::shared_future` |
 
 Refs: [SO: when promise over async/packaged_task](https://stackoverflow.com/questions/17729924/when-to-use-promise-over-async-or-packaged-task).
+
+## 5.6. std::future vs std::condition_variable
+
+Both can make one thread wait until another thread does something, so the boundary between them isn't always obvious. The toy worker-notifies-main example from §4.4.2 could be written far more simply as:
+
+```cpp
+auto fut = std::async(std::launch::async, []{ /* work */ return 42; });
+int result = fut.get();   // blocks until worker is done
+```
+
+No mutex, no `done` flag, no CV. **For one-shot "compute a value, hand it back," `future` wins.** Use it.
+
+But futures have a strict shape, and condition variables cover everything outside it:
+
+| | `std::future` (+ `promise`/`async`) | `std::condition_variable` |
+|---|---|---|
+| **Signaling model** | One-shot: value (or exception) set exactly once | Repeated: signal each time a predicate may have changed |
+| **What you wait on** | "The result is ready" | Any predicate over shared state you can write |
+| **Number of waiters** | One (`future`) or many (`shared_future`) — but all see the *same* one-time value | Many — `notify_all` wakes them all, each re-checks its own predicate |
+| **Direction** | Producer → consumer only | Bidirectional (producer/consumer queue: each side blocks the other) |
+| **Carries a value?** | Yes — that's its whole point | No — you read shared state yourself under the lock |
+| **Threading** | `async(launch::async)` *spawns* a thread for you | Agnostic — works with any thread you already have |
+
+**Where futures don't fit:**
+
+1. **Repeated signaling.** A 1000-item producer/consumer queue can't be modeled with one future. Every push is a fresh event; CV signals each one.
+2. **Predicates over mutable state.** *"Wait until queue size > threshold,"* *"wait until shutdown is requested AND drain is complete,"* *"wait until any of these N flags is set."* The waiter, not the producer, decides what counts as "ready" — a future can only signal "the one value I was created for is now set."
+3. **Bidirectional sync.** Bounded buffer: producer blocks when full, consumer blocks when empty. Both sides wait and wake repeatedly. No future shape captures this.
+4. **You don't own the thread.** If the work is already happening on an event loop, a worker pool, or a hardware-driven callback, there's no `async` call to make. CV doesn't care who's doing the work.
+
+**The `~future` from `async` gotcha.** A future returned by `std::async(std::launch::async, ...)` blocks in its destructor until the task finishes. If you forget to call `get()`, your "fire and forget" silently turns into "block at end of scope." CV + flag has no such surprise — but you also have to manage the synchronization yourself.
+
+**Rule of thumb:** if the problem reads as *"compute X, give me X"*, use `future`. If it reads as *"wake me when this condition over shared state holds, possibly more than once, possibly with multiple waiters"*, use a condition variable. The §4.4.2 example sits on that boundary — `future` is the cleaner real-world choice for that exact shape; the CV version is there because that section is teaching CVs.
 
 ---
 
