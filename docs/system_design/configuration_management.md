@@ -164,7 +164,7 @@ void handle_request() {
 }
 ```
 
-The atomic-shared-ptr swap pattern (or RCU — see [Lock-Free Data Structures §9.3](../lock_free_data_structures.md#93-rcu-and-epoch-based-reclamation)) gives lock-free reads.
+The atomic-shared-ptr swap pattern (or RCU — see [Lock-Free Data Structures §9.3](lock_free_data_structures.md#93-rcu-and-epoch-based-reclamation)) gives lock-free reads.
 
 **Restrictions to document:**
 - Some settings can't change live: number of pre-allocated buffers, listening port, thread pool size on some systems. Mark them "requires restart" in the schema.

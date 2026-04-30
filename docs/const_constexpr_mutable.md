@@ -654,4 +654,55 @@ std::is_const_v< std::remove_pointer<int* const> > << '\n';
 ```
 
 # Where to not use const
-Refs [1](https://www.youtube.com/watch?v=dGCxMmGvocE)	
+Refs [1](https://www.youtube.com/watch?v=dGCxMmGvocE)
+
+# C++20: consteval and constinit
+
+C++20 introduced two new keywords that tighten the meaning of "compile time":
+
+| Keyword | Meaning |
+|---|---|
+| `constexpr` | *May* run at compile time if inputs are constant; otherwise runs at runtime. |
+| `consteval` | *Must* run at compile time. Calling at runtime is a compile error. Also called "immediate functions". |
+| `constinit` | The variable *must* be initialized at compile time, but isn't necessarily `const` afterward. Solves the static-init-order fiasco for static globals. |
+
+## consteval — guaranteed compile-time
+
+```cpp
+consteval int square(int x) { return x * x; }
+
+int main() {
+  constexpr int a = square(5);     // ✅ compile-time, a == 25
+  int n = 5;
+  // int b = square(n);            // ❌ compile error: n is not a constant expression
+}
+```
+
+`consteval` is stricter than `constexpr`. Use it when running at runtime would defeat the purpose — for example, a hash function that should populate a compile-time lookup table, or a string-validation routine that should never reach a release binary.
+
+## constinit — guaranteed compile-time *initialization*
+
+`constinit` says: "this static/thread-local variable must have its initializer evaluated at compile time, but the value itself is not const afterward." It's the cure for the [static initialization order fiasco](static_member_function_order_fiasco.md).
+
+```cpp
+constinit int counter = 42;          // initialized at compile time
+                                     // can still be modified at runtime
+// counter++ is ✅ ok
+
+// constinit int bad = std::time(0); // ❌ initializer not constant
+```
+
+Without `constinit`, a global `int counter = some_function();` *might* be initialized at static-init time (early, possibly before other globals it depends on). With `constinit`, you get a hard guarantee: the value is baked into the binary.
+
+## Quick comparison
+
+```cpp
+constexpr int a = 1;        // const, compile-time evaluable
+consteval int sq(int x);    // function: must run at compile time
+constinit int g = 42;       // global: initialized at compile time, mutable later
+```
+
+Use:
+- **`constexpr`** for "I'd like this at compile time if possible" (functions, variables).
+- **`consteval`** for "this is meaningless at runtime."
+- **`constinit`** for "this global must not have a runtime initializer," when the value still needs to be mutable.	

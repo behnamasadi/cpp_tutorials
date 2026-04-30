@@ -206,7 +206,7 @@ For embedded systems or tight kernels, hand-roll. For application-level dataflow
 
 - [Concurrency Patterns](concurrency_patterns.md)
 - [Branch Prediction and SIMD](branch_prediction_simd.md)
-- [Lock-Free Data Structures](../lock_free_data_structures.md)
+- [Lock-Free Data Structures](lock_free_data_structures.md)
 - [Intel TBB Flow Graph](https://oneapi-src.github.io/oneTBB/main/tbb_userguide/Flow_Graph.html)
 - [P2300 — `std::execution`](https://wg21.link/p2300)
 - *Streaming Systems*, Akidau/Chernyak/Lax — the canonical book on streaming dataflow.

@@ -122,7 +122,7 @@ For RT, lock-free or wait-free structures shine because a preempted thread can't
 - A locked mutex with priority inheritance can be acceptable in many soft-RT contexts.
 - A wait-free SPSC ring buffer is simpler and faster than most lock-free MPMC structures — pick the simplest sufficient model.
 
-See [Lock-Free Data Structures](../lock_free_data_structures.md).
+See [Lock-Free Data Structures](lock_free_data_structures.md).
 
 # 8. Worst-Case Execution Time (WCET)
 
@@ -179,7 +179,7 @@ For sub-microsecond hard RT, use a true RTOS (Zephyr, FreeRTOS, VxWorks) or a co
 # References
 
 - [Memory Management Strategies](memory_management.md)
-- [Lock-Free Data Structures](../lock_free_data_structures.md)
+- [Lock-Free Data Structures](lock_free_data_structures.md)
 - [Embedded Systems Design](embedded_systems.md)
 - *Real-Time Systems Design and Analysis*, Laplante & Ovaska.
 - *Hard Real-Time Computing Systems*, Buttazzo.

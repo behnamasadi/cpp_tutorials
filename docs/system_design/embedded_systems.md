@@ -140,7 +140,7 @@ void mainLoopStep() {
 }
 ```
 
-For richer ISR/main communication, use a lock-free SPSC ring buffer (see [Lock-Free Data Structures](../lock_free_data_structures.md)).
+For richer ISR/main communication, use a lock-free SPSC ring buffer (see [Lock-Free Data Structures](lock_free_data_structures.md)).
 
 # 7. Power Management
 
@@ -234,7 +234,7 @@ int main() {
 
 - [Volatile Keyword](../volatile.md)
 - [Real-Time Systems Design](realtime_systems.md)
-- [Lock-Free Data Structures](../lock_free_data_structures.md)
+- [Lock-Free Data Structures](lock_free_data_structures.md)
 - [Memory Management Strategies](memory_management.md)
 - *Making Embedded Systems*, Elecia White.
 - *Real-Time C++*, Christopher Kormanyos — modern C++ in MCU territory.

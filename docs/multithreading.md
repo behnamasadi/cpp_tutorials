@@ -1254,7 +1254,7 @@ Mitigations:
 
 Lock-free programming is genuinely hard. The right level for most code is "mutexes by default, atomics for counters and flags, and read a book before writing a lock-free queue." Recommended reading: *C++ Concurrency in Action* by Anthony Williams.
 
-For when you've decided you really do need a lock-free queue or ring buffer, see **[lock_free_data_structures.md](lock_free_data_structures.md)** — covers SPSC ring buffer (the simple correct one), SPSC/MPSC unbounded queues, the SPMC and MPMC escalation, and reclamation strategies (hazard pointers, RCU, atomic `shared_ptr`).
+For when you've decided you really do need a lock-free queue or ring buffer, see **[lock_free_data_structures.md](system_design/lock_free_data_structures.md)** — covers SPSC ring buffer (the simple correct one), SPSC/MPSC unbounded queues, the SPMC and MPMC escalation, and reclamation strategies (hazard pointers, RCU, atomic `shared_ptr`).
 
 ---
 

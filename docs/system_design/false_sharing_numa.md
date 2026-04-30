@@ -155,7 +155,7 @@ struct NumaShardedCounter {
 };
 ```
 
-**Replicated read-only.** Static config, lookup tables: store one copy per node; readers consult their local copy. RCU or epoch-based reclamation handles updates ([lock-free §9.3](../lock_free_data_structures.md#93-rcu-and-epoch-based-reclamation)).
+**Replicated read-only.** Static config, lookup tables: store one copy per node; readers consult their local copy. RCU or epoch-based reclamation handles updates ([lock-free §9.3](lock_free_data_structures.md#93-rcu-and-epoch-based-reclamation)).
 
 # 8. Quick Reference
 
@@ -171,7 +171,7 @@ Padding rule of thumb: **anything written concurrently by different threads gets
 
 # References
 
-- [Lock-Free Data Structures §3 (Cache Lines and False Sharing)](../lock_free_data_structures.md#3-cache-lines-and-false-sharing)
+- [Lock-Free Data Structures §3 (Cache Lines and False Sharing)](lock_free_data_structures.md#3-cache-lines-and-false-sharing)
 - [Cache-Friendly Design](cache_friendly_design.md)
 - *What Every Programmer Should Know About Memory*, Ulrich Drepper — the NUMA sections still apply.
 - [Linux NUMA documentation](https://www.kernel.org/doc/html/latest/admin-guide/mm/numa_memory_policy.html)

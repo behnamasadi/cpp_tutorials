@@ -106,7 +106,7 @@ public:
 };
 ```
 
-For lock-free variants, see [Lock-Free Data Structures](../lock_free_data_structures.md). For high-throughput SPSC use a ring buffer.
+For lock-free variants, see [Lock-Free Data Structures](lock_free_data_structures.md). For high-throughput SPSC use a ring buffer.
 
 ## 2.1 Backpressure vs. drop: choosing the policy
 
@@ -453,7 +453,7 @@ Drawbacks: lock granularity is the whole object; reentrant calls deadlock; doesn
 
 # 9. Read–Copy–Update (RCU)
 
-Readers walk a data structure with no locks. Writers atomically swap in a new version, then defer reclamation of the old version until all readers have finished. Throughput on read-heavy workloads is excellent. See [Lock-Free Data Structures §9.3](../lock_free_data_structures.md#93-rcu-and-epoch-based-reclamation).
+Readers walk a data structure with no locks. Writers atomically swap in a new version, then defer reclamation of the old version until all readers have finished. Throughput on read-heavy workloads is excellent. See [Lock-Free Data Structures §9.3](lock_free_data_structures.md#93-rcu-and-epoch-based-reclamation).
 
 # 10. Choosing Between Them
 
@@ -474,7 +474,7 @@ Don't use multiple patterns for one problem unless you've measured. Each adds qu
 
 - [Multithreading](../multithreading.md)
 - [Event handling / Concurrency / Thread Design Patterns](../thread_design_pattern.md)
-- [Lock-Free Data Structures](../lock_free_data_structures.md)
+- [Lock-Free Data Structures](lock_free_data_structures.md)
 - [Pipeline and Dataflow](pipeline_dataflow.md)
 - *Pattern-Oriented Software Architecture, Vol. 2*, Schmidt et al. (Reactor, Proactor, Active Object, Monitor).
 - *C++ Concurrency in Action*, Anthony Williams.

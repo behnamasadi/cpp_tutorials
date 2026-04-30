@@ -251,7 +251,7 @@ struct alignas(64) SpscShmRing {
 };
 ```
 
-Two processes `mmap` the same segment, agree on slot size, and use the standard SPSC ring buffer protocol. See [Lock-Free Data Structures §4](../lock_free_data_structures.md#4-single-producer-single-consumer-spsc-ring-buffer).
+Two processes `mmap` the same segment, agree on slot size, and use the standard SPSC ring buffer protocol. See [Lock-Free Data Structures §4](lock_free_data_structures.md#4-single-producer-single-consumer-spsc-ring-buffer).
 
 Gotchas specific to SHM:
 - Both processes must use the **same memory model** — agree on alignment, padding, and structure layout.
@@ -277,7 +277,7 @@ Gotchas specific to SHM:
 
 # References
 
-- [Lock-Free Data Structures](../lock_free_data_structures.md)
+- [Lock-Free Data Structures](lock_free_data_structures.md)
 - [Process, IPC, PCB](../process.md)
 - [`shm_open(3)`](https://man7.org/linux/man-pages/man3/shm_open.3.html), [`mmap(2)`](https://man7.org/linux/man-pages/man2/mmap.2.html)
 - [Boost.Interprocess docs](https://www.boost.org/doc/libs/release/doc/html/interprocess.html)

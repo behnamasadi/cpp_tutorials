@@ -77,7 +77,7 @@ Rule of thumb: **declare members from largest to smallest** to minimize padding.
 `alignas(N)` requests that a variable or type be aligned to **at least** N bytes. `N` must be a power of two.
 
 ```cpp
-alignas(32) float buffer[8];   // address is a multiple of 32
+alignas(32) float buffer[8];   // &buffer[0] is a multiple of 32
 
 struct alignas(64) CacheLineSized {
   int data[16];                // whole struct sits in one 64-byte cache line
@@ -85,6 +85,73 @@ struct alignas(64) CacheLineSized {
 
 std::cout << alignof(CacheLineSized);   // 64
 ```
+
+### What does `alignas` apply to?
+
+`alignas(N)` aligns the **whole object** (the array, in the example above) — only the first element gets the guarantee. Individual elements still keep their natural alignment.
+
+For `alignas(32) float buffer[8]`, if `&buffer[0] == 0x1000` (a multiple of 32):
+
+```text
+buffer[0]  at 0x1000     ✅ 32-aligned (multiple of 32)
+buffer[1]  at 0x1004     ❌ not 32-aligned (just 4-aligned, the natural alignment of float)
+buffer[2]  at 0x1008     ❌ not 32-aligned
+...
+buffer[7]  at 0x101C     ❌ not 32-aligned
+[end]      at 0x1020     ← 32 bytes total, fits exactly in one AVX vector
+```
+
+That's exactly what AVX wants: a 32-byte block at a 32-aligned address. One `_mm256_load_ps(buffer)` loads all 8 floats with the *aligned* (fast) instruction. Loading `buffer + 1` would need the unaligned variant `_mm256_loadu_ps` — slower on older CPUs, and a crash on architectures that don't tolerate unaligned vector loads.
+
+If you needed *every* element to be 32-aligned, you'd need an array of `alignas(32) float`-wrappers — but that's almost never what you want. The whole point of aligning a buffer is so that *one* SIMD load can pull in the whole batch.
+
+### What `alignas(64)` on a struct gets you
+
+```cpp
+struct alignas(64) CacheLineSized {
+  int data[16];   // 16 × 4 = 64 bytes
+};
+```
+
+Three things are happening together:
+
+1. **`alignas(64)`** forces the struct to start at an address that's a multiple of 64. On most modern CPUs the cache line size is 64 bytes, so the struct begins at a cache-line boundary.
+2. **`int data[16]`** is exactly 64 bytes.
+3. Therefore the **entire struct fits in one cache line** — never split across two.
+
+The CPU reads from RAM in 64-byte chunks (one cache line). If your struct straddled two cache lines, reading it would cost **two** memory fetches instead of one.
+
+With `alignas(64)`:
+
+```text
+cache line:  | 0x1000 ─────────── 0x103F | 0x1040 ─────────── 0x107F |
+              └─ obj fits here ──────────┘
+```
+
+Without it (natural alignment is `alignof(int) == 4`, so the struct could land anywhere 4-aligned):
+
+```text
+cache line:  | 0x1000 ─────────── 0x103F | 0x1040 ─────────── 0x107F |
+                              └─ obj straddles boundary ─┘
+                              ❌ two cache-line fetches needed
+```
+
+`alignas` also affects `sizeof`: if your struct's natural size is less than the alignment, the compiler pads it up so an *array* of these stays aligned element-to-element. For `CacheLineSized` it's already 64, so no extra padding — but `struct alignas(64) X { int x; }` would have `sizeof(X) == 64` (60 bytes of trailing padding).
+
+### The false-sharing use case
+
+The most common real-world reason to align a struct to 64 bytes is to keep multi-threaded counters from clobbering each other's cache:
+
+```cpp
+struct alignas(64) PerThreadCounter {
+  std::atomic<long> value;
+  // ~56 bytes of trailing padding, automatically inserted by alignas
+};
+
+PerThreadCounter counters[8];   // each on its own cache line
+```
+
+Without the `alignas`, two adjacent atomics would share a cache line, and every write by one thread would invalidate the other thread's cached copy — the **false sharing** problem. See [false_sharing_numa.md](system_design/false_sharing_numa.md) for the full story.
 
 Common reasons to use `alignas`:
 
@@ -165,21 +232,114 @@ Eigen/src/Core/DenseStorage.h:128: Assertion `(internal::UIntPtr(array) & (sizem
 
 This is Eigen catching the bug for you in debug builds. In release builds (without the assertion), an unaligned SSE load on x86 may silently work but slowly; on ARM with NEON it segfaults.
 
-# Cache lines vs alignment
+# Cache Lines
 
 Alignment and cache lines are **related but distinct** concepts:
 
 - **Alignment** is about *where* a value can start: at addresses divisible by N.
-- **Cache lines** are the unit the CPU transfers between RAM and cache — typically 64 bytes.
+- **Cache lines** are the unit the CPU transfers between RAM and cache — typically 64 bytes on modern x86 and ARM.
 
-Aligning to a cache line (`alignas(64)`) is a stronger requirement than the type itself needs. You'd do this to:
+You can't usefully think about high-performance C++ without understanding cache lines, because they're what makes "alignment" matter in practice.
 
-1. Keep a hot value alone on its line (avoid false sharing between threads).
-2. Ensure SIMD loads don't straddle two cache lines.
+## What's actually happening when you read memory
 
-For a deeper treatment, see [False Sharing and Cache Lines](system_design/false_sharing_numa.md) and [Cache-Friendly Design](system_design/cache_friendly_design.md).
+The CPU does **not** read individual bytes from RAM. It reads in chunks of 64 bytes (one cache line) into the L1 cache, then serves your individual reads from the cache. Even if your code reads a single `int`, the CPU has loaded the surrounding 64 bytes — they're now "free" to access.
 
-You can find the cache line size at runtime on Linux:
+This single fact drives most of cache-aware programming:
+
+```text
+Memory                                          L1 Cache
+┌───┬───┬───┬───┬───┬───┬───┬───┐              ┌───┬───┬───┬───┬───┬───┬───┬───┐
+│   │   │ X │   │   │   │   │   │   ───►       │   │   │ X │   │   │   │   │   │
+└───┴───┴───┴───┴───┴───┴───┴───┘              └───┴───┴───┴───┴───┴───┴───┴───┘
+                ^                              ^   ^   ^   ^   ^   ^   ^   ^
+read int X      │                              all 16 ints in this 64-byte
+                read 4 bytes                   line are now cached
+```
+
+A read that's already in cache is **~100× faster** than one that has to go to RAM. So:
+
+- **Reading sequentially** through an array is fast: one RAM fetch loads 16 ints, the next 15 reads are cache hits.
+- **Reading scattered memory** (linked list, random pointer chasing) is slow: most reads miss the cache.
+
+## Cache lines and `alignas`
+
+Two things go wrong if you ignore cache lines:
+
+### Problem 1: A struct straddling two cache lines
+
+If a 24-byte struct lands at offset 56 of a 64-byte line, it occupies bytes 56–63 of one line and 0–15 of the next. Reading it costs **two** cache-line fetches instead of one.
+
+```cpp
+struct Foo {
+  int a;
+  double b;
+  int c;
+};                           // sizeof == 24, alignof == 8
+
+Foo f;                       // could land at any 8-aligned address
+```
+
+Forcing it onto a 64-byte boundary (or padding it to a multiple of 64 in arrays) keeps each instance in one line:
+
+```cpp
+struct alignas(64) Foo {
+  int a;
+  double b;
+  int c;
+};                           // sizeof == 64 (40 bytes of trailing padding)
+```
+
+Trade-off: arrays of `Foo` now use 64 bytes per element instead of 24. Worth it only if random access dominates and cache misses on this struct are measurable.
+
+### Problem 2: False sharing between threads
+
+Even worse: two threads writing to *different variables that share a cache line* will fight each other. Every write invalidates the other thread's cached copy of the line, forcing it to re-fetch — even though they aren't actually contending on the same bytes.
+
+```cpp
+struct Counters {
+  std::atomic<long> a;       // ~56 bytes apart in memory, but...
+  std::atomic<long> b;       // ...both live on the SAME 64-byte cache line
+};
+
+Counters c;
+// thread 1: hammers c.a
+// thread 2: hammers c.b
+// performance is much worse than two separate atomics — that's false sharing
+```
+
+Fix: pad each counter onto its own cache line.
+
+```cpp
+struct Counters {
+  alignas(64) std::atomic<long> a;
+  alignas(64) std::atomic<long> b;
+};                           // sizeof == 128: each atomic on its own line
+```
+
+Now thread 1's writes to `a` don't invalidate thread 2's view of `b`. The dedicated [false_sharing_numa.md](system_design/false_sharing_numa.md) doc has a benchmark showing this can be a 5–10× speedup on a contended workload.
+
+## Detecting the cache line size
+
+The cache line size is a hardware property — typically 64, sometimes 128 (Apple Silicon's L2). You can query it three ways:
+
+### At compile time (C++17)
+
+```cpp
+#include <new>
+
+constexpr std::size_t L = std::hardware_destructive_interference_size;
+// minimum offset between two objects that won't false-share. Usually 64.
+
+struct Counters {
+  alignas(L) std::atomic<long> a;
+  alignas(L) std::atomic<long> b;
+};
+```
+
+This is the portable, future-proof choice for false-sharing prevention.
+
+### At runtime (Linux)
 
 ```cpp
 #include <unistd.h>
@@ -190,7 +350,24 @@ int main() {
 }
 ```
 
-Or from the shell: `getconf LEVEL1_DCACHE_LINESIZE`.
+### From the shell
+
+```bash
+getconf LEVEL1_DCACHE_LINESIZE       # Linux
+sysctl -n hw.cachelinesize           # macOS
+```
+
+## Cache lines vs alignment — the relationship
+
+| Concept | Question it answers | Typical value |
+|---|---|---|
+| Type alignment (`alignof(T)`) | "Where can `T` legally start?" | 1, 4, 8, 16 |
+| Cache line size | "What's the unit of memory transfer?" | 64 |
+| `alignas(64)` | "Force this object onto a cache-line boundary" | 64 |
+
+Alignment is a **language-level** rule — the CPU may segfault if you violate it. Cache-line size is a **performance** concern — get it wrong and your code still runs, just slowly. `alignas(64)` is the bridge: a language-level mechanism you use for performance reasons.
+
+For a deeper treatment with benchmarks and NUMA considerations, see [False Sharing and Cache Lines](system_design/false_sharing_numa.md) and [Cache-Friendly Design](system_design/cache_friendly_design.md).
 
 # References
 
