@@ -45,18 +45,27 @@ If you build with `-fno-exceptions`, you might assume this is moot. It isn't:
 The classic recipe: do the work on a copy, then swap. If anything fails, the original is untouched.
 
 ```cpp
+#include <algorithm>
+#include <cstddef>
+
 class Buffer {
-    char* data_;
-    size_t size_;
+    char* data = nullptr;
+    std::size_t size = 0;
 public:
-    void assign(const char* src, size_t n) {
-        char* tmp = new char[n];          // can throw — original untouched
-        std::copy_n(src, n, tmp);         // can throw — leak unless caught
-        delete[] data_;                   // commit point — no-throw from here
-        data_ = tmp;
-        size_ = n;
+    void assign(const char* src, std::size_t n) {
+        char* tmp = new char[n];        // can throw — original untouched
+        std::copy_n(src, n, tmp);       // can throw — but we'd leak tmp here
+        delete[] data;                  // commit point — no-throw from here
+        data = tmp;
+        size = n;
     }
+    ~Buffer() { delete[] data; }
 };
+
+int main() {
+    Buffer b;
+    b.assign("hello", 5);
+}
 ```
 
 The pattern: **all throwing work first, then a no-throw commit step**. Any exception during the work leaves the original state intact. See [Copy-and-Swap idiom](../copy-and-swap_idiom.md).
@@ -66,9 +75,9 @@ The pattern: **all throwing work first, then a no-throw commit step**. Any excep
 `noexcept` is part of a function's type, not just a hint. Standard containers *test* whether your move constructor is `noexcept` and behave differently:
 
 ```cpp
-template<class T>
-void vector<T>::push_back_grow() {
-    if constexpr (std::is_nothrow_move_constructible_v<T>) {
+// Inside std::vector, conceptually:
+void vector_push_back_grow() {
+    if (std::is_nothrow_move_constructible_v<T>) {
         // move elements into new buffer — strong guarantee preserved
     } else {
         // copy elements (slower!) to keep the strong guarantee
@@ -81,9 +90,10 @@ void vector<T>::push_back_grow() {
 ```cpp
 class Connection {
 public:
-    Connection(Connection&&) noexcept = default;     // good
-    Connection& operator=(Connection&&) noexcept = default;
-    ~Connection() noexcept = default;                // implicit, but explicit is fine
+    Connection() = default;
+    Connection(Connection&&) noexcept = default;            // good
+    Connection& operator=(Connection&&) noexcept = default; // good
+    ~Connection() = default;                                // already noexcept implicitly
 };
 ```
 
@@ -97,9 +107,9 @@ Pitfall: `noexcept` lies are checked at runtime. If a `noexcept` function does t
 
 **Self-assignment in copy assignment.**
 ```cpp
-T& operator=(const T& o) {
-    delete data_;            // oops — if &o == this, we just freed the source
-    data_ = new U(*o.data_);
+T& operator=(const T& other) {
+    delete data;                  // oops — if &other == this, we just freed the source
+    data = new int(*other.data);
     return *this;
 }
 ```
@@ -112,6 +122,10 @@ Use copy-and-swap or check `&o != this`.
 **Mixing exceptions with `errno` / C APIs.** A C function that returns -1 + sets `errno` will not unwind. Wrap it in an RAII translator:
 
 ```cpp
+#include <cerrno>
+#include <cstdio>
+#include <system_error>
+
 struct File {
     FILE* fp;
     File(const char* path) : fp(std::fopen(path, "r")) {
@@ -119,6 +133,14 @@ struct File {
     }
     ~File() { if (fp) std::fclose(fp); }
 };
+
+int main() {
+    try {
+        File f("/etc/hostname");   // throws std::system_error if missing
+    } catch (const std::system_error& e) {
+        // handle error
+    }
+}
 ```
 
 # 6. Quick Reference

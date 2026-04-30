@@ -30,47 +30,62 @@ Bad fits: very small workloads (queue overhead dominates), workloads with strong
 Three stages connected by bounded queues:
 
 ```cpp
-template<class T>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <optional>
+#include <thread>
+#include <iostream>
+
 class BoundedQueue {
-    std::queue<T> q_;
-    size_t cap_;
-    std::mutex m_;
-    std::condition_variable not_full_, not_empty_;
+  std::queue<int> q;
+  size_t cap;
+  std::mutex m;
+  std::condition_variable not_full, not_empty;
+  bool closed = false;
 public:
-    explicit BoundedQueue(size_t cap) : cap_(cap) {}
-    void push(T v) {
-        std::unique_lock l(m_);
-        not_full_.wait(l, [&]{ return q_.size() < cap_; });
-        q_.push(std::move(v));
-        not_empty_.notify_one();
-    }
-    std::optional<T> pop() {  // returns nullopt at end-of-stream
-        std::unique_lock l(m_);
-        not_empty_.wait(l, [&]{ return !q_.empty() || closed_; });
-        if (q_.empty()) return std::nullopt;
-        T v = std::move(q_.front()); q_.pop();
-        not_full_.notify_one();
-        return v;
-    }
-    void close() { { std::scoped_lock l(m_); closed_ = true; } not_empty_.notify_all(); }
-private:
-    bool closed_ = false;
+  BoundedQueue(size_t c) : cap(c) {}
+
+  void push(int v) {
+    std::unique_lock<std::mutex> l(m);
+    not_full.wait(l, [&]{ return q.size() < cap; });
+    q.push(v);
+    not_empty.notify_one();
+  }
+
+  std::optional<int> pop() {  // returns nullopt at end-of-stream
+    std::unique_lock<std::mutex> l(m);
+    not_empty.wait(l, [&]{ return !q.empty() || closed; });
+    if (q.empty()) return std::nullopt;
+    int v = q.front(); q.pop();
+    not_full.notify_one();
+    return v;
+  }
+
+  void close() {
+    { std::lock_guard<std::mutex> l(m); closed = true; }
+    not_empty.notify_all();
+  }
 };
 
-BoundedQueue<RawFrame>     q1{32};
-BoundedQueue<DecodedFrame> q2{32};
+int main() {
+  BoundedQueue q1(4);  // raw frames
+  BoundedQueue q2(4);  // decoded frames
 
-std::jthread reader([&]{
-    while (auto raw = readFrame()) q1.push(*raw);
+  std::thread reader([&]{
+    for (int i = 0; i < 10; ++i) q1.push(i);
     q1.close();
-});
-std::jthread decoder([&]{
-    while (auto raw = q1.pop()) q2.push(decode(*raw));
+  });
+  std::thread decoder([&]{
+    while (auto raw = q1.pop()) q2.push(*raw * 2);  // "decode" = double
     q2.close();
-});
-std::jthread writer([&]{
-    while (auto frame = q2.pop()) writeFrame(*frame);
-});
+  });
+  std::thread writer([&]{
+    while (auto frame = q2.pop()) std::cout << *frame << '\n';
+  });
+
+  reader.join(); decoder.join(); writer.join();
+}
 ```
 
 Each stage runs on its own thread; throughput is bounded by the slowest stage. The queues smooth out short bursts.
@@ -109,12 +124,15 @@ Reactive frameworks (RxCpp, ReactiveX) make these strategies named operators. In
 Per-item synchronization (one push, one pop) has fixed overhead — typically tens to hundreds of nanoseconds for a mutex-based queue. For small items, this dominates. Solution: process batches.
 
 ```cpp
-std::vector<Item> batch;
+std::vector<int> batch;
 while (auto x = upstream.pop()) {
-    batch.push_back(*x);
-    if (batch.size() >= 1024) { downstream.push(std::move(batch)); batch.clear(); }
+  batch.push_back(*x);
+  if (batch.size() >= 1024) {
+    downstream.push(batch);
+    batch.clear();
+  }
 }
-if (!batch.empty()) downstream.push(std::move(batch));
+if (!batch.empty()) downstream.push(batch);
 ```
 
 A 1024-item batch amortizes the synchronization to ~1/1024 per item. Trade-off: latency increases by the time it takes to fill a batch. Use a timeout for low-rate streams (`flush after 10 ms`).
@@ -132,13 +150,13 @@ auto pipeline =
     ex::just(input_path)
   | ex::then(load_image)
   | ex::let_value([](auto img) {
-        return ex::when_all(ex::then(ex::just(img), crop),
-                            ex::then(ex::just(img), blur));
+      return ex::when_all(ex::then(ex::just(img), crop),
+                          ex::then(ex::just(img), blur));
     })
   | ex::then([](auto cb) { return combine(std::get<0>(cb), std::get<1>(cb)); })
   | ex::then(save);
 
-stdexec::sync_wait(std::move(pipeline));
+stdexec::sync_wait(pipeline);
 ```
 
 This is the future direction. Today, libunifex and stdexec implement it on top of C++17/20.

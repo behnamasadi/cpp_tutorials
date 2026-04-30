@@ -37,21 +37,29 @@ Maintain a single buffer and a pointer. `allocate(n)` advances the pointer; **de
 
 ```cpp
 class Arena {
-    char* buf_;
-    size_t cap_;
-    size_t pos_ = 0;
+  char* buf;
+  size_t cap;
+  size_t pos = 0;
 public:
-    explicit Arena(size_t cap) : buf_(static_cast<char*>(::operator new(cap))), cap_(cap) {}
-    ~Arena() { ::operator delete(buf_); }
+  Arena(size_t c) : buf((char*)::operator new(c)), cap(c) {}
+  ~Arena() { ::operator delete(buf); }
 
-    void* allocate(size_t n, size_t align) {
-        size_t p = (pos_ + align - 1) & ~(align - 1);
-        if (p + n > cap_) throw std::bad_alloc();
-        pos_ = p + n;
-        return buf_ + p;
-    }
-    void reset() { pos_ = 0; }   // O(1) "free everything"
+  void* allocate(size_t n, size_t align) {
+    // round pos up to the next multiple of align
+    size_t p = (pos + align - 1) & ~(align - 1);
+    if (p + n > cap) throw std::bad_alloc();
+    pos = p + n;
+    return buf + p;
+  }
+  void reset() { pos = 0; }   // O(1) "free everything"
 };
+
+int main() {
+  Arena a(1024);
+  int* x = (int*)a.allocate(sizeof(int), alignof(int));
+  *x = 42;
+  a.reset();   // x is now invalid
+}
 ```
 
 Best for: parsing (each parse pass uses an arena, dropped at the end), per-frame allocations in a game loop, request-scoped allocations in a server.
@@ -64,13 +72,20 @@ A bump allocator that supports LIFO deallocation: each `allocate` returns a mark
 
 ```cpp
 class StackAllocator {
-    char* buf_; size_t cap_; size_t pos_ = 0;
+  char* buf;
+  size_t cap;
+  size_t pos = 0;
 public:
-    using Marker = size_t;
-    Marker mark() const { return pos_; }
-    void rollback(Marker m) { pos_ = m; }
-    void* allocate(size_t n, size_t align) { /* same as Arena */ }
+  using Marker = size_t;
+  Marker mark() const { return pos; }
+  void rollback(Marker m) { pos = m; }
+  void* allocate(size_t n, size_t align) { /* same as Arena */ }
 };
+
+// Usage:
+//   auto m = sa.mark();
+//   ... allocate scratch memory ...
+//   sa.rollback(m);   // free everything since the mark
 ```
 
 Game engines often have a per-thread stack allocator that's pushed/popped around stages of the frame.
@@ -80,32 +95,45 @@ Game engines often have a per-thread stack allocator that's pushed/popped around
 Fixed-size, fast `allocate` and `deallocate`. Maintain a free list of equal-size blocks:
 
 ```cpp
-template<size_t BlockSize>
+// A pool of fixed-size 64-byte blocks.
 class PoolAllocator {
-    struct FreeNode { FreeNode* next; };
-    FreeNode* free_ = nullptr;
-    std::vector<std::unique_ptr<char[]>> chunks_;
-    size_t chunkBlocks_;
+  static constexpr size_t BlockSize = 64;
+  struct FreeNode { FreeNode* next; };
 
-    void grow() {
-        auto chunk = std::make_unique<char[]>(BlockSize * chunkBlocks_);
-        for (size_t i = 0; i < chunkBlocks_; ++i) {
-            auto* node = reinterpret_cast<FreeNode*>(chunk.get() + i * BlockSize);
-            node->next = free_; free_ = node;
-        }
-        chunks_.push_back(std::move(chunk));
+  FreeNode* free_list = nullptr;
+  std::vector<std::unique_ptr<char[]>> chunks;
+  size_t chunk_blocks = 1024;
+
+  void grow() {
+    auto chunk = std::make_unique<char[]>(BlockSize * chunk_blocks);
+    for (size_t i = 0; i < chunk_blocks; ++i) {
+      auto* node = (FreeNode*)(chunk.get() + i * BlockSize);
+      node->next = free_list;
+      free_list = node;
     }
+    chunks.push_back(std::move(chunk));
+  }
 public:
-    explicit PoolAllocator(size_t chunkBlocks = 1024) : chunkBlocks_(chunkBlocks) {}
-    void* allocate() {
-        if (!free_) grow();
-        auto* p = free_; free_ = free_->next; return p;
-    }
-    void deallocate(void* p) {
-        auto* node = static_cast<FreeNode*>(p);
-        node->next = free_; free_ = node;
-    }
+  void* allocate() {
+    if (!free_list) grow();
+    FreeNode* p = free_list;
+    free_list = free_list->next;
+    return p;
+  }
+  void deallocate(void* p) {
+    FreeNode* node = (FreeNode*)p;
+    node->next = free_list;
+    free_list = node;
+  }
 };
+
+int main() {
+  PoolAllocator pool;
+  void* a = pool.allocate();
+  void* b = pool.allocate();
+  pool.deallocate(a);
+  pool.deallocate(b);
+}
 ```
 
 Used for: object pools (`Bullet`, `Particle`), node-based containers (`std::list`, `std::map` nodes), connection objects.
@@ -115,19 +143,20 @@ Used for: object pools (`Bullet`, `Particle`), node-based containers (`std::list
 Pool allocator extended to multiple size classes. Each "slab" is a pool for a particular size; the allocator dispatches by size. The Linux kernel uses this; it's the SLAB/SLUB allocator family.
 
 ```cpp
+// (Imagine PoolAllocator templated on block size, or four separate pool types.)
 class SlabAllocator {
-    PoolAllocator<16>   p16;
-    PoolAllocator<32>   p32;
-    PoolAllocator<64>   p64;
-    PoolAllocator<128>  p128;
+  PoolAllocator p16;    // 16-byte blocks
+  PoolAllocator p32;    // 32-byte blocks
+  PoolAllocator p64;    // 64-byte blocks
+  PoolAllocator p128;   // 128-byte blocks
 public:
-    void* allocate(size_t sz) {
-        if (sz <= 16)  return p16.allocate();
-        if (sz <= 32)  return p32.allocate();
-        if (sz <= 64)  return p64.allocate();
-        if (sz <= 128) return p128.allocate();
-        return ::operator new(sz);   // fall back for big requests
-    }
+  void* allocate(size_t sz) {
+    if (sz <= 16)  return p16.allocate();
+    if (sz <= 32)  return p32.allocate();
+    if (sz <= 64)  return p64.allocate();
+    if (sz <= 128) return p128.allocate();
+    return ::operator new(sz);   // fall back for big requests
+  }
 };
 ```
 
@@ -143,11 +172,14 @@ Polymorphic memory resources standardize the allocator interface so any containe
 
 ```cpp
 #include <memory_resource>
+#include <array>
 
-std::array<std::byte, 4096> buf;
-std::pmr::monotonic_buffer_resource arena{buf.data(), buf.size()};
-std::pmr::vector<std::pmr::string> v{&arena};
-v.emplace_back("hello");   // both vector and string allocate from arena
+int main() {
+  std::array<std::byte, 4096> buf;
+  std::pmr::monotonic_buffer_resource arena{buf.data(), buf.size()};
+  std::pmr::vector<std::pmr::string> v{&arena};
+  v.emplace_back("hello");   // both vector and string allocate from arena
+}
 ```
 
 Available resources:
@@ -163,10 +195,10 @@ Available resources:
 Thread-local arenas eliminate synchronization:
 
 ```cpp
-thread_local Arena g_per_thread_arena{1 << 20};
+thread_local Arena g_arena{1 << 20};   // 1 MB per thread
 
-void* tls_alloc(size_t n, size_t a) { return g_per_thread_arena.allocate(n, a); }
-void  tls_reset()                   { g_per_thread_arena.reset(); }
+void* tls_alloc(size_t n, size_t a) { return g_arena.allocate(n, a); }
+void  tls_reset()                   { g_arena.reset(); }
 ```
 
 In a server, reset between requests. In a game, reset between frames. The release happens at the boundary, so no per-allocation tracking is needed.

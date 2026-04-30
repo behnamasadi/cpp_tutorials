@@ -46,18 +46,35 @@ Two ways to store a million particles, each with `position`, `velocity`, `color`
 
 **Array of Structures (AoS):**
 ```cpp
-struct Particle { vec3 pos, vel; vec4 color; float mass; };
-std::vector<Particle> particles;     // every read pulls all fields into cache
+struct Vec3  { float x, y, z; };
+struct Vec4  { float x, y, z, w; };
+
+struct Particle {
+  Vec3  pos, vel;
+  Vec4  color;
+  float mass;
+};
+
+std::vector<Particle> particles;   // every read pulls all fields into cache
 ```
 
 **Structure of Arrays (SoA):**
 ```cpp
 struct Particles {
-    std::vector<vec3>  positions;
-    std::vector<vec3>  velocities;
-    std::vector<vec4>  colors;
-    std::vector<float> masses;
+  std::vector<Vec3>  positions;
+  std::vector<Vec3>  velocities;
+  std::vector<Vec4>  colors;
+  std::vector<float> masses;
 };
+
+// Physics step touches only positions and velocities — color/mass stay out of cache.
+void step(Particles& p, float dt) {
+  for (size_t i = 0; i < p.positions.size(); ++i) {
+    p.positions[i].x += p.velocities[i].x * dt;
+    p.positions[i].y += p.velocities[i].y * dt;
+    p.positions[i].z += p.velocities[i].z * dt;
+  }
+}
 ```
 
 If you only need `positions` and `velocities` (e.g., physics step), SoA loads only those fields — typically 2–4× the throughput. AoS is friendlier when you always touch the whole record.
@@ -71,18 +88,27 @@ Most types have a few "hot" fields (touched in tight loops) and many "cold" fiel
 ```cpp
 // Bad — every cache line that holds a player's HP also drags in inventory + name + ...
 struct Player {
-    float hp;
-    Inventory inventory;
-    std::string name;
-    QuestLog quests;
+  float                    hp;
+  std::vector<int>         inventory;   // ~24 bytes
+  std::string              name;        // ~32 bytes
+  std::vector<std::string> quests;      // ~24 bytes
 };
 
 // Better — hot data is dense.
-struct PlayerHot { float hp; uint16_t cold_index; };
-struct PlayerCold { Inventory inv; std::string name; QuestLog q; };
+struct PlayerHot  { float hp; uint16_t cold_index; };       // 8 bytes
+struct PlayerCold {
+  std::vector<int>         inv;
+  std::string              name;
+  std::vector<std::string> quests;
+};
 
 std::vector<PlayerHot>  hot;
 std::vector<PlayerCold> cold;
+
+// Tight loop: 8 cache lines covers 64 players' HP.
+void apply_regen(std::vector<PlayerHot>& hot, float amount) {
+  for (auto& p : hot) p.hp += amount;
+}
 ```
 
 A loop that updates HP touches only `hot[]` — 2 bytes per player vs hundreds. The cold table is paid for only on the rare access.
@@ -108,12 +134,24 @@ The lesson: **default to `std::vector`**. Other containers should justify themse
 In a `Node*`-chained structure, the CPU pointer-chases through unpredictable memory. Indices into a contiguous backing array are predictable and pre-fetchable:
 
 ```cpp
-// Pointer-chasing — slow
-struct Node { Node* next; int v; };
+// Pointer-chasing — slow. Each `next` may live anywhere in memory.
+struct Node {
+  Node* next;
+  int   v;
+};
 
-// Indexed — fast, also smaller (4 bytes vs 8 for the link)
-std::vector<int> values;
-std::vector<int> next_index;   // -1 for end
+// Indexed — fast. The links live in a packed array; the CPU can prefetch the stride.
+// Bonus: 32-bit indices vs 64-bit pointers.
+std::vector<int>     values;
+std::vector<int32_t> next_index;   // -1 for end
+
+int sum_list(const std::vector<int>& values,
+             const std::vector<int32_t>& next_index,
+             int32_t head) {
+  int s = 0;
+  for (int32_t i = head; i != -1; i = next_index[i]) s += values[i];
+  return s;
+}
 ```
 
 Bonus: indices are stable across reallocation (relative offsets) and can be 32-bit even on 64-bit machines.
@@ -123,14 +161,22 @@ Bonus: indices are stable across reallocation (relative offsets) and can be 32-b
 Branch mispredicts cost cycles. Sentinels remove "did we run off the end?" checks:
 
 ```cpp
-// Branchy
-for (size_t i = 0; i < n; ++i) { if (a[i] == target) return i; }
+// Branchy — two conditions per iteration.
+size_t find_branchy(const int* a, size_t n, int target) {
+  for (size_t i = 0; i < n; ++i) {
+    if (a[i] == target) return i;
+  }
+  return n;
+}
 
-// Sentinel-based
-a[n] = target;            // ensure a hit
-size_t i = 0;
-while (a[i] != target) ++i;
-return i;                 // == n if not found
+// Sentinel-based — one condition per iteration.
+// Caller must reserve n+1 slots so a[n] is writable.
+size_t find_sentinel(int* a, size_t n, int target) {
+  a[n] = target;            // sentinel guarantees a hit
+  size_t i = 0;
+  while (a[i] != target) ++i;
+  return i;                 // == n if not found
+}
 ```
 
 Modern compilers can sometimes do this for you; sometimes they can't. Profile.
@@ -140,9 +186,15 @@ Modern compilers can sometimes do this for you; sometimes they can't. Profile.
 When the next access is computable but far ahead, hint the CPU to start loading it:
 
 ```cpp
-for (size_t i = 0; i < n; ++i) {
-    __builtin_prefetch(&data[i + 16], 0, 1);   // GCC/Clang
+void process(int x);
+
+void run(const int* data, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    if (i + 16 < n) {
+      __builtin_prefetch(&data[i + 16], 0, 1);   // GCC/Clang
+    }
     process(data[i]);
+  }
 }
 ```
 

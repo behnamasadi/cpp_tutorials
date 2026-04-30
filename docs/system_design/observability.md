@@ -39,9 +39,19 @@ What logs are bad for:
 
 ```cpp
 #include <spdlog/spdlog.h>
-spdlog::info("user {} signed in from {}", user_id, ip);
-spdlog::warn("retry {} of {} for url={}", attempt, max, url);
-spdlog::error("db query failed: {}", ec.message());
+#include <string>
+
+int main() {
+    int user_id = 42;
+    std::string ip = "10.0.0.1";
+    int attempt = 2, max = 5;
+    std::string url = "https://api.example.com/login";
+    std::string err = "connection refused";
+
+    spdlog::info("user {} signed in from {}", user_id, ip);
+    spdlog::warn("retry {} of {} for url={}", attempt, max, url);
+    spdlog::error("db query failed: {}", err);
+}
 ```
 
 Levels — be disciplined:
@@ -77,17 +87,28 @@ spdlog supports JSON formatting; OpenTelemetry's logger emits structured records
 Numeric time-series. Designed for aggregation, dashboards, alerts:
 
 ```cpp
-auto& reg = prometheus::Registry::instance();
-auto& login_total = prometheus::Counter::Build()
-    .Name("login_total")
-    .Help("Total login attempts")
-    .Register(reg);
+#include <prometheus/counter.h>
+#include <prometheus/histogram.h>
+#include <prometheus/registry.h>
 
-auto& login_latency = prometheus::Histogram::Build()
-    .Name("login_latency_seconds")
-    .Help("Login latency")
-    .Buckets({0.001, 0.01, 0.1, 1.0, 10.0})
-    .Register(reg);
+int main() {
+    prometheus::Registry registry;
+
+    auto& login_family = prometheus::BuildCounter()
+        .Name("login_total")
+        .Help("Total login attempts")
+        .Register(registry);
+    auto& login_total = login_family.Add({});
+    login_total.Increment();
+
+    auto& latency_family = prometheus::BuildHistogram()
+        .Name("login_latency_seconds")
+        .Help("Login latency")
+        .Register(registry);
+    auto& login_latency = latency_family.Add(
+        {}, prometheus::Histogram::BucketBoundaries{0.001, 0.01, 0.1, 1.0, 10.0});
+    login_latency.Observe(0.087);
+}
 ```
 
 Metric types (Prometheus / OTel):
@@ -127,19 +148,27 @@ OpenTelemetry is the open standard for observability instrumentation. Vendor-neu
 
 ```cpp
 #include <opentelemetry/trace/provider.h>
-#include <opentelemetry/exporters/otlp/otlp_grpc_exporter.h>
+#include <opentelemetry/exporters/otlp/otlp_grpc_exporter_factory.h>
+#include <opentelemetry/sdk/trace/simple_processor_factory.h>
+#include <opentelemetry/sdk/trace/tracer_provider_factory.h>
 
-auto exporter = otlp_exporter::OtlpGrpcExporterFactory::Create();
-auto processor = trace::sdk::SimpleSpanProcessorFactory::Create(std::move(exporter));
-auto provider = trace::sdk::TracerProviderFactory::Create(std::move(processor));
-trace::Provider::SetTracerProvider(provider);
+namespace trace_api = opentelemetry::trace;
+namespace trace_sdk = opentelemetry::sdk::trace;
+namespace otlp     = opentelemetry::exporter::otlp;
 
-auto tracer = trace::Provider::GetTracerProvider()->GetTracer("checkout");
-auto span = tracer->StartSpan("http_handler");
-auto scope = trace::Tracer::WithActiveSpan(span);
-// ... work ...
-span->SetAttribute("status_code", 200);
-span->End();
+int main() {
+    auto exporter  = otlp::OtlpGrpcExporterFactory::Create();
+    auto processor = trace_sdk::SimpleSpanProcessorFactory::Create(std::move(exporter));
+    auto provider  = trace_sdk::TracerProviderFactory::Create(std::move(processor));
+    trace_api::Provider::SetTracerProvider(provider);
+
+    auto tracer = trace_api::Provider::GetTracerProvider()->GetTracer("checkout");
+    auto span   = tracer->StartSpan("http_handler");
+    auto scope  = tracer->WithActiveSpan(span);
+    // ... work ...
+    span->SetAttribute("status_code", 200);
+    span->End();
+}
 ```
 
 OTel components:
@@ -159,11 +188,26 @@ Observability is expensive. The two cost drivers:
 **Cardinality.** Each unique combination of metric name + labels = one time series. Storage and memory cost is proportional to active series count.
 
 ```cpp
-// BAD: user_id has millions of values
-counter.Add(1, {{"user_id", uid}});         // creates a new series per user
+#include <prometheus/counter.h>
+#include <prometheus/registry.h>
+#include <string>
 
-// OK: bounded labels
-counter.Add(1, {{"plan", plan_tier}});      // 3 plan tiers = 3 series
+int main() {
+    prometheus::Registry registry;
+    auto& family = prometheus::BuildCounter()
+        .Name("requests_total")
+        .Help("Total requests")
+        .Register(registry);
+
+    std::string uid       = "user-9173455";
+    std::string plan_tier = "pro";
+
+    // BAD: user_id has millions of values -- one new time series per user
+    family.Add({{"user_id", uid}}).Increment();
+
+    // OK: bounded labels -- 3 plan tiers = 3 series
+    family.Add({{"plan", plan_tier}}).Increment();
+}
 ```
 
 Heuristics:

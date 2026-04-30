@@ -72,18 +72,19 @@ CMake's `GenerateExportHeader` automates this.
 The cleanest way to keep a class's ABI stable while letting its implementation evolve:
 
 ```cpp
-// public header — never changes when impl_ grows
+// public header — never changes when impl grows
+#include <memory>
+#include <string>
+
 class Connection {
 public:
     Connection();
     ~Connection();
-    Connection(Connection&&) noexcept;
-    Connection& operator=(Connection&&) noexcept;
 
-    void send(std::string_view);
+    void send(const std::string& data);
 private:
     struct Impl;
-    std::unique_ptr<Impl> impl_;
+    std::unique_ptr<Impl> impl;
 };
 ```
 
@@ -95,12 +96,17 @@ Inline namespaces let you ship multiple ABI versions side-by-side and pick one a
 
 ```cpp
 namespace mylib {
-inline namespace v2 {
-    class Connection { /* new layout */ };
+    inline namespace v2 {
+        class Connection { int new_layout; };
+    }
+    namespace v1 {
+        class Connection { int old_layout; };
+    }
 }
-namespace v1 {
-    class Connection { /* old layout, still linkable */ };
-}
+
+int main() {
+    mylib::Connection c2;       // resolves to v2::Connection
+    mylib::v1::Connection c1;   // old type still usable
 }
 ```
 
@@ -111,8 +117,10 @@ Now `mylib::Connection` resolves to `mylib::v2::Connection`, but `mylib::v1::Con
 The C ABI is the most stable thing in computing. If your library must support consumers built with different compilers, different standard library versions, or other languages — give them a C interface:
 
 ```cpp
+#include <stddef.h>
+
 extern "C" {
-    typedef struct mylib_conn mylib_conn;
+    typedef struct mylib_conn mylib_conn;        // opaque handle
     mylib_conn* mylib_conn_new(void);
     void        mylib_conn_free(mylib_conn*);
     int         mylib_conn_send(mylib_conn*, const char* data, size_t len);
@@ -143,7 +151,14 @@ Never delete in one release. The polite cycle:
 
 ```cpp
 [[deprecated("use new_send() instead, removal in 3.0")]]
-void send(const char*);
+void send(const char* data);
+
+void new_send(const char* data);
+
+int main() {
+    send("hello");      // compiles, but emits a deprecation warning
+    new_send("hello");  // preferred replacement
+}
 ```
 
 - **Minor release N**: add `new_send`, mark `send` deprecated.

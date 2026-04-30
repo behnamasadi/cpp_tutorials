@@ -55,15 +55,21 @@ message Path  { repeated Point points = 1; }
 
 C++:
 ```cpp
-Path p;
-auto* pt = p.add_points();
-pt->set_x(1.0f); pt->set_y(2.0f);
+#include "path.pb.h"
+#include <string>
 
-std::string out;
-p.SerializeToString(&out);
+int main() {
+    Path p;
+    auto* pt = p.add_points();
+    pt->set_x(1.0f);
+    pt->set_y(2.0f);
 
-Path q;
-q.ParseFromString(out);
+    std::string out;
+    p.SerializeToString(&out);
+
+    Path q;
+    q.ParseFromString(out);
+}
 ```
 
 Strengths:
@@ -86,14 +92,19 @@ root_type Player;
 ```
 
 ```cpp
-flatbuffers::FlatBufferBuilder b;
-auto name = b.CreateString("hero");
-auto v = game::CreateVec3(b, 1.0f, 2.0f, 3.0f);
-auto p = game::CreatePlayer(b, name, v, 100);
-b.Finish(p);
+#include "player_generated.h"
+#include <flatbuffers/flatbuffers.h>
 
-const game::Player* read = game::GetPlayer(b.GetBufferPointer());
-read->pos()->x();    // direct read from the buffer — no decode step
+int main() {
+    flatbuffers::FlatBufferBuilder b;
+    auto name = b.CreateString("hero");
+    auto v = game::CreateVec3(b, 1.0f, 2.0f, 3.0f);
+    auto p = game::CreatePlayer(b, name, v, 100);
+    b.Finish(p);
+
+    const game::Player* read = game::GetPlayer(b.GetBufferPointer());
+    float x = read->pos()->x();    // direct read from the buffer — no decode step
+}
 ```
 
 Strengths:
@@ -118,13 +129,20 @@ struct Person {
 ```
 
 ```cpp
-capnp::MallocMessageBuilder msg;
-auto p = msg.initRoot<Person>();
-p.setName("Alice");
-p.setEmail("alice@example.com");
+#include "person.capnp.h"
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/io.h>
 
-kj::VectorOutputStream out;
-capnp::writeMessage(out, msg);
+int main() {
+    capnp::MallocMessageBuilder msg;
+    auto p = msg.initRoot<Person>();
+    p.setName("Alice");
+    p.setEmail("alice@example.com");
+
+    kj::VectorOutputStream out;
+    capnp::writeMessage(out, msg);
+}
 ```
 
 Strengths:
@@ -142,13 +160,18 @@ Schemaless tagged binary formats. Drop-in replacement for JSON when you don't wa
 
 ```cpp
 #include <msgpack.hpp>
+#include <map>
+#include <sstream>
+#include <string>
 
-std::map<std::string, int> data{{"x", 1}, {"y", 2}};
-std::stringstream ss;
-msgpack::pack(ss, data);
+int main() {
+    std::map<std::string, int> data{{"x", 1}, {"y", 2}};
+    std::stringstream ss;
+    msgpack::pack(ss, data);
 
-auto h = msgpack::unpack(ss.str().data(), ss.str().size());
-auto map = h.get().as<std::map<std::string, int>>();
+    auto h = msgpack::unpack(ss.str().data(), ss.str().size());
+    std::map<std::string, int> decoded = h.get().as<std::map<std::string, int>>();
+}
 ```
 
 CBOR is the IETF-standardized variant (RFC 8949). Used in COSE, IoT (CoAP), WebAuthn.
@@ -185,14 +208,30 @@ For YAML, [`yaml-cpp`](https://github.com/jbeder/yaml-cpp). Note: YAML's flexibi
 When you control both ends, a custom format can win on size and speed:
 
 ```cpp
+#include <cstdint>
+#include <cstring>
+#include <vector>
+
 // Header: 4-byte magic, 2-byte version, 4-byte payload length
 // Payload: tightly packed fields in known order
 
+#pragma pack(push, 1)
 struct Header {
     char     magic[4];      // "MYAP"
     uint16_t version;
     uint32_t payload_size;
-} __attribute__((packed));
+};
+#pragma pack(pop)
+
+int main() {
+    Header h;
+    std::memcpy(h.magic, "MYAP", 4);
+    h.version = 1;
+    h.payload_size = 0;
+
+    std::vector<char> buf(sizeof(Header));
+    std::memcpy(buf.data(), &h, sizeof(Header));
+}
 ```
 
 Endianness rules:

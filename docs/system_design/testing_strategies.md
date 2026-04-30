@@ -47,14 +47,33 @@ C++ unit-test frameworks:
 - **Boost.Test** — if you already use Boost.
 
 ```cpp
-TEST(TokenIssuer, RefusesExpiredCredentials) {
-    FakeClock clock(timepoint("2024-01-01"));
-    Database db = makeInMemoryDb();
-    TokenIssuer issuer(clock, db);
+#include <gtest/gtest.h>
+#include <optional>
+#include <string>
 
-    auto token = issuer.issueFor("user42", expiredCredential());
+struct Credential { bool expired; };
+
+class TokenIssuer {
+public:
+    enum class Error { None, Expired };
+
+    std::optional<std::string> issueFor(const std::string& user, Credential c) {
+        if (c.expired) { lastError = Error::Expired; return std::nullopt; }
+        lastError = Error::None;
+        return "token-for-" + user;
+    }
+
+    Error lastError = Error::None;
+};
+
+TEST(TokenIssuer, RefusesExpiredCredentials) {
+    TokenIssuer issuer;
+    Credential expired{true};
+
+    auto token = issuer.issueFor("user42", expired);
+
     EXPECT_FALSE(token.has_value());
-    EXPECT_EQ(issuer.lastError(), Error::Expired);
+    EXPECT_EQ(issuer.lastError, TokenIssuer::Error::Expired);
 }
 ```
 
@@ -98,16 +117,38 @@ Prefer **fakes over mocks**. A `FakeDatabase` that's a real working implementati
 
 GoogleMock for when you do want mocks:
 ```cpp
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+struct Order { int id; };
+
+class Database {
+public:
+    virtual ~Database() = default;
+    virtual void save(const Order& o) = 0;
+};
+
 class MockDatabase : public Database {
 public:
     MOCK_METHOD(void, save, (const Order&), (override));
 };
 
+class OrderService {
+public:
+    OrderService(Database& db) : db(db) {}
+    void placeOrder(const Order& o) { db.save(o); }
+private:
+    Database& db;
+};
+
+using ::testing::_;
+
 TEST(OrderService, SavesAcceptedOrder) {
     MockDatabase db;
     EXPECT_CALL(db, save(_)).Times(1);
+
     OrderService svc(db);
-    svc.placeOrder(Order{...});
+    svc.placeOrder(Order{1});
 }
 ```
 
@@ -119,12 +160,17 @@ Instead of "for input X, output should be Y," state a *property* the code should
 
 ```cpp
 #include <rapidcheck.h>
-rc::check("reverse twice yields original", [](std::vector<int> v) {
-    auto r = v;
-    std::ranges::reverse(r);
-    std::ranges::reverse(r);
-    RC_ASSERT(r == v);
-});
+#include <algorithm>
+#include <vector>
+
+int main() {
+    rc::check("reverse twice yields original", [](std::vector<int> v) {
+        auto r = v;
+        std::reverse(r.begin(), r.end());
+        std::reverse(r.begin(), r.end());
+        RC_ASSERT(r == v);
+    });
+}
 ```
 
 Properties to test:
@@ -145,6 +191,11 @@ Generate random/structured inputs targeting code paths, run with sanitizers, wat
 - **OSS-Fuzz** — Google's continuous fuzzing for OSS projects; free if you qualify.
 
 ```cpp
+#include <cstddef>
+#include <cstdint>
+
+void parse_my_format(const uint8_t* data, size_t size);
+
 // libFuzzer entry point
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     parse_my_format(data, size);    // crash here = bug

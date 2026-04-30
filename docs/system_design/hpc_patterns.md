@@ -30,14 +30,29 @@ Most numerical kernels (BLAS-2 like matvec) are bandwidth-bound. Most BLAS-3 ker
 When tasks are fully independent — Monte Carlo trials, image filters, particle updates — split the input and run on N threads:
 
 ```cpp
+#include <algorithm>
 #include <execution>
-std::for_each(std::execution::par_unseq, items.begin(), items.end(), update);
+#include <vector>
+
+int main() {
+  std::vector<int> items(1000, 1);
+  std::for_each(std::execution::par_unseq, items.begin(), items.end(),
+                [](int& x){ x = x * 2; });
+}
 ```
 
 Or with OpenMP:
 ```cpp
-#pragma omp parallel for
-for (size_t i = 0; i < n; ++i) result[i] = compute(input[i]);
+#include <vector>
+
+int compute(int x) { return x * x; }
+
+int main() {
+  size_t n = 1000;
+  std::vector<int> input(n, 3), result(n);
+  #pragma omp parallel for
+  for (size_t i = 0; i < n; ++i) result[i] = compute(input[i]);
+}
 ```
 
 This is the easiest speedup in HPC and often the largest. Scales linearly until you hit memory bandwidth or coherence costs.
@@ -49,12 +64,22 @@ SPMD ("Single Program, Multiple Data") is the same idea expressed differently �
 Recursive divide-and-conquer. Split a problem, solve each half in parallel, combine.
 
 ```cpp
-int parallel_sum(std::span<int> v) {
-    if (v.size() < 4096) return std::accumulate(v.begin(), v.end(), 0);
-    auto mid = v.size() / 2;
-    auto fut = std::async(std::launch::async, parallel_sum, v.first(mid));
-    int rhs = parallel_sum(v.last(v.size() - mid));
-    return fut.get() + rhs;
+#include <future>
+#include <numeric>
+#include <vector>
+#include <iostream>
+
+int parallel_sum(const int* data, size_t n) {
+  if (n < 4096) return std::accumulate(data, data + n, 0);
+  size_t mid = n / 2;
+  auto fut = std::async(std::launch::async, parallel_sum, data, mid);
+  int rhs = parallel_sum(data + mid, n - mid);
+  return fut.get() + rhs;
+}
+
+int main() {
+  std::vector<int> v(100000, 1);
+  std::cout << parallel_sum(v.data(), v.size()) << "\n"; // 100000
 }
 ```
 
@@ -76,12 +101,21 @@ See also [Concurrency Patterns: Fork-Join and Work Stealing](concurrency_pattern
 Two-phase: per-element transform (map), then combine (reduce):
 
 ```cpp
-auto sum_of_squares = std::transform_reduce(
-    std::execution::par_unseq,
-    v.begin(), v.end(),
-    0.0,
-    std::plus{},
-    [](double x){ return x * x; });
+#include <execution>
+#include <numeric>
+#include <vector>
+#include <iostream>
+
+int main() {
+  std::vector<double> v{1.0, 2.0, 3.0, 4.0};
+  double sum_of_squares = std::transform_reduce(
+      std::execution::par_unseq,
+      v.begin(), v.end(),
+      0.0,
+      std::plus{},
+      [](double x){ return x * x; });
+  std::cout << sum_of_squares << "\n"; // 30
+}
 ```
 
 Distributed map-reduce (Hadoop, Spark) extends this across machines with shuffle/sort between phases.
@@ -91,9 +125,17 @@ Distributed map-reduce (Hadoop, Spark) extends this across machines with shuffle
 Update each cell as a function of itself and neighbors. Used in finite-difference solvers, image filters, cellular automata.
 
 ```cpp
-for (size_t i = 1; i < n - 1; ++i)
+#include <vector>
+
+int main() {
+  size_t n = 64, m = 64;
+  std::vector<std::vector<double>> cur(n, std::vector<double>(m, 1.0));
+  std::vector<std::vector<double>> next(n, std::vector<double>(m, 0.0));
+
+  for (size_t i = 1; i < n - 1; ++i)
     for (size_t j = 1; j < m - 1; ++j)
-        next[i][j] = 0.25 * (cur[i-1][j] + cur[i+1][j] + cur[i][j-1] + cur[i][j+1]);
+      next[i][j] = 0.25 * (cur[i-1][j] + cur[i+1][j] + cur[i][j-1] + cur[i][j+1]);
+}
 ```
 
 Optimization patterns:
@@ -109,8 +151,15 @@ Combining many values into one (sum, max, dot product). Three concerns:
 
 **Parallelization.** Reduce per chunk; combine chunk results:
 ```cpp
-double parallel_sum(std::span<double> v) {
-    return std::reduce(std::execution::par, v.begin(), v.end(), 0.0);
+#include <execution>
+#include <numeric>
+#include <vector>
+#include <iostream>
+
+int main() {
+  std::vector<double> v(1000, 0.5);
+  double total = std::reduce(std::execution::par, v.begin(), v.end(), 0.0);
+  std::cout << total << "\n"; // 500
 }
 ```
 

@@ -32,26 +32,37 @@ The classic Gang-of-Four patterns, modernized for C++17/20. Many of them have id
 A factory hides the choice of concrete type from the caller.
 
 ```cpp
-struct Shape { virtual ~Shape() = default; virtual void draw() const = 0; };
-struct Circle : Shape { void draw() const override; };
-struct Square : Shape { void draw() const override; };
+struct Shape {
+  virtual ~Shape() = default;
+  virtual void draw() const = 0;
+};
+struct Circle : Shape { void draw() const override { std::cout << "circle\n"; } };
+struct Square : Shape { void draw() const override { std::cout << "square\n"; } };
 
-std::unique_ptr<Shape> makeShape(std::string_view kind) {
-    if (kind == "circle") return std::make_unique<Circle>();
-    if (kind == "square") return std::make_unique<Square>();
-    throw std::invalid_argument("unknown shape");
+std::unique_ptr<Shape> make_shape(std::string_view kind) {
+  if (kind == "circle") return std::make_unique<Circle>();
+  if (kind == "square") return std::make_unique<Square>();
+  throw std::invalid_argument("unknown shape");
+}
+
+int main() {
+  auto s = make_shape("circle");
+  s->draw();
 }
 ```
 
-For a registry-driven factory:
+For a registry you can extend at runtime:
 
 ```cpp
 class ShapeFactory {
-    using Creator = std::function<std::unique_ptr<Shape>()>;
-    std::unordered_map<std::string, Creator> map_;
+  std::unordered_map<std::string, std::function<std::unique_ptr<Shape>()>> makers;
 public:
-    void registerType(std::string name, Creator c) { map_[std::move(name)] = std::move(c); }
-    std::unique_ptr<Shape> create(const std::string& name) const { return map_.at(name)(); }
+  void add(std::string name, std::function<std::unique_ptr<Shape>()> maker) {
+    makers[name] = maker;
+  }
+  std::unique_ptr<Shape> create(const std::string& name) {
+    return makers.at(name)();
+  }
 };
 ```
 
@@ -60,56 +71,81 @@ public:
 Useful when an object has many optional parameters and you want to avoid telescoping constructors.
 
 ```cpp
-class HttpRequestBuilder {
-    HttpRequest req_;
-public:
-    HttpRequestBuilder& method(std::string m) { req_.method = std::move(m); return *this; }
-    HttpRequestBuilder& url(std::string u)    { req_.url = std::move(u); return *this; }
-    HttpRequestBuilder& header(std::string k, std::string v) { req_.headers[k] = v; return *this; }
-    HttpRequestBuilder& body(std::string b)   { req_.body = std::move(b); return *this; }
-    HttpRequest build() && { return std::move(req_); }
+struct HttpRequest {
+  std::string method;
+  std::string url;
+  std::string body;
 };
 
-auto req = HttpRequestBuilder{}.method("POST").url("/api").body("...").build();
+class HttpRequestBuilder {
+  HttpRequest req;
+public:
+  HttpRequestBuilder& method(std::string m) { req.method = m; return *this; }
+  HttpRequestBuilder& url(std::string u)    { req.url    = u; return *this; }
+  HttpRequestBuilder& body(std::string b)   { req.body   = b; return *this; }
+  HttpRequest build() { return req; }
+};
+
+int main() {
+  HttpRequest r = HttpRequestBuilder{}
+                    .method("POST")
+                    .url("/api")
+                    .body("hello")
+                    .build();
+}
 ```
 
 C++20 designated initializers cover most simple cases without a builder:
+
 ```cpp
-HttpRequest r{ .method="POST", .url="/api", .body="..." };
+HttpRequest r{ .method = "POST", .url = "/api", .body = "hello" };
 ```
 
 ## Singleton
 
-The most-misused pattern. Almost always you want **dependency injection** instead. If you genuinely need one shared instance, prefer Meyers' singleton:
+The most-misused pattern. Almost always you want **dependency injection** instead. If you genuinely need one shared instance, use Meyers' singleton:
 
 ```cpp
 class Logger {
 public:
-    static Logger& instance() {
-        static Logger inst;   // C++11 guarantees thread-safe init
-        return inst;
-    }
+  static Logger& instance() {
+    static Logger inst;          // C++11 guarantees thread-safe init
+    return inst;
+  }
+  void log(const std::string& msg) { std::cout << msg << '\n'; }
 private:
-    Logger() = default;
+  Logger() = default;
 };
+
+int main() {
+  Logger::instance().log("hello");
+}
 ```
 
-When *not* to use singleton: anything that has state, anything testable. See [Static Initialization Order Fiasco](../static_member_function_order_fiasco.md).
+When *not* to use singleton: anything testable, anything with mutable state. See [Static Initialization Order Fiasco](../static_member_function_order_fiasco.md).
 
 ## Prototype
 
-Cloning an object whose concrete type isn't known. Standard implementation:
+Cloning an object whose concrete type isn't known at the call site:
 
 ```cpp
 struct Shape {
-    virtual ~Shape() = default;
-    virtual std::unique_ptr<Shape> clone() const = 0;
+  virtual ~Shape() = default;
+  virtual std::unique_ptr<Shape> clone() const = 0;
+  virtual void draw() const = 0;
 };
+
 struct Circle : Shape {
-    std::unique_ptr<Shape> clone() const override {
-        return std::make_unique<Circle>(*this);
-    }
+  std::unique_ptr<Shape> clone() const override {
+    return std::make_unique<Circle>(*this);
+  }
+  void draw() const override { std::cout << "circle\n"; }
 };
+
+void demo(const Shape& s) {
+  auto copy = s.clone();
+  copy->draw();
+}
 ```
 
 CRTP saves boilerplate; see [Virtual Constructor / Clone idiom](../virtual_destructor_virtual_constructor.md).
@@ -123,16 +159,19 @@ Wrap an existing interface to look like a different one.
 ```cpp
 class LegacyLogger {
 public:
-    void writeLine(const char* msg);
+  void writeLine(const char* msg) { std::cout << msg << '\n'; }
 };
 
-struct ILogger { virtual void log(std::string_view) = 0; virtual ~ILogger() = default; };
+struct ILogger {
+  virtual ~ILogger() = default;
+  virtual void log(const std::string& msg) = 0;
+};
 
 class LegacyLoggerAdapter : public ILogger {
-    LegacyLogger& legacy_;
+  LegacyLogger& legacy;
 public:
-    explicit LegacyLoggerAdapter(LegacyLogger& l) : legacy_(l) {}
-    void log(std::string_view m) override { legacy_.writeLine(std::string{m}.c_str()); }
+  LegacyLoggerAdapter(LegacyLogger& l) : legacy(l) {}
+  void log(const std::string& msg) override { legacy.writeLine(msg.c_str()); }
 };
 ```
 
@@ -141,53 +180,78 @@ public:
 Add behavior around an existing object without changing its type.
 
 ```cpp
-struct Stream { virtual void write(std::string_view) = 0; virtual ~Stream() = default; };
+struct Stream {
+  virtual ~Stream() = default;
+  virtual void write(const std::string& msg) = 0;
+};
+
+class ConsoleStream : public Stream {
+public:
+  void write(const std::string& msg) override { std::cout << msg << '\n'; }
+};
 
 class TimestampDecorator : public Stream {
-    Stream& inner_;
+  Stream& inner;
 public:
-    explicit TimestampDecorator(Stream& s) : inner_(s) {}
-    void write(std::string_view msg) override {
-        inner_.write(std::format("[{}] {}", now(), msg));
-    }
+  TimestampDecorator(Stream& s) : inner(s) {}
+  void write(const std::string& msg) override {
+    inner.write("[12:00] " + msg);
+  }
 };
+
+int main() {
+  ConsoleStream raw;
+  TimestampDecorator stamped(raw);
+  stamped.write("hello");   // [12:00] hello
+}
 ```
 
-Stack decorators by composition: `EncryptDecorator{ CompressDecorator{ FileStream{...} } }`.
+Stack decorators by composition: `TimestampDecorator(EncryptDecorator(file))`.
 
 ## Facade
 
 A single, simple interface to a complex subsystem.
 
 ```cpp
+class Demuxer { /* ... */ };
+class Decoder { /* ... */ };
+class Encoder { /* ... */ };
+class Muxer   { /* ... */ };
+
 class VideoTranscoder {
+  Demuxer demuxer;
+  Decoder decoder;
+  Encoder encoder;
+  Muxer   muxer;
 public:
-    void transcode(const std::filesystem::path& in, const std::filesystem::path& out);
-private:
-    Demuxer demuxer_;
-    Decoder decoder_;
-    Filter filter_;
-    Encoder encoder_;
-    Muxer muxer_;
+  void transcode(const std::string& in, const std::string& out) {
+    // orchestrate demuxer -> decoder -> encoder -> muxer
+  }
 };
 ```
 
-The facade itself does very little — it just orchestrates. The point is that *clients* see one type instead of five.
+The facade itself does very little — it just orchestrates. The point is that *clients* see one type instead of four.
 
 ## Proxy
 
 A stand-in that controls access to a real object: virtual proxy (lazy load), protection proxy (auth), remote proxy (RPC stub), smart pointer (already a proxy).
 
 ```cpp
-class LazyImage {
-    std::filesystem::path path_;
-    mutable std::unique_ptr<Image> img_;
+class Image {
 public:
-    explicit LazyImage(std::filesystem::path p) : path_(std::move(p)) {}
-    void render() const {
-        if (!img_) img_ = std::make_unique<Image>(loadFromDisk(path_));
-        img_->render();
-    }
+  Image(const std::string& path) { std::cout << "loaded " << path << '\n'; }
+  void render() const { std::cout << "rendering\n"; }
+};
+
+class LazyImage {
+  std::string path;
+  mutable std::unique_ptr<Image> img;
+public:
+  LazyImage(std::string p) : path(p) {}
+  void render() const {
+    if (!img) img = std::make_unique<Image>(path);
+    img->render();
+  }
 };
 ```
 
@@ -196,13 +260,24 @@ public:
 Treat a tree of objects uniformly with the leaves.
 
 ```cpp
-struct Node { virtual ~Node() = default; virtual int size() const = 0; };
-struct File : Node { int sz; int size() const override { return sz; } };
-struct Dir  : Node {
-    std::vector<std::unique_ptr<Node>> children;
-    int size() const override {
-        int s = 0; for (const auto& c : children) s += c->size(); return s;
-    }
+struct Node {
+  virtual ~Node() = default;
+  virtual int size() const = 0;
+};
+
+struct File : Node {
+  int bytes;
+  File(int b) : bytes(b) {}
+  int size() const override { return bytes; }
+};
+
+struct Dir : Node {
+  std::vector<std::unique_ptr<Node>> children;
+  int size() const override {
+    int total = 0;
+    for (const auto& c : children) total += c->size();
+    return total;
+  }
 };
 ```
 
@@ -214,48 +289,74 @@ Inject an algorithm:
 
 ```cpp
 class TextSorter {
-    std::function<bool(std::string_view, std::string_view)> cmp_;
+  std::function<bool(const std::string&, const std::string&)> cmp;
 public:
-    explicit TextSorter(decltype(cmp_) c) : cmp_(std::move(c)) {}
-    void sort(std::vector<std::string>& v) { std::ranges::sort(v, cmp_); }
+  TextSorter(std::function<bool(const std::string&, const std::string&)> c) : cmp(c) {}
+  void sort(std::vector<std::string>& v) { std::sort(v.begin(), v.end(), cmp); }
 };
+
+int main() {
+  std::vector<std::string> v = {"banana", "apple", "cherry"};
+  TextSorter s([](const std::string& a, const std::string& b) { return a < b; });
+  s.sort(v);
+}
 ```
 
 Compile-time strategy via templates is usually cheaper:
 
 ```cpp
-template<class Cmp> void sortText(std::vector<std::string>& v, Cmp cmp) {
-    std::ranges::sort(v, cmp);
+template <class Cmp>
+void sort_text(std::vector<std::string>& v, Cmp cmp) {
+  std::sort(v.begin(), v.end(), cmp);
 }
 ```
 
 ## Observer
 
-Subjects notify observers when something changes. Naive version:
+Subjects notify observers when something changes. We use `int` as the event type for simplicity.
 
 ```cpp
 class Subject {
-    std::vector<std::function<void(const Event&)>> subs_;
+  std::vector<std::function<void(int)>> subscribers;
 public:
-    void subscribe(std::function<void(const Event&)> f) { subs_.push_back(std::move(f)); }
-    void notify(const Event& e) { for (auto& f : subs_) f(e); }
+  void subscribe(std::function<void(int)> f) { subscribers.push_back(f); }
+  void notify(int event) {
+    for (auto& f : subscribers) f(event);
+  }
 };
+
+int main() {
+  Subject s;
+  s.subscribe([](int e) { std::cout << "got " << e << '\n'; });
+  s.notify(42);
+}
 ```
 
-Production-grade: handle unsubscribe (return a token / RAII subscription), thread safety, notification during mutation. Boost.Signals2 and Qt's signals/slots are robust implementations.
+A real implementation also handles unsubscribe (return a token / RAII subscription), thread safety, and notification during mutation. Boost.Signals2 and Qt's signals/slots are robust ones.
 
 ## Command
 
 Encapsulate a request as an object so it can be queued, logged, undone:
 
 ```cpp
-struct Command { virtual ~Command() = default; virtual void execute() = 0; virtual void undo() = 0; };
+struct Command {
+  virtual ~Command() = default;
+  virtual void execute() = 0;
+  virtual void undo() = 0;
+};
 
 class History {
-    std::vector<std::unique_ptr<Command>> done_;
+  std::vector<std::unique_ptr<Command>> done;
 public:
-    void run(std::unique_ptr<Command> c) { c->execute(); done_.push_back(std::move(c)); }
-    void undoLast() { if (!done_.empty()) { done_.back()->undo(); done_.pop_back(); } }
+  void run(std::unique_ptr<Command> c) {
+    c->execute();
+    done.push_back(std::move(c));
+  }
+  void undo_last() {
+    if (done.empty()) return;
+    done.back()->undo();
+    done.pop_back();
+  }
 };
 ```
 
@@ -264,13 +365,19 @@ public:
 Add operations to a closed hierarchy without modifying the hierarchy:
 
 ```cpp
-struct Circle; struct Square;
+struct Circle;
+struct Square;
+
 struct ShapeVisitor {
-    virtual void visit(Circle&) = 0;
-    virtual void visit(Square&) = 0;
-    virtual ~ShapeVisitor() = default;
+  virtual ~ShapeVisitor() = default;
+  virtual void visit(Circle&) = 0;
+  virtual void visit(Square&) = 0;
 };
-struct Shape { virtual void accept(ShapeVisitor&) = 0; virtual ~Shape() = default; };
+
+struct Shape {
+  virtual ~Shape() = default;
+  virtual void accept(ShapeVisitor&) = 0;
+};
 struct Circle : Shape { void accept(ShapeVisitor& v) override { v.visit(*this); } };
 struct Square : Shape { void accept(ShapeVisitor& v) override { v.visit(*this); } };
 ```
@@ -278,46 +385,55 @@ struct Square : Shape { void accept(ShapeVisitor& v) override { v.visit(*this); 
 In modern C++, prefer `std::variant` + `std::visit`:
 
 ```cpp
-using AnyShape = std::variant<Circle, Square, Triangle>;
-auto area(const AnyShape& s) {
-    return std::visit([](auto& x){ return x.area(); }, s);
+struct Circle { double r; double area() const { return 3.14 * r * r; } };
+struct Square { double s; double area() const { return s * s; } };
+
+using AnyShape = std::variant<Circle, Square>;
+
+double area(const AnyShape& s) {
+  return std::visit([](const auto& x) { return x.area(); }, s);
 }
 ```
 
-No vtable, no heap, exhaustiveness-ish (compiler warns on missing overloads). See [std::visit](../std_visit.md), [Double Dispatch](../double_dispatch.md).
+No vtable, no heap, exhaustiveness-ish (the compiler warns on missing overloads). See [std::visit](../std_visit.md), [Double Dispatch](../double_dispatch.md).
 
 ## State
 
-An object's behavior changes with its internal state. State machine version: see [Event-Driven Architecture and State Machines](event_driven_state_machines.md).
+An object's behavior changes with its internal state:
 
 ```cpp
 class Connection {
-    enum class State { Disconnected, Connecting, Connected, Closing };
-    State state_ = State::Disconnected;
+  enum class State { Disconnected, Connecting, Connected };
+  State state = State::Disconnected;
 public:
-    void send(std::string_view) {
-        switch (state_) {
-            case State::Connected: /* actually send */ break;
-            case State::Connecting: throw std::logic_error("not yet ready");
-            default:                throw std::logic_error("not connected");
-        }
-    }
+  void connect() { state = State::Connected; }
+  void send(const std::string& msg) {
+    if (state != State::Connected)
+      throw std::logic_error("not connected");
+    std::cout << "sending: " << msg << '\n';
+  }
 };
 ```
 
+For larger state machines, see [Event-Driven Architecture and State Machines](event_driven_state_machines.md).
+
 ## Template Method
 
-Base class defines the algorithm skeleton; subclasses fill in steps.
+Base class defines the algorithm skeleton; subclasses fill in the steps.
 
 ```cpp
 class ReportGenerator {
 public:
-    void generate() { fetch(); transform(); render(); }
-    virtual ~ReportGenerator() = default;
+  virtual ~ReportGenerator() = default;
+  void generate() {
+    fetch();
+    transform();
+    render();
+  }
 protected:
-    virtual void fetch() = 0;
-    virtual void transform() = 0;
-    virtual void render() = 0;
+  virtual void fetch()     = 0;
+  virtual void transform() = 0;
+  virtual void render()    = 0;
 };
 ```
 
@@ -325,17 +441,18 @@ Often replaceable by Strategy (composition over inheritance).
 
 ## Chain of Responsibility
 
-Pass a request along a chain until someone handles it:
+Pass a request along a chain until someone handles it. We use `int` as the request type.
 
 ```cpp
 struct Handler {
-    Handler* next = nullptr;
-    virtual bool handle(Request& r) = 0;
-    virtual ~Handler() = default;
+  Handler* next = nullptr;
+  virtual ~Handler() = default;
+  virtual bool handle(int request) = 0;
 
-    bool dispatch(Request& r) {
-        return handle(r) || (next && next->dispatch(r));
-    }
+  bool dispatch(int request) {
+    if (handle(request)) return true;
+    return next ? next->dispatch(request) : false;
+  }
 };
 ```
 

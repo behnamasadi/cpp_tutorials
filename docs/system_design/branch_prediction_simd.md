@@ -36,23 +36,28 @@ You can usually hit ~99% prediction accuracy on well-structured code. <95% in a 
 Replacing a branch with arithmetic or `cmov`:
 
 ```cpp
+int a = -42;
+
 // Branchy
 int abs_a = (a < 0) ? -a : a;
 
 // Branchless (compiler usually emits cmov)
-int abs_a = (a ^ (a >> 31)) - (a >> 31);
+int abs_a2 = (a ^ (a >> 31)) - (a >> 31);
 ```
 
 Modern compilers will usually emit `cmov` for simple ternaries themselves. The case where you have to help: data-dependent loop bodies.
 
 ```cpp
+std::vector<int> v = {1, 5, 10, 2, 8};
+int threshold = 4;
+
 // Branchy: predicate inside loop, the compiler usually keeps the branch
 int sum = 0;
 for (int x : v) if (x > threshold) sum += x;
 
 // Branchless: arithmetic mask
-int sum = 0;
-for (int x : v) sum += (x > threshold) * x;
+int sum2 = 0;
+for (int x : v) sum2 += (x > threshold) * x;
 ```
 
 When the predicate is genuinely 50/50 and the body is small, branchless wins; when biased, the branch wins (the unlikely path is essentially free under prediction). **Measure**, do not assume.
@@ -62,10 +67,16 @@ When the predicate is genuinely 50/50 and the body is small, branchless wins; wh
 C++20 attributes. Hint to the compiler about which branch is predicted to dominate. Affects code layout (the likely path is straight-line; the unlikely path is moved to a cold cache line).
 
 ```cpp
+enum State { kHotPath, kColdPath };
+State state = kHotPath;
+
+void fast_thing();
+void slow_diagnostic();
+
 if (state == kHotPath) [[likely]] {
-    fast_thing();
+  fast_thing();
 } else [[unlikely]] {
-    slow_diagnostic();
+  slow_diagnostic();
 }
 ```
 
@@ -94,10 +105,16 @@ What hardware prefetchers can't do:
 When the access pattern is computable but too complex for the hardware:
 
 ```cpp
+std::vector<int> data(1000);
+std::vector<size_t> indices(1000);
+size_t n = indices.size();
+
+void process(int x);
+
 for (size_t i = 0; i < n; ++i) {
-    if (i + 16 < n) __builtin_prefetch(&data[indices[i + 16]], 0, 1);
-    auto& x = data[indices[i]];
-    process(x);
+  if (i + 16 < n) __builtin_prefetch(&data[indices[i + 16]], 0, 1);
+  int& x = data[indices[i]];
+  process(x);
 }
 ```
 
@@ -131,6 +148,9 @@ A loop that does 16 floats in one AVX-512 instruction is — in arithmetic — 1
 The compiler will vectorize loops that meet certain conditions:
 
 ```cpp
+size_t n = 1024;
+float a[1024], b[1024], c[1024];
+
 // Vectorizable
 for (size_t i = 0; i < n; ++i) c[i] = a[i] + b[i];
 
@@ -139,7 +159,7 @@ for (size_t i = 1; i < n; ++i) a[i] = a[i-1] + 1;
 
 // Not vectorizable — pointer aliasing unknown
 void add(float* a, float* b, float* c, size_t n) {
-    for (size_t i = 0; i < n; ++i) c[i] = a[i] + b[i];
+  for (size_t i = 0; i < n; ++i) c[i] = a[i] + b[i];
 }
 ```
 
@@ -161,14 +181,21 @@ When you need to be sure, write SIMD by hand:
 #include <immintrin.h>
 
 void add_avx(const float* a, const float* b, float* c, size_t n) {
-    size_t i = 0;
-    for (; i + 8 <= n; i += 8) {
-        __m256 va = _mm256_loadu_ps(a + i);
-        __m256 vb = _mm256_loadu_ps(b + i);
-        __m256 vc = _mm256_add_ps(va, vb);
-        _mm256_storeu_ps(c + i, vc);
-    }
-    for (; i < n; ++i) c[i] = a[i] + b[i];
+  size_t i = 0;
+  for (; i + 8 <= n; i += 8) {
+    __m256 va = _mm256_loadu_ps(a + i);
+    __m256 vb = _mm256_loadu_ps(b + i);
+    __m256 vc = _mm256_add_ps(va, vb);
+    _mm256_storeu_ps(c + i, vc);
+  }
+  for (; i < n; ++i) c[i] = a[i] + b[i];
+}
+
+int main() {
+  float a[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+  float b[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  float c[16];
+  add_avx(a, b, c, 16);
 }
 ```
 
@@ -188,10 +215,14 @@ Writing AVX-512 + AVX2 + SSE + NEON + SVE versions of every kernel is rarely wor
 // std::experimental::simd, illustrative
 namespace stdx = std::experimental;
 using vec = stdx::native_simd<float>;
+
+size_t n = 1024;
+float a[1024], b[1024], c[1024];
+
 for (size_t i = 0; i < n; i += vec::size()) {
-    vec va(a + i, stdx::element_aligned);
-    vec vb(b + i, stdx::element_aligned);
-    (va + vb).copy_to(c + i, stdx::element_aligned);
+  vec va(a + i, stdx::element_aligned);
+  vec vb(b + i, stdx::element_aligned);
+  (va + vb).copy_to(c + i, stdx::element_aligned);
 }
 ```
 

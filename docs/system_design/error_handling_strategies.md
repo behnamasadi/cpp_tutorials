@@ -43,31 +43,37 @@ The single biggest mistake: using exceptions for *expected* control flow (e.g. "
 `std::expected<T, E>` holds either a value of type `T` or an error of type `E`.
 
 ```cpp
+#include <charconv>
 #include <expected>
+#include <iostream>
 #include <string>
 
 enum class ParseError { Empty, BadDigit, OutOfRange };
 
-std::expected<int, ParseError> parseInt(std::string_view s) {
+std::expected<int, ParseError> parseInt(const std::string& s) {
     if (s.empty()) return std::unexpected(ParseError::Empty);
     int value = 0;
-    auto [ptr, ec] = std::from_chars(s.data(), s.data()+s.size(), value);
+    auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
     if (ec == std::errc::invalid_argument)    return std::unexpected(ParseError::BadDigit);
     if (ec == std::errc::result_out_of_range) return std::unexpected(ParseError::OutOfRange);
     return value;
 }
 
-auto r = parseInt("42");
-if (r) std::cout << *r;
-else   std::cout << "error: " << static_cast<int>(r.error());
+int main() {
+    auto r = parseInt("42");
+    if (r) std::cout << *r << "\n";
+    else   std::cout << "error: " << static_cast<int>(r.error()) << "\n";
+}
 ```
 
 It also supports monadic chaining (`and_then`, `or_else`, `transform`):
 
 ```cpp
+std::string input = "42";
 auto result = parseInt(input)
     .transform([](int x) { return x * 2; })
-    .or_else([](ParseError) { return std::expected<int,ParseError>{0}; });
+    .or_else([](ParseError) { return std::expected<int, ParseError>{0}; });
+// result holds 84 on success, or 0 if parseInt failed.
 ```
 
 For C++17/20 codebases, `tl::expected` is a high-quality drop-in.
@@ -77,23 +83,40 @@ For C++17/20 codebases, `tl::expected` is a high-quality drop-in.
 `std::error_code` is a small (`int + category*`) value designed for the *library boundary*: any subsystem can define a category, and consumers can compare/categorize without knowing the source.
 
 ```cpp
-std::error_code ec;
-auto sz = std::filesystem::file_size("foo.txt", ec);
-if (ec) {
-    std::cerr << ec.message() << " (cat=" << ec.category().name() << ")\n";
+#include <filesystem>
+#include <iostream>
+#include <system_error>
+
+int main() {
+    std::error_code ec;
+    auto sz = std::filesystem::file_size("foo.txt", ec);
+    if (ec) {
+        std::cerr << ec.message() << " (cat=" << ec.category().name() << ")\n";
+    } else {
+        std::cout << "size = " << sz << "\n";
+    }
 }
 ```
 
 You can throw the code as `std::system_error` if you want exception semantics:
 
 ```cpp
-throw std::system_error(errno, std::generic_category(), "open failed");
+#include <cerrno>
+#include <system_error>
+
+void openFile() {
+    throw std::system_error(errno, std::generic_category(), "open failed");
+}
 ```
 
 Custom categories let you map your domain errors into the same protocol:
 
 ```cpp
-enum class NetErr { Timeout=1, DnsFail, Refused };
+#include <iostream>
+#include <string>
+#include <system_error>
+
+enum class NetErr { Timeout = 1, DnsFail, Refused };
 
 class NetErrCategory : public std::error_category {
 public:
@@ -107,6 +130,12 @@ public:
         return "unknown";
     }
 };
+
+int main() {
+    NetErrCategory cat;
+    std::cout << cat.name() << ": "
+              << cat.message(static_cast<int>(NetErr::DnsFail)) << "\n";
+}
 ```
 
 # 5. Errors vs Programmer Bugs
@@ -130,11 +159,27 @@ Beyond per-call error handling, system-level fault tolerance:
 
 **Retries with exponential backoff and jitter.**
 ```cpp
-std::chrono::milliseconds delay{50};
-for (int attempt = 0; attempt < 5; ++attempt) {
-    if (auto r = call(); r) return r;
-    std::this_thread::sleep_for(delay + jitter());
-    delay *= 2;
+#include <chrono>
+#include <expected>
+#include <random>
+#include <thread>
+
+std::expected<int, int> call();  // returns a value or an error code
+
+std::chrono::milliseconds jitter() {
+    static std::mt19937 rng{std::random_device{}()};
+    std::uniform_int_distribution<int> dist(0, 25);
+    return std::chrono::milliseconds(dist(rng));
+}
+
+std::expected<int, int> callWithRetry() {
+    std::chrono::milliseconds delay{50};
+    for (int attempt = 0; attempt < 5; ++attempt) {
+        if (auto r = call(); r) return r;
+        std::this_thread::sleep_for(delay + jitter());
+        delay *= 2;
+    }
+    return std::unexpected(-1);
 }
 ```
 Don't retry idempotent operations only. Don't retry forever — bound it.

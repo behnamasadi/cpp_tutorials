@@ -40,30 +40,42 @@ A state machine names every state, enumerates legal transitions, and rejects ill
 Smallest version. State is an enum; the dispatcher is a switch.
 
 ```cpp
+#include <iostream>
+
 enum class State { Disconnected, Connecting, Connected, Closing };
 enum class Event { Open, Ack, Timeout, Close, Closed };
 
 class Connection {
-    State s_ = State::Disconnected;
+    State s = State::Disconnected;
 public:
+    State state() const { return s; }
+
     void on(Event e) {
-        switch (s_) {
+        switch (s) {
         case State::Disconnected:
-            if (e == Event::Open) s_ = State::Connecting;
+            if (e == Event::Open) s = State::Connecting;
             break;
         case State::Connecting:
-            if (e == Event::Ack)     s_ = State::Connected;
-            else if (e == Event::Timeout) s_ = State::Disconnected;
+            if (e == Event::Ack)     s = State::Connected;
+            else if (e == Event::Timeout) s = State::Disconnected;
             break;
         case State::Connected:
-            if (e == Event::Close) s_ = State::Closing;
+            if (e == Event::Close) s = State::Closing;
             break;
         case State::Closing:
-            if (e == Event::Closed) s_ = State::Disconnected;
+            if (e == Event::Closed) s = State::Disconnected;
             break;
         }
     }
 };
+
+int main() {
+    Connection c;
+    c.on(Event::Open);   // Disconnected -> Connecting
+    c.on(Event::Ack);    // Connecting   -> Connected
+    c.on(Event::Close);  // Connected    -> Closing
+    std::cout << "state = " << static_cast<int>(c.state()) << "\n";
+}
 ```
 
 Fine for under ~10 states. Above that, two nested switches become unmaintainable.
@@ -73,15 +85,40 @@ Fine for under ~10 states. Above that, two nested switches become unmaintainable
 Encode the transition table as data:
 
 ```cpp
+#include <iostream>
+
+enum class State { Disconnected, Connecting, Connected, Closing };
+enum class Event { Open, Ack, Timeout, Close, Closed };
+
+void onConnected()  { std::cout << "connected\n"; }
+void onCloseStart() { std::cout << "closing...\n"; }
+
 struct Transition { State from; Event ev; State to; void(*action)(); };
 
-constexpr Transition kTable[] = {
+Transition kTable[] = {
     {State::Disconnected, Event::Open,    State::Connecting,   nullptr},
     {State::Connecting,   Event::Ack,     State::Connected,    onConnected},
     {State::Connecting,   Event::Timeout, State::Disconnected, nullptr},
     {State::Connected,    Event::Close,   State::Closing,      onCloseStart},
     {State::Closing,      Event::Closed,  State::Disconnected, nullptr},
 };
+
+State step(State s, Event e) {
+    for (const auto& t : kTable) {
+        if (t.from == s && t.ev == e) {
+            if (t.action) t.action();
+            return t.to;
+        }
+    }
+    return s; // illegal event: stay put
+}
+
+int main() {
+    State s = State::Disconnected;
+    s = step(s, Event::Open);
+    s = step(s, Event::Ack);
+    s = step(s, Event::Close);
+}
 ```
 
 Now adding a transition is one row. Visualization tools (Graphviz) can dump the table as a diagram. The cost: states and events have to be enums, and transition logic is harder to express conditionally.
@@ -91,7 +128,11 @@ Now adding a transition is one row. Visualization tools (Graphviz) can dump the 
 Each state is its own class. Useful when each state has substantial per-state behavior:
 
 ```cpp
+#include <iostream>
+#include <memory>
+
 class Connection;
+
 struct State {
     virtual void open(Connection&)  { /* ignore by default */ }
     virtual void ack(Connection&)   {}
@@ -100,16 +141,36 @@ struct State {
 };
 
 struct DisconnectedState : State { void open(Connection& c) override; };
-struct ConnectingState   : State { void ack(Connection& c) override; };
+struct ConnectingState   : State { void ack(Connection& c)  override; };
+struct ConnectedState    : State { void close(Connection& c) override; };
 
 class Connection {
-    std::unique_ptr<State> state_;
+    std::unique_ptr<State> state = std::make_unique<DisconnectedState>();
 public:
-    void setState(std::unique_ptr<State> s) { state_ = std::move(s); }
-    void open()  { state_->open(*this);  }
-    void ack()   { state_->ack(*this);   }
-    void close() { state_->close(*this); }
+    void setState(std::unique_ptr<State> s) { state = std::move(s); }
+    void open()  { state->open(*this);  }
+    void ack()   { state->ack(*this);   }
+    void close() { state->close(*this); }
 };
+
+void DisconnectedState::open(Connection& c) {
+    std::cout << "Disconnected -> Connecting\n";
+    c.setState(std::make_unique<ConnectingState>());
+}
+void ConnectingState::ack(Connection& c) {
+    std::cout << "Connecting -> Connected\n";
+    c.setState(std::make_unique<ConnectedState>());
+}
+void ConnectedState::close(Connection& c) {
+    std::cout << "Connected -> Closing\n";
+}
+
+int main() {
+    Connection c;
+    c.open();   // -> Connecting
+    c.ack();    // -> Connected
+    c.close();  // -> Closing
+}
 ```
 
 Heap allocation per transition is the cost. Suits long-lived states with rich behavior, not chatty protocols.
@@ -119,9 +180,13 @@ Heap allocation per transition is the cost. Suits long-lived states with rich be
 State Pattern minus the heap allocation:
 
 ```cpp
+#include <iostream>
+#include <stdexcept>
+#include <variant>
+
 struct Disconnected {};
 struct Connecting   { int retries = 0; };
-struct Connected    { std::chrono::system_clock::time_point since; };
+struct Connected    { int session_id = 0; };
 struct Closing      {};
 
 using ConnState = std::variant<Disconnected, Connecting, Connected, Closing>;
@@ -129,14 +194,27 @@ using ConnState = std::variant<Disconnected, Connecting, Connected, Closing>;
 struct Open  {};
 struct Ack   {};
 struct Close {};
+using Event = std::variant<Open, Ack, Close>;
 
-ConnState transition(ConnState st, std::variant<Open, Ack, Close> ev) {
+// Standard "overloaded" helper for combining lambdas in std::visit.
+template <class... Fs> struct overloaded : Fs... { using Fs::operator()...; };
+template <class... Fs> overloaded(Fs...) -> overloaded<Fs...>;
+
+ConnState transition(ConnState st, Event ev) {
     return std::visit(overloaded{
-        [](Disconnected,        Open)  -> ConnState { return Connecting{}; },
-        [](Connecting&,         Ack)   -> ConnState { return Connected{ now() }; },
-        [](const Connected&,    Close) -> ConnState { return Closing{}; },
-        [](auto, auto) -> ConnState { /* illegal — log or assert */ throw std::logic_error("bad transition"); }
+        [](Disconnected,     Open)  -> ConnState { return Connecting{}; },
+        [](Connecting,       Ack)   -> ConnState { return Connected{42}; },
+        [](Connected,        Close) -> ConnState { return Closing{}; },
+        [](auto, auto)       -> ConnState { throw std::logic_error("bad transition"); }
     }, st, ev);
+}
+
+int main() {
+    ConnState s = Disconnected{};
+    s = transition(s, Open{});
+    s = transition(s, Ack{});
+    s = transition(s, Close{});
+    std::cout << "state index = " << s.index() << "\n"; // 3 == Closing
 }
 ```
 
@@ -169,23 +247,31 @@ Header-only DSL, compile-time, zero runtime overhead, no dynamic allocation. The
 #include <boost/sml.hpp>
 namespace sml = boost::sml;
 
-struct open_e {}; struct ack_e {}; struct close_e {}; struct closed_e {};
+struct open_e {};
+struct ack_e {};
+struct timeout_e {};
+struct close_e {};
+struct closed_e {};
 
 struct connection {
     auto operator()() {
         using namespace sml;
         return make_transition_table(
-            *"disconnected"_s + event<open_e>   = "connecting"_s,
-             "connecting"_s   + event<ack_e>    = "connected"_s,
-             "connecting"_s   + event<timeout_e>= "disconnected"_s,
-             "connected"_s    + event<close_e>  = "closing"_s,
-             "closing"_s      + event<closed_e> = "disconnected"_s
+            *"disconnected"_s + event<open_e>    = "connecting"_s,
+             "connecting"_s   + event<ack_e>     = "connected"_s,
+             "connecting"_s   + event<timeout_e> = "disconnected"_s,
+             "connected"_s    + event<close_e>   = "closing"_s,
+             "closing"_s      + event<closed_e>  = "disconnected"_s
         );
     }
 };
 
-sml::sm<connection> sm;
-sm.process_event(open_e{});
+int main() {
+    sml::sm<connection> sm;
+    sm.process_event(open_e{});
+    sm.process_event(ack_e{});
+    sm.process_event(close_e{});
+}
 ```
 
 Transitions can have guards (predicates) and actions. The DSL feels strange at first, but the resulting code is dense and the diagram-to-code mapping is direct.

@@ -83,20 +83,23 @@ Avoid `static` non-trivially-constructed objects in functions — the lazy-init 
 Hardware peripherals live at fixed addresses. The classic pattern:
 
 ```cpp
+#include <cstdint>
+
 struct GpioRegs {
-    volatile uint32_t MODER;       // mode register
-    volatile uint32_t OTYPER;      // output type
-    volatile uint32_t OSPEEDR;
-    volatile uint32_t PUPDR;
-    volatile uint32_t IDR;         // input data
-    volatile uint32_t ODR;         // output data
-    volatile uint32_t BSRR;        // bit set/reset
-    // ...
+  volatile uint32_t MODER;     // mode register
+  volatile uint32_t OTYPER;    // output type
+  volatile uint32_t OSPEEDR;
+  volatile uint32_t PUPDR;
+  volatile uint32_t IDR;       // input data
+  volatile uint32_t ODR;       // output data
+  volatile uint32_t BSRR;      // bit set/reset
 };
 
-inline GpioRegs* const GPIOA = reinterpret_cast<GpioRegs*>(0x40020000);
+GpioRegs* const GPIOA = reinterpret_cast<GpioRegs*>(0x40020000);
 
-GPIOA->ODR |= (1 << 5);            // set pin PA5 high
+void setPA5High() {
+  GPIOA->ODR |= (1 << 5);      // set pin PA5 high
+}
 ```
 
 Why `volatile`: the compiler must not optimize away or reorder reads/writes the way it would with normal memory. Hardware sees every access; sometimes reading a register has side effects (clearing a flag), and missing those reads breaks the device.
@@ -115,17 +118,25 @@ ISRs interrupt the running code, do their work, return. Constraints:
 - **No floating point** unless the hardware has FPU context save (most Cortex-M4F+ do, M0 doesn't).
 
 ```cpp
-volatile bool g_button_event = false;     // shared with main; volatile required
+#include <cstdint>
+
+struct ExtiRegs { volatile uint32_t PR; };
+ExtiRegs* const EXTI = reinterpret_cast<ExtiRegs*>(0x40013C00);
+
+volatile bool g_button_event = false;   // shared with main; volatile required
+
+void handleButton() { /* ... */ }
 
 extern "C" void EXTI0_IRQHandler() {
-    EXTI->PR = (1u << 0);                 // clear pending bit (write-1-to-clear)
-    g_button_event = true;
+  EXTI->PR = (1u << 0);                 // clear pending bit (write-1-to-clear)
+  g_button_event = true;
 }
 
-// In main loop:
-if (g_button_event) {
+void mainLoopStep() {
+  if (g_button_event) {
     g_button_event = false;
     handleButton();
+  }
 }
 ```
 
@@ -136,9 +147,13 @@ For richer ISR/main communication, use a lock-free SPSC ring buffer (see [Lock-F
 Battery-powered embedded means the deepest sleep mode the application can tolerate, woken by interrupts:
 
 ```cpp
-while (true) {
+void handlePending() { /* drain queues, update state */ }
+
+void runForever() {
+  while (true) {
     handlePending();
-    __WFI();         // wait for interrupt — sleep until something happens
+    __WFI();       // wait for interrupt — sleep until something happens
+  }
 }
 ```
 
@@ -188,11 +203,21 @@ Tools like [Bloaty McBloatface](https://github.com/google/bloaty) give a richer 
 
 **Static polymorphism over virtual.** CRTP gives compile-time dispatch with no vtable cost. Use it when you'd otherwise reach for inheritance:
 ```cpp
+#include <cstdint>
+
 template<class Derived>
 struct Driver {
-    void send(uint8_t b) { static_cast<Derived*>(this)->doSend(b); }
+  void send(uint8_t b) { static_cast<Derived*>(this)->doSend(b); }
 };
-struct UartDriver : Driver<UartDriver> { void doSend(uint8_t b); };
+
+struct UartDriver : Driver<UartDriver> {
+  void doSend(uint8_t b) { /* write byte to UART data register */ }
+};
+
+int main() {
+  UartDriver uart;
+  uart.send(0x42);    // dispatched at compile time, no vtable
+}
 ```
 
 **Constexpr everything.** Move work to compile time. Tables, lookup arrays, configuration — all `constexpr`.

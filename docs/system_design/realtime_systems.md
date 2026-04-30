@@ -50,17 +50,19 @@ The core rule: **no heap allocation in the hot path**. Strategies:
 - **Specifically avoid**: `std::string` ad-hoc creations, `std::vector::push_back` (may reallocate), `std::unordered_map::insert` (may rehash), `std::shared_ptr::shared_ptr` (allocates control block).
 
 ```cpp
+struct Item { int value; };
+
 // In init phase
-constexpr size_t kMaxItems = 4096;
+const size_t kMaxItems = 4096;
 std::array<Item, kMaxItems> pool;
 std::vector<Item*> free_list;
 free_list.reserve(kMaxItems);
 for (auto& x : pool) free_list.push_back(&x);
 
-// In hot path — all O(1), no allocation
+// In hot path -- all O(1), no allocation
 Item* it = free_list.back();
 free_list.pop_back();
-*it = Item{...};
+it->value = 42;
 process(it);
 free_list.push_back(it);
 ```

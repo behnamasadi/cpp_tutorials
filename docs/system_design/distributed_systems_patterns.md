@@ -117,20 +117,40 @@ Re-sharding (adding/removing nodes) is the hardest part. Strategies:
 Place servers and keys on a virtual ring. A key is owned by the next server clockwise from its hash. Adding/removing a server only affects keys near it on the ring — `O(K/N)` keys move instead of `O(K)`.
 
 ```cpp
+#include <iostream>
+#include <map>
+#include <string>
+
 class ConsistentHashRing {
-    std::map<uint64_t, std::string> ring_;  // hash → server
-    int virtualNodes_ = 150;
+    std::map<size_t, std::string> ring;   // hash -> server
+    int virtualNodes = 150;
+
 public:
-    void addServer(const std::string& s) {
-        for (int i = 0; i < virtualNodes_; ++i)
-            ring_[std::hash<std::string>{}(s + std::to_string(i))] = s;
+    void addServer(const std::string& server) {
+        for (int i = 0; i < virtualNodes; ++i) {
+            size_t h = std::hash<std::string>{}(server + std::to_string(i));
+            ring[h] = server;
+        }
     }
-    const std::string& serverFor(const std::string& key) const {
-        auto h = std::hash<std::string>{}(key);
-        auto it = ring_.lower_bound(h);
-        return it == ring_.end() ? ring_.begin()->second : it->second;
+
+    std::string serverFor(const std::string& key) const {
+        size_t h = std::hash<std::string>{}(key);
+        auto it = ring.lower_bound(h);
+        if (it == ring.end()) it = ring.begin();   // wrap around the ring
+        return it->second;
     }
 };
+
+int main() {
+    ConsistentHashRing ring;
+    ring.addServer("server-A");
+    ring.addServer("server-B");
+    ring.addServer("server-C");
+
+    for (const std::string& key : {"user:42", "user:99", "order:7", "order:1234"}) {
+        std::cout << key << " -> " << ring.serverFor(key) << "\n";
+    }
+}
 ```
 
 Virtual nodes (~100–500 per server) smooth out the distribution; without them, fewer-server rings get lumpy.

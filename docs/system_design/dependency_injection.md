@@ -18,13 +18,22 @@ Dependency Injection (DI) is the practice of giving an object its dependencies f
 Consider:
 
 ```cpp
+struct Order { int id; std::string customerEmail; };
+
+struct MySqlDatabase {
+    void save(const Order&) { /* talk to MySQL */ }
+};
+struct SmtpEmailer {
+    void sendConfirmation(const std::string&) { /* talk to SMTP */ }
+};
+
 class OrderService {
-    MySqlDatabase db_;          // hard-coded
-    SmtpEmailer emailer_;       // hard-coded
+    MySqlDatabase db;        // hard-coded
+    SmtpEmailer emailer;     // hard-coded
 public:
     void placeOrder(const Order& o) {
-        db_.save(o);
-        emailer_.sendConfirmation(o.customerEmail);
+        db.save(o);
+        emailer.sendConfirmation(o.customerEmail);
     }
 };
 ```
@@ -37,14 +46,25 @@ Problems:
 DI flips it:
 
 ```cpp
+struct Order { int id; std::string customerEmail; };
+
+struct Database {
+    virtual ~Database() = default;
+    virtual void save(const Order&) = 0;
+};
+struct Emailer {
+    virtual ~Emailer() = default;
+    virtual void sendConfirmation(const std::string&) = 0;
+};
+
 class OrderService {
-    Database& db_;
-    Emailer&  emailer_;
+    Database& db;
+    Emailer&  emailer;
 public:
-    OrderService(Database& db, Emailer& e) : db_(db), emailer_(e) {}
+    OrderService(Database& d, Emailer& e) : db(d), emailer(e) {}
     void placeOrder(const Order& o) {
-        db_.save(o);
-        emailer_.sendConfirmation(o.customerEmail);
+        db.save(o);
+        emailer.sendConfirmation(o.customerEmail);
     }
 };
 ```
@@ -69,13 +89,13 @@ In C++ you don't have to use virtual dispatch. Templates can inject dependencies
 ```cpp
 template<class Db, class Emailer>
 class OrderService {
-    Db& db_;
-    Emailer& emailer_;
+    Db& db;
+    Emailer& emailer;
 public:
-    OrderService(Db& db, Emailer& e) : db_(db), emailer_(e) {}
+    OrderService(Db& d, Emailer& e) : db(d), emailer(e) {}
     void placeOrder(const Order& o) {
-        db_.save(o);
-        emailer_.sendConfirmation(o.customerEmail);
+        db.save(o);
+        emailer.sendConfirmation(o.customerEmail);
     }
 };
 ```
@@ -94,23 +114,49 @@ When to prefer compile-time DI: hot paths, embedded code, or when the set of imp
 # 4. Runtime DI with Interfaces
 
 ```cpp
-struct Database { virtual ~Database() = default; virtual void save(const Order&) = 0; };
-struct Emailer  { virtual ~Emailer() = default;  virtual void sendConfirmation(const std::string&) = 0; };
+#include <iostream>
+#include <string>
+
+struct Order { int id; std::string customerEmail; };
+
+struct Database {
+    virtual ~Database() = default;
+    virtual void save(const Order&) = 0;
+};
+struct Emailer {
+    virtual ~Emailer() = default;
+    virtual void sendConfirmation(const std::string&) = 0;
+};
 
 class OrderService {
-    Database* db_;
-    Emailer*  emailer_;
+    Database* db;
+    Emailer*  emailer;
 public:
-    OrderService(Database* db, Emailer* e) : db_(db), emailer_(e) {}
-    void placeOrder(const Order& o) { db_->save(o); emailer_->sendConfirmation(o.customerEmail); }
+    OrderService(Database* d, Emailer* e) : db(d), emailer(e) {}
+    void placeOrder(const Order& o) {
+        db->save(o);
+        emailer->sendConfirmation(o.customerEmail);
+    }
+};
+
+// Concrete implementations
+struct PostgresDb : Database {
+    void save(const Order& o) override {
+        std::cout << "Postgres: saved order " << o.id << "\n";
+    }
+};
+struct SmtpEmailer : Emailer {
+    void sendConfirmation(const std::string& addr) override {
+        std::cout << "SMTP: sent to " << addr << "\n";
+    }
 };
 
 // Composition root
 int main() {
-    PostgresDb db{...};
-    SmtpEmailer em{...};
+    PostgresDb db;
+    SmtpEmailer em;
     OrderService svc{&db, &em};
-    runApp(svc);
+    svc.placeOrder(Order{42, "alice@example.com"});
 }
 ```
 
@@ -148,17 +194,24 @@ A common bug: injecting a `Database&` into a long-lived service and then having 
 The point of all this is that tests can substitute fakes:
 
 ```cpp
+#include <cassert>
+#include <string>
+#include <vector>
+
 struct FakeDb : Database {
     std::vector<Order> saved;
     void save(const Order& o) override { saved.push_back(o); }
 };
-struct NullEmailer : Emailer { void sendConfirmation(const std::string&) override {} };
+struct NullEmailer : Emailer {
+    void sendConfirmation(const std::string&) override {}
+};
 
-TEST(OrderService, savesOrder) {
-    FakeDb db; NullEmailer em;
+int main() {
+    FakeDb db;
+    NullEmailer em;
     OrderService svc{&db, &em};
     svc.placeOrder(Order{42, "foo@bar"});
-    EXPECT_EQ(db.saved.size(), 1u);
+    assert(db.saved.size() == 1);
 }
 ```
 
@@ -168,7 +221,7 @@ No mocks framework required for simple cases. Hand-rolled fakes are usually clea
 
 **Service Locator** — a global registry queried at runtime.
 ```cpp
-auto db = ServiceLocator::get<Database>();   // dependencies invisible at the call site
+Database* db = ServiceLocator::get<Database>();   // dependencies invisible at the call site
 ```
 Looks like DI but isn't: dependencies are no longer explicit in the type. Avoid except as a last-resort migration tool.
 
@@ -176,7 +229,7 @@ Looks like DI but isn't: dependencies are no longer explicit in the type. Avoid 
 
 **`new` in constructors.**
 ```cpp
-OrderService() : db_(new MySqlDatabase{}) {}   // hard-coded again
+OrderService() : db(new MySqlDatabase{}) {}   // hard-coded again
 ```
 You've moved the dependency from a member to a heap allocation but kept all the coupling.
 

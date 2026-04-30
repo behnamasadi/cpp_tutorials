@@ -405,6 +405,10 @@ This change ensures that VSCode uses the "Ninja Multi-Config" generator by defau
 
 - [Object-Oriented Design Patterns (Factory, Singleton, Observer, Strategy, Visitor, Decorator, Adapter)](docs/system_design/design_patterns.md)
 - [Concurrency Patterns (Thread Pool, Producer-Consumer, Active Object, Reactor, Proactor)](docs/system_design/concurrency_patterns.md)
+  - [Producer–Consumer: backpressure vs. drop](docs/system_design/concurrency_patterns.md#21-backpressure-vs-drop-choosing-the-policy)
+  - [Latest-value (mailbox) buffer](docs/system_design/concurrency_patterns.md#22-latest-value-mailbox)
+  - [Worked example: bounded queue vs. latest-value](docs/system_design/concurrency_patterns.md#23-worked-example-bounded-queue-vs-latest-value)
+  - [Cross-process: ROS2 QoS mapping](docs/system_design/concurrency_patterns.md#24-cross-process-same-patterns-different-transport)
 - [Event-Driven Architecture and State Machines (HSM, `boost::sml`)](docs/system_design/event_driven_state_machines.md)
 - [Pipeline and Dataflow Architectures](docs/system_design/pipeline_dataflow.md)
 

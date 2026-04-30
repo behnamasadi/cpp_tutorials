@@ -20,36 +20,49 @@ Game engines are the most demanding C++ codebases in production: 16 ms for every
 The heartbeat:
 
 ```cpp
-auto last = clock::now();
-while (running) {
-    auto now = clock::now();
-    auto dt  = std::chrono::duration<float>(now - last).count();
+#include <chrono>
+
+using clock_t = std::chrono::steady_clock;
+bool running = true;
+
+void pollInput() {}
+void fixedUpdate(float dt) {}
+void update(float dt) {}
+void render() {}
+void presentFrame() {}
+
+int main() {
+  auto last = clock_t::now();
+  while (running) {
+    auto now = clock_t::now();
+    float dt = std::chrono::duration<float>(now - last).count();
     last = now;
 
     pollInput();
-    fixedUpdate(dt);     // physics, AI — fixed timestep
-    update(dt);          // animation, gameplay — variable
-    render();            // GPU command building
-    presentFrame();      // swap buffer
+    fixedUpdate(dt);   // physics, AI — fixed timestep
+    update(dt);        // animation, gameplay — variable
+    render();          // GPU command building
+    presentFrame();    // swap buffer
+  }
 }
 ```
 
 Real engines split the simulation timestep from the render timestep. **Fixed-step physics** (e.g., 60 Hz, 120 Hz) runs deterministically, with the renderer interpolating between simulation states for smoothness:
 
 ```cpp
-constexpr auto kFixedDt = std::chrono::duration<float>{1.0f / 60.0f};
-auto accumulator = std::chrono::duration<float>::zero();
+const float kFixedDt = 1.0f / 60.0f;
+float accumulator = 0.0f;
 
 while (running) {
-    auto frame_dt = ...;
-    accumulator += frame_dt;
-    while (accumulator >= kFixedDt) {
-        fixedUpdate(kFixedDt.count());
-        accumulator -= kFixedDt;
-    }
-    float alpha = accumulator / kFixedDt;
-    interpolateRenderState(alpha);
-    render();
+  float frame_dt = measureFrameTime();
+  accumulator += frame_dt;
+  while (accumulator >= kFixedDt) {
+    fixedUpdate(kFixedDt);
+    accumulator -= kFixedDt;
+  }
+  float alpha = accumulator / kFixedDt;
+  interpolateRenderState(alpha);
+  render();
 }
 ```
 
@@ -80,14 +93,27 @@ The dominant architecture in modern engines (Unity DOTS, Unreal Mass, Bevy, EnTT
 - **System** — a function over entities that have specific components. `physicsSystem` operates on every entity with `Transform` + `RigidBody`.
 
 ```cpp
-struct Transform { glm::vec3 pos; glm::quat rot; };
-struct Velocity  { glm::vec3 v; };
-struct Mesh      { MeshHandle h; };
+#include <vector>
+#include <cstdint>
+
+struct Vec3 { float x, y, z; };
+struct Transform { Vec3 pos; };
+struct Velocity  { Vec3 v; };
+
+struct World {
+  std::vector<uint64_t> ids;
+  std::vector<Transform> transforms;   // SoA: contiguous storage per component
+  std::vector<Velocity>  velocities;
+};
 
 void physicsSystem(World& w, float dt) {
-    w.each<Transform, Velocity>([&](auto& t, auto& v){
-        t.pos += v.v * dt;
-    });
+  for (size_t i = 0; i < w.ids.size(); ++i) {
+    Transform& t = w.transforms[i];
+    Velocity&  v = w.velocities[i];
+    t.pos.x += v.v.x * dt;
+    t.pos.y += v.v.y * dt;
+    t.pos.z += v.v.z * dt;
+  }
 }
 ```
 
@@ -106,16 +132,21 @@ See [Cache-Friendly Design](cache_friendly_design.md) for the SoA argument in ge
 A scene graph is a hierarchy of nodes; each node has a transform relative to its parent. Used for spatial relationships (the headlamp follows the car follows the road), animation skeletons, UI layout.
 
 ```cpp
+#include <vector>
+
+struct Mat4 { float m[16]; };
+Mat4 multiply(const Mat4& a, const Mat4& b);  // matrix multiply
+
 struct Node {
-    glm::mat4 local;
-    glm::mat4 world;       // computed each frame
-    Node* parent;
-    std::vector<Node*> children;
+  Mat4 local;
+  Mat4 world;        // computed each frame
+  Node* parent = nullptr;
+  std::vector<Node*> children;
 };
 
 void updateWorld(Node& n) {
-    n.world = n.parent ? n.parent->world * n.local : n.local;
-    for (auto* c : n.children) updateWorld(*c);
+  n.world = n.parent ? multiply(n.parent->world, n.local) : n.local;
+  for (Node* c : n.children) updateWorld(*c);
 }
 ```
 
@@ -152,9 +183,28 @@ Loading textures, meshes, audio, scripts:
 Resource handles are usually opaque integers; the resource manager looks them up:
 
 ```cpp
+#include <cstdint>
+#include <string>
+#include <vector>
+
+struct Texture { int width, height; };
 struct TextureHandle { uint32_t id; };
-TextureHandle h = res.loadTexture("hero/diffuse.png");
-auto& tex = res.get(h);
+
+class ResourceManager {
+  std::vector<Texture> textures;
+public:
+  TextureHandle loadTexture(const std::string& path) {
+    textures.push_back(Texture{1024, 1024});
+    return TextureHandle{(uint32_t)textures.size() - 1};
+  }
+  Texture& get(TextureHandle h) { return textures[h.id]; }
+};
+
+int main() {
+  ResourceManager res;
+  TextureHandle h = res.loadTexture("hero/diffuse.png");
+  Texture& tex = res.get(h);
+}
 ```
 
 # 7. Frame Pacing and Threading
@@ -168,10 +218,27 @@ A modern engine fans frame work onto many threads:
 The general pattern is a **job system** with work-stealing (see [Concurrency Patterns §7](concurrency_patterns.md#7-forkjoin-and-work-stealing)). Gameplay code spawns jobs; they run on workers; barriers synchronize at frame boundaries.
 
 ```cpp
-JobHandle physicsJob   = jobs.submit([]{ runPhysics(); });
-JobHandle animJob      = jobs.submit([]{ updateAnimation(); });
-jobs.wait(physicsJob); jobs.wait(animJob);
-buildRenderQueue();
+struct JobHandle { int id; };
+
+class JobSystem {
+public:
+  template <class Fn>
+  JobHandle submit(Fn fn) { fn(); return JobHandle{0}; }  // toy: run inline
+  void wait(JobHandle) {}
+};
+
+void runPhysics();
+void updateAnimation();
+void buildRenderQueue();
+
+int main() {
+  JobSystem jobs;
+  JobHandle physicsJob = jobs.submit([]{ runPhysics(); });
+  JobHandle animJob    = jobs.submit([]{ updateAnimation(); });
+  jobs.wait(physicsJob);
+  jobs.wait(animJob);
+  buildRenderQueue();
+}
 ```
 
 Frame pacing matters: if frames take varying time, the result feels stuttery even with high average FPS. Lock to vsync or use VRR (G-Sync, FreeSync) and aim for consistent frame time.

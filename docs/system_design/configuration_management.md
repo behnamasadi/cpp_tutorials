@@ -27,6 +27,10 @@ Default rule: **prefer runtime** for anything an operator might want to change. 
 
 A pragmatic split:
 ```cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+
 // build-time
 #ifdef DEBUG
 constexpr bool kSlowChecks = true;
@@ -40,6 +44,15 @@ struct Config {
     std::chrono::seconds ttl = std::chrono::seconds{30};
     std::string log_level    = "info";
 };
+
+int main() {
+    if constexpr (kSlowChecks) {
+        std::cout << "slow checks on\n";
+    }
+    Config cfg;
+    std::cout << "max_connections=" << cfg.max_connections
+              << " log_level=" << cfg.log_level << "\n";
+}
 ```
 
 # 2. Sources of Truth
@@ -63,6 +76,11 @@ The chain you usually want: **defaults → file → env → flags**, with later 
 # 3. Layered Configuration
 
 ```cpp
+#include <chrono>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
 struct ServerConfig {
     int                  port           = 8080;
     int                  worker_threads = 4;
@@ -70,16 +88,28 @@ struct ServerConfig {
     std::chrono::seconds shutdown_grace = std::chrono::seconds{30};
 };
 
-ServerConfig load() {
+void load_file(const char* path, ServerConfig& c) { /* parse YAML/TOML/... */ }
+void parse_flags(int argc, char** argv, ServerConfig& c) { /* CLI flags */ }
+void validate(const ServerConfig& c) { /* range checks */ }
+
+ServerConfig load(int argc, char** argv) {
     ServerConfig c;                                  // defaults
     if (auto p = std::getenv("CONFIG_FILE")) {       // file
-        load_yaml(p, c);
+        load_file(p, c);
     }
-    if (auto p = std::getenv("PORT"))                // env
+    if (auto p = std::getenv("PORT")) {              // env
         c.port = std::stoi(p);
-    parseFlags(argc, argv, c);                       // CLI
+    }
+    parse_flags(argc, argv, c);                      // CLI
     validate(c);
     return c;
+}
+
+int main(int argc, char** argv) {
+    ServerConfig c = load(argc, argv);
+    std::cout << "port=" << c.port
+              << " threads=" << c.worker_threads
+              << " log=" << c.log_level << "\n";
 }
 ```
 
@@ -95,6 +125,8 @@ Treat config like an API: schema-checked, versioned, validated.
 - Reject unknown keys (with a flag to override). Catches typos like `max_threadds`.
 
 ```cpp
+#include <stdexcept>
+
 void validate(const ServerConfig& c) {
     if (c.port <= 0 || c.port > 65535)
         throw std::invalid_argument("port out of range");
@@ -115,11 +147,20 @@ Sometimes you need to change config without restarting. Approaches:
 **SIGHUP / file-watch.** Classic Unix idiom: re-read config when SIGHUP arrives, or watch with inotify/fanotify.
 
 ```cpp
+#include <atomic>
+#include <memory>
+
 std::atomic<std::shared_ptr<const ServerConfig>> g_cfg;
 
 void reload() {
-    auto new_cfg = std::make_shared<const ServerConfig>(load());
-    g_cfg.store(std::move(new_cfg));   // atomic swap; old readers finish naturally
+    auto new_cfg = std::make_shared<const ServerConfig>(/* freshly loaded */);
+    g_cfg.store(new_cfg);   // atomic swap; old readers finish naturally
+}
+
+// reader side: snapshot the pointer, then use it for the whole request
+void handle_request() {
+    std::shared_ptr<const ServerConfig> cfg = g_cfg.load();
+    // use *cfg ...
 }
 ```
 
@@ -134,10 +175,24 @@ The atomic-shared-ptr swap pattern (or RCU — see [Lock-Free Data Structures §
 Feature flags are runtime config dedicated to enabling/disabling code paths:
 
 ```cpp
-if (g_flags->is_enabled("new_search_index", user_id)) {
-    return new_search(query);
-} else {
-    return legacy_search(query);
+#include <string>
+#include <unordered_set>
+
+struct FlagService {
+    std::unordered_set<std::string> on;
+    bool is_enabled(const std::string& name, int /*user_id*/) const {
+        return on.count(name) > 0;
+    }
+};
+
+FlagService* g_flags;  // initialized at startup
+
+std::string search(const std::string& query, int user_id) {
+    if (g_flags->is_enabled("new_search_index", user_id)) {
+        return new_search(query);
+    } else {
+        return legacy_search(query);
+    }
 }
 ```
 
@@ -165,15 +220,24 @@ Secrets are not configuration. Treat them differently:
 
 In code:
 ```cpp
+#include <iostream>
+#include <string>
+
 class Secret {
-    std::string s_;
+    std::string value;
 public:
-    explicit Secret(std::string s) : s_(std::move(s)) {}
-    const std::string& reveal() const { return s_; }
+    explicit Secret(std::string s) : value(std::move(s)) {}
+    const std::string& reveal() const { return value; }
     friend std::ostream& operator<<(std::ostream& o, const Secret&) {
         return o << "<redacted>";
     }
 };
+
+int main() {
+    Secret token("hunter2");
+    std::cout << "token=" << token << "\n";        // prints <redacted>
+    std::cout << "real=" << token.reveal() << "\n"; // prints hunter2
+}
 ```
 
 A wrapper type that hides the value in default printing prevents accidental logging.

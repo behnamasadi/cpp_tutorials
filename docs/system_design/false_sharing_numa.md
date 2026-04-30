@@ -22,9 +22,11 @@ You only ever pay the cost when *different cores* want the *same line* with at l
 # 2. False Sharing
 
 ```cpp
+#include <atomic>
+
 struct Counters {
-    std::atomic<int> a;   // written by thread 1
-    std::atomic<int> b;   // written by thread 2 — same cache line!
+  std::atomic<int> a;   // written by thread 1
+  std::atomic<int> b;   // written by thread 2 — same cache line!
 };
 ```
 
@@ -33,12 +35,26 @@ Both atomics likely share one cache line. Every increment by thread 1 invalidate
 The fix: pad to the cache-line boundary.
 
 ```cpp
-struct alignas(64) PaddedCounter { std::atomic<int> v; char pad[64 - sizeof(std::atomic<int>)]; };
+#include <atomic>
+#include <thread>
+
+struct alignas(64) PaddedCounter {
+  std::atomic<int> v;
+  char pad[64 - sizeof(std::atomic<int>)];
+};
 
 struct Counters {
-    PaddedCounter a;
-    PaddedCounter b;
+  PaddedCounter a;
+  PaddedCounter b;
 };
+
+int main() {
+  Counters c{};
+  std::thread t1([&] { for (int i = 0; i < 1'000'000; ++i) ++c.a.v; });
+  std::thread t2([&] { for (int i = 0; i < 1'000'000; ++i) ++c.b.v; });
+  t1.join();
+  t2.join();
+}
 ```
 
 Or use `std::hardware_destructive_interference_size` (see §4).
@@ -70,9 +86,11 @@ C++17 standardized two constants in `<new>`:
 - `std::hardware_constructive_interference_size` — promoted-to-share offset. Use to pack data accessed together.
 
 ```cpp
+#include <atomic>
 #include <new>
+
 struct alignas(std::hardware_destructive_interference_size) PaddedAtom {
-    std::atomic<int> v;
+  std::atomic<int> v;
 };
 ```
 
@@ -102,6 +120,8 @@ Tools:
 - **`libnuma`** — programmatic API.
   ```cpp
   #include <numa.h>
+
+  size_t sz = 1 << 20;                    // 1 MiB
   numa_set_preferred(1);                  // prefer node 1 for new pages
   void* p = numa_alloc_onnode(sz, 1);     // allocate on node 1
   numa_free(p, sz);
@@ -121,13 +141,17 @@ Two common shapes:
 **Sharded by node.** A counter, hash table, or work queue split into N partitions, one per NUMA node. Threads access the local partition. Aggregate on demand.
 
 ```cpp
+#include <atomic>
+#include <vector>
+#include <cstdint>
+
 struct NumaShardedCounter {
-    std::vector<std::atomic<int64_t>> per_node;  // one element per node, padded
-    int64_t total() const {
-        int64_t s = 0;
-        for (auto& c : per_node) s += c.load();
-        return s;
-    }
+  std::vector<std::atomic<int64_t>> per_node;  // one element per node, padded
+  int64_t total() const {
+    int64_t s = 0;
+    for (auto& c : per_node) s += c.load();
+    return s;
+  }
 };
 ```
 

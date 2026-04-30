@@ -32,23 +32,30 @@ Bad fits:
 POSIX:
 ```cpp
 #include <dlfcn.h>
-void* h = ::dlopen("./plugin.so", RTLD_NOW | RTLD_LOCAL);
-if (!h) throw std::runtime_error(::dlerror());
+#include <stdexcept>
 
 using create_fn = void* (*)();
-auto create = reinterpret_cast<create_fn>(::dlsym(h, "plugin_create"));
-if (!create) throw std::runtime_error(::dlerror());
+
+void* h = dlopen("./plugin.so", RTLD_NOW | RTLD_LOCAL);
+if (!h) throw std::runtime_error(dlerror());
+
+auto create = reinterpret_cast<create_fn>(dlsym(h, "plugin_create"));
+if (!create) throw std::runtime_error(dlerror());
 
 void* p = create();
-// ...
-::dlclose(h);
+// ... use p ...
+dlclose(h);
 ```
 
 Windows:
 ```cpp
-HMODULE h = ::LoadLibraryA("plugin.dll");
-auto create = reinterpret_cast<create_fn>(::GetProcAddress(h, "plugin_create"));
-::FreeLibrary(h);
+#include <windows.h>
+
+using create_fn = void* (*)();
+
+HMODULE h = LoadLibraryA("plugin.dll");
+auto create = reinterpret_cast<create_fn>(GetProcAddress(h, "plugin_create"));
+FreeLibrary(h);
 ```
 
 Wrap both in an RAII handle so unload happens automatically.
@@ -61,6 +68,9 @@ C++ name mangling and class layouts depend on compiler version and STL version. 
 
 ```cpp
 // plugin_api.h (shipped with both host and plugin SDK)
+#include <stddef.h>
+#include <stdint.h>
+
 extern "C" {
     typedef struct PluginCtx PluginCtx;
 
@@ -69,8 +79,8 @@ extern "C" {
         const char* name;
         PluginCtx* (*create)();
         void       (*destroy)(PluginCtx*);
-        int        (*process)(PluginCtx*, const void* in, size_t in_size,
-                              void* out, size_t out_size);
+        int        (*process)(PluginCtx*, const char* in, size_t in_size,
+                              char* out, size_t out_size);
     } PluginVTable;
 
     // Each plugin exports exactly this:
@@ -84,13 +94,13 @@ For ergonomic C++ on top, the host wraps the vtable in a class:
 
 ```cpp
 class Plugin {
-    void* lib_;
-    const PluginVTable* vt_;
-    PluginCtx* ctx_;
+    void* lib;
+    const PluginVTable* vt;
+    PluginCtx* ctx;
 public:
-    explicit Plugin(const std::filesystem::path&);
+    Plugin(const char* path);
     ~Plugin();
-    int process(std::span<const std::byte> in, std::span<std::byte> out);
+    int process(const char* in, size_t in_size, char* out, size_t out_size);
 };
 ```
 
@@ -149,27 +159,48 @@ Build:
 g++ -shared -fPIC -fvisibility=hidden -o echo.so echo_plugin.cpp
 ```
 
-**Host:**
+**Host (`host.cpp`):**
 ```cpp
+#include "plugin_api.h"
+#include <dlfcn.h>
+#include <stdexcept>
+#include <string>
+#include <iostream>
+
 class Plugin {
-    void* lib_;
-    const PluginVTable* vt_;
-    PluginCtx* ctx_;
+    void* lib;
+    const PluginVTable* vt;
+    PluginCtx* ctx;
 public:
-    explicit Plugin(const std::filesystem::path& p) {
-        lib_ = ::dlopen(p.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (!lib_) throw std::runtime_error(::dlerror());
-        auto entry = reinterpret_cast<const PluginVTable*(*)()>(::dlsym(lib_, "plugin_entry"));
-        if (!entry) { ::dlclose(lib_); throw std::runtime_error("missing plugin_entry"); }
-        vt_ = entry();
-        if (vt_->api_version != PLUGIN_API_VERSION) {
-            ::dlclose(lib_); throw std::runtime_error("plugin API version mismatch");
+    Plugin(const char* path) {
+        lib = dlopen(path, RTLD_NOW | RTLD_LOCAL);
+        if (!lib) throw std::runtime_error(dlerror());
+
+        auto entry = reinterpret_cast<const PluginVTable*(*)()>(
+            dlsym(lib, "plugin_entry"));
+        if (!entry) { dlclose(lib); throw std::runtime_error("missing plugin_entry"); }
+
+        vt = entry();
+        if (vt->api_version != PLUGIN_API_VERSION) {
+            dlclose(lib);
+            throw std::runtime_error("plugin API version mismatch");
         }
-        ctx_ = vt_->create();
+        ctx = vt->create();
     }
-    ~Plugin() { if (vt_) vt_->destroy(ctx_); if (lib_) ::dlclose(lib_); }
-    int process(const std::string& s) { return vt_->process(ctx_, s.c_str()); }
+    ~Plugin() {
+        if (vt) vt->destroy(ctx);
+        if (lib) dlclose(lib);
+    }
+    int process(const std::string& s) { return vt->process(ctx, s.c_str()); }
+    const char* name() const { return vt->name; }
 };
+
+int main() {
+    Plugin p("./echo.so");
+    std::cout << "loaded plugin: " << p.name() << "\n";
+    p.process("hello");
+    p.process("world");
+}
 ```
 
 # 5. Versioning and Compatibility

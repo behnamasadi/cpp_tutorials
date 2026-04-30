@@ -51,22 +51,29 @@ Adding a seam costs a small abstraction; not having one costs every future test.
 Constructor-inject every external dependency:
 
 ```cpp
+#include <chrono>
+#include <string>
+
+struct Database { std::string url; };
+struct Clock { virtual std::chrono::system_clock::time_point now() = 0; };
+struct Token { std::string value; };
+
 // Untestable
 class TokenIssuer {
-    Database db_{"prod-db.local"};                // hard-coded
-    std::chrono::system_clock::time_point now_   // direct call to global clock
+    Database db{"prod-db.local"};                // hard-coded
+    std::chrono::system_clock::time_point now   // direct call to global clock
         = std::chrono::system_clock::now();
 public:
-    Token issue(...);
+    Token issue();
 };
 
 // Testable
 class TokenIssuer {
-    Database& db_;
-    Clock& clock_;
+    Database& db;
+    Clock& clock;
 public:
-    TokenIssuer(Database& db, Clock& clock) : db_(db), clock_(clock) {}
-    Token issue(...);
+    TokenIssuer(Database& d, Clock& c) : db(d), clock(c) {}
+    Token issue();
 };
 ```
 
@@ -77,12 +84,15 @@ The test wires in `FakeDatabase` and `FakeClock`. Production wires in `PostgresD
 A pure function — same input → same output, no side effects — is the most testable thing in computing. No setup, no teardown, no fakes:
 
 ```cpp
+#include <cassert>
+
 // Pure: trivially testable
 struct Money { int cents; };
 Money applyDiscount(Money m, double pct) { return {int(m.cents * (1 - pct))}; }
 
-TEST(applyDiscount, halfOff) {
-    EXPECT_EQ(applyDiscount({100}, 0.5).cents, 50);
+int main() {
+    assert(applyDiscount({100}, 0.5).cents == 50);
+    assert(applyDiscount({200}, 0.25).cents == 150);
 }
 ```
 
@@ -94,6 +104,9 @@ These three globals are the most common reason "this code is hard to test."
 
 **Time.** Replace direct calls with a `Clock` interface:
 ```cpp
+#include <chrono>
+#include <iostream>
+
 struct Clock {
     virtual std::chrono::system_clock::time_point now() const = 0;
     virtual ~Clock() = default;
@@ -110,6 +123,14 @@ struct FakeClock : Clock {
     std::chrono::system_clock::time_point now() const override { return t; }
     void advance(std::chrono::seconds s) { t += s; }
 };
+
+int main() {
+    FakeClock fake;
+    auto before = fake.now();
+    fake.advance(std::chrono::seconds(60));
+    auto after = fake.now();
+    std::cout << "advanced " << (after - before).count() << " ticks\n";
+}
 ```
 
 **Random.** Inject the RNG. `std::mt19937_64& rng` as a parameter. Tests pass a seeded one for determinism.
@@ -121,6 +142,12 @@ struct FakeClock : Clock {
 When code is genuinely hard to test (UI rendering, OS callbacks, hardware interrupts), make the untestable layer thin and dumb. All real logic moves to a testable companion class.
 
 ```cpp
+// Stand-ins for the GUI framework so we can focus on the pattern.
+struct QMouseEvent { int x, y; };
+struct QWidget { virtual void mousePressEvent(QMouseEvent*) {} };
+enum class Action { None, Submit, Cancel };
+void executeAction(Action) { /* call into the GUI */ }
+
 // Untestable: the GUI button itself
 class Button : public QWidget {
     void mousePressEvent(QMouseEvent*) override { /* lots of logic */ }
@@ -129,16 +156,26 @@ class Button : public QWidget {
 // Better: humble shell + testable presenter
 class ButtonPresenter {
 public:
-    Action handlePress(int x, int y) const;
+    Action handlePress(int x, int y) const {
+        if (x < 0 || y < 0) return Action::Cancel;
+        return Action::Submit;
+    }
 };
 
-class Button : public QWidget {
-    ButtonPresenter p_;
+class HumbleButton : public QWidget {
+    ButtonPresenter p;
     void mousePressEvent(QMouseEvent* e) override {
-        auto a = p_.handlePress(e->x(), e->y());
+        Action a = p.handlePress(e->x, e->y);
         executeAction(a);
     }
 };
+
+int main() {
+    ButtonPresenter p;
+    // Tests target the presenter directly — no GUI needed.
+    Action a = p.handlePress(10, 20);
+    (void)a;
+}
 ```
 
 Tests target the presenter. The button is so trivial that "test it" devolves to "click it manually once."
@@ -148,15 +185,38 @@ Tests target the presenter. The button is so trivial that "test it" devolves to 
 Most of the testability problems beginners blame on "no good mocks library" disappear when you write a fake — a real working in-memory implementation:
 
 ```cpp
+#include <optional>
+#include <string>
+#include <unordered_map>
+
+using UserId = int;
+struct User { UserId id; std::string name; };
+
+// The seam: an abstract Database interface.
+struct Database {
+    virtual void save(const User& u) = 0;
+    virtual std::optional<User> find(UserId id) = 0;
+    virtual ~Database() = default;
+};
+
+// A fake — a real working in-memory implementation.
 class FakeDatabase : public Database {
-    std::unordered_map<UserId, User> users_;
+    std::unordered_map<UserId, User> users;
 public:
-    void save(const User& u) override { users_[u.id] = u; }
+    void save(const User& u) override { users[u.id] = u; }
     std::optional<User> find(UserId id) override {
-        auto it = users_.find(id);
-        return it == users_.end() ? std::nullopt : std::optional{it->second};
+        auto it = users.find(id);
+        if (it == users.end()) return std::nullopt;
+        return it->second;
     }
 };
+
+int main() {
+    FakeDatabase db;
+    db.save({1, "Alice"});
+    auto found = db.find(1);
+    // Test reads what the production code wrote.
+}
 ```
 
 Tests write to it, read from it. Reads what was written. The test reads like the spec; refactoring the production code doesn't break the test.

@@ -45,9 +45,14 @@ int internal_helper() { return 42; }
 
 ```cpp
 // main.cpp
+#include <iostream>
 import math;
 
-int main() { return add(1, 2); }
+int main() {
+    std::cout << add(1, 2) << '\n';   // 3
+    std::cout << sub(5, 3) << '\n';   // 2
+    // internal_helper();             // error: not exported
+}
 ```
 
 Compile with (Clang):
@@ -69,17 +74,20 @@ Big modules can be split into partitions:
 ```cpp
 // math-arith.cppm
 export module math:arith;
-export int add(int, int);
-export int sub(int, int);
+export int add(int a, int b) { return a + b; }
+export int sub(int a, int b) { return a - b; }
 
 // math-trig.cppm
 export module math:trig;
-export double sin(double);
+export double sin(double x);   // implementation elsewhere
 
-// math.cppm
+// math.cppm — primary interface
 export module math;
 export import :arith;     // re-export the partition
 export import :trig;
+
+// consumer
+// import math;  → sees add, sub, sin as one module
 ```
 
 Partitions look to the outside like one module (`import math;`). Internally they're separately compiled units. Use partitions to break up large modules without exposing the split to consumers.
@@ -90,7 +98,13 @@ You can `import` a legacy header as a module, getting most of the perf win witho
 
 ```cpp
 import <vector>;       // standard header as module — fast
+import <iostream>;
 import "legacy.h";     // your own header
+
+int main() {
+    std::vector<int> v{1, 2, 3};
+    for (int x : v) std::cout << x << ' ';
+}
 ```
 
 The compiler precompiles the header to a binary module interface. Macros from header units do leak (they're still header semantics) — but parsing happens once. This is the practical migration path: switch consumers to `import`, leave the headers themselves alone, then move headers one at a time to real modules.

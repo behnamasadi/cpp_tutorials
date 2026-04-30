@@ -46,19 +46,27 @@ When two processes need to talk, the right mechanism depends on volume, latency 
 # 3. Pipes and FIFOs
 
 ```cpp
-int p[2];
-if (::pipe(p) < 0) throw std::system_error(errno, std::generic_category());
+#include <unistd.h>
+#include <cstdio>
 
-if (::fork() == 0) {
-    ::close(p[0]);
-    ::write(p[1], "hello", 5);
-    ::close(p[1]);
-    _exit(0);
+int main() {
+    int p[2];
+    pipe(p);                 // p[0] = read end, p[1] = write end
+
+    if (fork() == 0) {       // child
+        close(p[0]);
+        write(p[1], "hello", 5);
+        close(p[1]);
+        _exit(0);
+    }
+
+    // parent
+    close(p[1]);
+    char buf[16] = {};
+    int n = read(p[0], buf, sizeof(buf));
+    close(p[0]);
+    printf("got %d bytes: %s\n", n, buf);
 }
-::close(p[1]);
-char buf[16];
-auto n = ::read(p[0], buf, sizeof buf);
-::close(p[0]);
 ```
 
 Pipes carry an unstructured byte stream. Boundaries between writes are not preserved on the read side — reading 100 bytes from a pipe written as `"abc"` then `"def"` may return `"abcdef"`, `"abc"`, or `"a"`. Frame your messages.
@@ -75,11 +83,22 @@ The default IPC for unrelated processes on the same host. Identical API to TCP s
 - Subject to filesystem permissions on the socket path.
 
 ```cpp
-int s = ::socket(AF_UNIX, SOCK_STREAM, 0);
-sockaddr_un addr{}; addr.sun_family = AF_UNIX;
-std::strcpy(addr.sun_path, "/tmp/myapp.sock");
-::connect(s, reinterpret_cast<sockaddr*>(&addr), sizeof addr);
-::write(s, "hi", 2);
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <cstring>
+
+int main() {
+    int s = socket(AF_UNIX, SOCK_STREAM, 0);
+
+    sockaddr_un addr{};
+    addr.sun_family = AF_UNIX;
+    std::strcpy(addr.sun_path, "/tmp/myapp.sock");
+
+    connect(s, (sockaddr*)&addr, sizeof(addr));
+    write(s, "hi", 2);
+    close(s);
+}
 ```
 
 Use `SOCK_SEQPACKET` if you want preserved message boundaries with stream-like ordering — Linux-specific but useful.
@@ -91,16 +110,27 @@ Use `SOCK_SEQPACKET` if you want preserved message boundaries with stream-like o
 #include <fcntl.h>
 #include <unistd.h>
 
-int fd = ::shm_open("/myseg", O_CREAT | O_RDWR, 0600);
-::ftruncate(fd, sizeof(MySharedStruct));
-auto* shared = static_cast<MySharedStruct*>(
-    ::mmap(nullptr, sizeof(MySharedStruct), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
-::close(fd);
+struct MySharedStruct {
+    int counter;
+    char message[64];
+};
 
-// Use *shared from any process that opens the same name.
-// On exit:
-::munmap(shared, sizeof(MySharedStruct));
-::shm_unlink("/myseg");      // removes the named segment
+int main() {
+    int fd = shm_open("/myseg", O_CREAT | O_RDWR, 0600);
+    ftruncate(fd, sizeof(MySharedStruct));
+
+    MySharedStruct* shared = (MySharedStruct*)mmap(
+        nullptr, sizeof(MySharedStruct),
+        PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    close(fd);
+
+    // Use *shared from any process that opens the same name.
+    shared->counter = 42;
+
+    // On exit:
+    munmap(shared, sizeof(MySharedStruct));
+    shm_unlink("/myseg");      // removes the named segment
+}
 ```
 
 Key points:
@@ -118,13 +148,27 @@ Key points:
 - Custom databases (SQLite uses mmap optionally; LevelDB/RocksDB internally).
 
 ```cpp
-int fd = ::open("data.bin", O_RDONLY);
-struct stat st; ::fstat(fd, &st);
-auto* p = static_cast<const char*>(
-    ::mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
-::close(fd);                         // mapping persists
-// ... use p[0..st.st_size]
-::munmap(const_cast<char*>(p), st.st_size);
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd = open("data.bin", O_RDONLY);
+
+    struct stat st;
+    fstat(fd, &st);
+
+    const char* p = (const char*)mmap(
+        nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);                         // mapping persists
+
+    // ... use p[0..st.st_size] like a normal array
+    char first = p[0];
+    (void)first;
+
+    munmap((void*)p, st.st_size);
+}
 ```
 
 Gotchas:
@@ -140,9 +184,13 @@ Provides a portable, ergonomic abstraction over POSIX SHM and Windows file mappi
 #include <boost/interprocess/managed_shared_memory.hpp>
 namespace bip = boost::interprocess;
 
-bip::managed_shared_memory shm(bip::open_or_create, "MyShared", 1 << 20);
-auto* counter = shm.find_or_construct<int>("counter")(0);
-*counter += 1;
+int main() {
+    bip::managed_shared_memory shm(bip::open_or_create, "MyShared", 1 << 20);
+
+    // Find a named int in the segment, or create one initialized to 0.
+    int* counter = shm.find_or_construct<int>("counter")(0);
+    *counter += 1;
+}
 ```
 
 It also gives you:
@@ -163,12 +211,22 @@ For cross-process locks:
 - **Robust mutexes** (`PTHREAD_MUTEX_ROBUST`): the lock owner can crash without permanently locking the mutex; the next acquirer gets `EOWNERDEAD` and must restore invariants. Critical for any production SHM with separate failure domains.
 
 ```cpp
-pthread_mutexattr_t attr;
-::pthread_mutexattr_init(&attr);
-::pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-::pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST);
-::pthread_mutex_init(&shared->mtx, &attr);
-::pthread_mutexattr_destroy(&attr);
+#include <pthread.h>
+
+struct Shared {
+    pthread_mutex_t mtx;
+    int counter;
+};
+
+void init_shared_mutex(Shared* shared) {
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+    pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST);
+
+    pthread_mutex_init(&shared->mtx, &attr);
+    pthread_mutexattr_destroy(&attr);
+}
 ```
 
 # 9. Lock-Free Queues in Shared Memory
@@ -176,12 +234,19 @@ pthread_mutexattr_t attr;
 A common high-throughput IPC pattern: SPSC ring buffer in a shared memory segment.
 
 ```cpp
+#include <atomic>
+#include <cstddef>
+
 struct alignas(64) SpscShmRing {
-    std::atomic<size_t> head;     // writer
+    static const size_t kCap      = 1 << 16;   // 65536 slots
+    static const size_t kSlotSize = 64;        // bytes per slot
+
+    std::atomic<size_t> head;                  // writer index
     char pad1[64 - sizeof(std::atomic<size_t>)];
-    std::atomic<size_t> tail;     // reader
+
+    std::atomic<size_t> tail;                  // reader index
     char pad2[64 - sizeof(std::atomic<size_t>)];
-    static constexpr size_t kCap = 1 << 16;
+
     std::byte data[kCap * kSlotSize];
 };
 ```
