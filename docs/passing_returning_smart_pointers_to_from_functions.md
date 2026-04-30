@@ -15,6 +15,7 @@ The function signature is documentation. Reading `void f(std::shared_ptr<S>)` sh
   - [2.3. Mutate the pointer itself: by reference](#23-mutate-the-pointer-itself-by-reference)
   - [2.4. Returning unique_ptr (factory pattern)](#24-returning-unique_ptr-factory-pattern)
   - [2.5. Borrowing the underlying object via .get()](#25-borrowing-the-underlying-object-via-get)
+  - [2.6. Containers of unique_ptr](#26-containers-of-unique_ptr)
 - [3. shared_ptr](#3-shared_ptr)
   - [3.1. Don't pass a shared_ptr if you only need the object](#31-dont-pass-a-shared_ptr-if-you-only-need-the-object)
   - [3.2. Take a copy to share ownership: by value](#32-take-a-copy-to-share-ownership-by-value)
@@ -149,6 +150,27 @@ Safe **only** if the called function:
 - doesn't store the raw pointer beyond its scope,
 - doesn't `delete` it,
 - doesn't outlive the `unique_ptr`.
+
+## 2.6. Containers of unique_ptr
+
+A `std::vector<std::unique_ptr<T>>` is the standard way to own a polymorphic collection. Pass it the same way you'd pass any other vector — by `const&` to read, by `&` to mutate:
+
+```cpp
+void scan(const std::vector<std::unique_ptr<S>>& items) {           // read-only
+    for (const auto& p : items) std::cout << p->m_id << '\n';
+}
+
+void absorb(std::vector<std::unique_ptr<S>>& items,
+            std::unique_ptr<S> extra) {                              // add to caller's vector
+    items.push_back(std::move(extra));
+}
+
+void take_all(std::vector<std::unique_ptr<S>> items) {               // transfer the whole batch
+    // items now owns every element; original caller's vector is empty
+}
+```
+
+Iterating yields `std::unique_ptr<S>&` (or `const&`); use `p->member` or `*p` as usual. Don't `std::move(p)` out of the vector mid-iteration unless you intend to leave a null behind — `unique_ptr`'s move leaves the source empty, which can surprise the next loop iteration that expects all elements valid.
 
 ---
 
@@ -327,4 +349,7 @@ if (auto sp = wp.lock()) {      // ✅ check first
 - Build two `shared_ptr`s from the same raw pointer.
 - Build a `shared_ptr<T>(this)` inside a member; use `enable_shared_from_this`.
 
-**See also:** [smart_pointers.md](smart_pointers.md) for the underlying types, [smart_pointers_class_member.md](smart_pointers_class_member.md) for owning resources via class members.
+**See also:**
+- [smart_pointers.md](smart_pointers.md) — the underlying types and their guarantees.
+- [smart_pointers_class_member.md](smart_pointers_class_member.md) — owning resources via class members.
+- [smart_pointers_class_member.md §7](smart_pointers_class_member.md#7-real-world-worked-examples) — three real-world scenarios (document editor, HTTP server, texture cache) showing the function-passing rules from this doc combined with class-member ownership.

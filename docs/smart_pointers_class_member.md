@@ -17,8 +17,18 @@ When a class owns heap resources, smart-pointer members give you automatic clean
 - [5. weak_ptr Member](#5-weak_ptr-member)
   - [5.1. Breaking parent–child cycles](#51-breaking-parentchild-cycles)
   - [5.2. Cached lookups](#52-cached-lookups)
-- [6. Common Pitfalls](#6-common-pitfalls)
-- [7. See Also](#7-see-also)
+- [6. Exposing the Resource Through Getters](#6-exposing-the-resource-through-getters)
+  - [6.1. Read-only access](#61-read-only-access)
+  - [6.2. Mutable access](#62-mutable-access)
+  - [6.3. Optional access](#63-optional-access)
+  - [6.4. Sharing ownership outward (shared_ptr / weak_ptr)](#64-sharing-ownership-outward-shared_ptr--weak_ptr)
+  - [6.5. Don't expose the smart pointer itself](#65-dont-expose-the-smart-pointer-itself)
+- [7. Real-World Worked Examples](#7-real-world-worked-examples)
+  - [7.1. Document editor — exclusive ownership tree](#71-document-editor--exclusive-ownership-tree)
+  - [7.2. HTTP server — shared request, observing logger](#72-http-server--shared-request-observing-logger)
+  - [7.3. Texture cache — owner gives out non-extending handles](#73-texture-cache--owner-gives-out-non-extending-handles)
+- [8. Common Pitfalls](#8-common-pitfalls)
+- [9. See Also](#9-see-also)
 
 ---
 
@@ -298,7 +308,206 @@ The cache lives only as long as some caller holds onto it. Once everyone is done
 
 ---
 
-# 6. Common Pitfalls
+# 6. Exposing the Resource Through Getters
+
+A class with a smart-pointer member needs to decide *how* to expose the pointee. The signature you choose is a contract about lifetime, nullability, and ownership. The smart pointer is an implementation detail; the caller should see *the resource*, not your storage choice.
+
+Use the example class for all snippets in this section:
+
+```cpp
+class Engine {
+    std::unique_ptr<Carburetor> carb_;
+public:
+    Engine() : carb_(std::make_unique<Carburetor>()) {}
+    // ... getters discussed below
+};
+```
+
+## 6.1. Read-only access
+
+```cpp
+const Carburetor& carb() const { return *carb_; }
+```
+
+`const T&` is the cleanest signal: "you can read it, it can't be null, and don't outlive me." No refcount, no nullability, no leaked storage detail.
+
+## 6.2. Mutable access
+
+```cpp
+Carburetor& carb() { return *carb_; }
+```
+
+Same lifetime contract; caller can mutate. Only do this when mutation through the getter is intentional. Most well-designed classes prefer to expose *operations* (`engine.rev()`) rather than the inner object — exposing the object often hints that the encapsulation is too thin.
+
+## 6.3. Optional access
+
+If the resource may not exist, return a pointer (still bound to `*this`'s lifetime):
+
+```cpp
+Carburetor* maybe_carb() { return carb_.get(); }            // may be nullptr
+const Carburetor* maybe_carb() const { return carb_.get(); }
+```
+
+The raw pointer is the canonical "may be null, non-owning" signal. `std::optional<std::reference_wrapper<Carburetor>>` exists but is rarely worth its noise.
+
+## 6.4. Sharing ownership outward (shared_ptr / weak_ptr)
+
+If the member is `shared_ptr`, you can hand callers their own owning copy or a non-owning observer:
+
+```cpp
+class Cache {
+    std::shared_ptr<Buffer> buf_;
+public:
+    std::shared_ptr<Buffer> snapshot() const { return buf_; }   // refcount++
+    std::weak_ptr<Buffer>   watch()    const { return buf_; }   // observe only
+};
+```
+
+Use `snapshot()` when callers must guarantee the buffer stays alive (passing to a worker thread, queuing for async processing). Use `watch()` for long-lived monitors that should *not* keep a short-lived buffer alive.
+
+## 6.5. Don't expose the smart pointer itself
+
+```cpp
+const std::unique_ptr<Carburetor>& carb() const { return carb_; }   // ⚠️ leaks storage detail
+```
+
+This signature tells callers "you're seeing my unique_ptr." But what they want is access to `Carburetor`. Return `const Carburetor&` (or `Carburetor*` if optional) — the caller doesn't care, and shouldn't care, that you store it via a smart pointer. Same applies to `shared_ptr` getters: return what the caller actually needs, not the box you keep it in.
+
+There is one narrow exception: if your class is part of a system that genuinely passes shared ownership through it (e.g. a registry handing out co-owned resources), returning `std::shared_ptr<T>` is appropriate per §6.4 — the smart pointer **is** the contract there.
+
+---
+
+# 7. Real-World Worked Examples
+
+How the patterns from §1–6 actually combine in code. Each example shows both the class-member ownership choice and the resulting method signatures.
+
+## 7.1. Document editor — exclusive ownership tree
+
+A text editor where a `Document` owns its paragraphs and exposes them by reference:
+
+```cpp
+class Paragraph {
+    std::string text_;
+public:
+    explicit Paragraph(std::string t) : text_(std::move(t)) {}
+    const std::string& text() const { return text_; }
+    void append(std::string_view s) { text_ += s; }
+};
+
+class Document {
+    std::vector<std::unique_ptr<Paragraph>> paragraphs_;             // §2.1: sole owner
+public:
+    Paragraph& add(std::string text) {
+        paragraphs_.push_back(std::make_unique<Paragraph>(std::move(text)));
+        return *paragraphs_.back();                                  // §6.2: mutable getter
+    }
+    const Paragraph& at(std::size_t i) const {                        // §6.1: read-only getter
+        return *paragraphs_.at(i);
+    }
+    std::size_t size() const { return paragraphs_.size(); }
+};
+
+void print(const Document& doc) {                                    // borrow, no ownership
+    for (std::size_t i = 0; i < doc.size(); ++i)
+        std::cout << doc.at(i).text() << '\n';
+}
+
+std::unique_ptr<Document> load(const std::string& path);             // factory: transfers ownership
+```
+
+**Why these choices:**
+- `vector<unique_ptr<Paragraph>>` — the document is the only thing that should free paragraphs; deletion is automatic when the vector is destroyed.
+- Methods return `Paragraph&` / `const Paragraph&` — the caller wants the object, not the box. Lifetime is bound to the document.
+- `print(const Document&)` — read-only function takes the object, not the smart pointer (the [passing rules](passing_returning_smart_pointers_to_from_functions.md#1-decision-table)).
+- `load` returns `std::unique_ptr<Document>` — factory pattern; ownership passes to the caller.
+
+## 7.2. HTTP server — shared request, observing logger
+
+An async handler chain that may keep a request alive past the original scope, plus a logger that watches without extending lifetime:
+
+```cpp
+struct Request { int id; std::string url; std::string body; };
+
+class Handler {
+public:
+    void handle(std::shared_ptr<Request> r) {                        // co-owns until done
+        // may pass r to async I/O, retry queue, worker thread...
+    }
+};
+
+class Logger {
+    std::vector<std::weak_ptr<Request>> watching_;                   // §5: weak observer
+public:
+    void watch(std::weak_ptr<Request> r) { watching_.push_back(std::move(r)); }
+    void report() {
+        for (auto& w : watching_)
+            if (auto r = w.lock())                                   // §4.2 of passing doc
+                std::cout << "still active: " << r->id << '\n';
+    }
+};
+
+void serve(std::shared_ptr<Request> req, Handler& h, Logger& log) {
+    log.watch(req);                                                  // refcount stays at 1
+    h.handle(std::move(req));                                        // hand off ownership
+}
+```
+
+**Why these choices:**
+- `Request` is `shared_ptr` because the handler chain may continue after `serve` returns (async I/O, retries, background workers).
+- `Logger` holds `weak_ptr` — a forgotten log entry must not keep dead requests alive forever.
+- `handle(shared_ptr<Request>)` by value because the handler genuinely co-owns.
+- `serve` takes `shared_ptr<Request>` by value because it splits ownership: copy goes to the logger as `weak_ptr`, the original is moved into `handle`.
+
+## 7.3. Texture cache — owner gives out non-extending handles
+
+A cache that hands out lightweight observers and evicts entries no caller is using:
+
+```cpp
+class Texture { /* big GPU resource */ };
+
+class TextureCache {
+    std::unordered_map<std::string, std::shared_ptr<Texture>> entries_;
+public:
+    std::weak_ptr<Texture> get(const std::string& path) {            // §6.4: hand out observer
+        auto& slot = entries_[path];
+        if (!slot) slot = std::make_shared<Texture>(/* load from disk */);
+        return slot;
+    }
+    void evict_unused() {
+        for (auto it = entries_.begin(); it != entries_.end();) {
+            if (it->second.use_count() == 1)                         // only the cache holds it
+                it = entries_.erase(it);
+            else
+                ++it;
+        }
+    }
+};
+
+void render(std::weak_ptr<Texture> tex) {
+    if (auto t = tex.lock()) {                                       // alive for this scope
+        // use *t
+    }
+    // expired: skip silently
+}
+```
+
+**Why these choices:**
+- The cache *wants to be the owner* (it controls eviction) but must expose handles that don't block eviction. `shared_ptr` inside, `weak_ptr` out.
+- `get()` returns `weak_ptr<Texture>` — callers can use the texture, but the cache decides when it dies.
+- `evict_unused()` checks `use_count() == 1` — if only the cache has a strong reference, no caller is using it and it's safe to drop.
+- `render(weak_ptr<Texture>)` — the renderer doesn't extend lifetime; it locks atomically before use, and silently skips a texture that was evicted between frames.
+
+## When to reach for which example
+
+| Your situation | Closest match | Key signal |
+|---|---|---|
+| One object owns a tree/list of others | §7.1 Document | "Only this owner should free them." |
+| Lifetime crosses async boundaries | §7.2 HTTP server | "The work continues after the caller leaves." |
+| Owner controls eviction; users observe | §7.3 Texture cache | "I want callers to use it but not keep it alive." |
+
+---
+
+# 8. Common Pitfalls
 
 ### Writing `=default`/`=delete` boilerplate by hand
 
@@ -332,14 +541,6 @@ Use [`std::enable_shared_from_this`](smart_pointers.md#34-enable_shared_from_thi
 
 The single biggest source of unnecessary atomic refcount traffic in modern C++ codebases. If your class is the sole owner, use `unique_ptr`.
 
-### Returning a raw pointer from a smart-pointer member without documenting lifetime
-
-```cpp
-Resource* get() { return r_.get(); }    // ⚠️ may dangle the moment *this is destroyed
-```
-
-If callers must hold onto the result, return `Resource&` (signaling non-null and bound to the class lifetime) or hand them a `weak_ptr` if the resource is `shared_ptr`-owned.
-
 ### Holding a `unique_ptr<Base>` to a derived type without a virtual destructor
 
 ```cpp
@@ -353,7 +554,7 @@ If you store a polymorphic type via a base-class smart pointer, the base needs a
 
 ---
 
-# 7. See Also
+# 9. See Also
 
 - **[smart_pointers.md](smart_pointers.md)** — the underlying types and their guarantees.
 - **[passing_returning_smart_pointers_to_from_functions.md](passing_returning_smart_pointers_to_from_functions.md)** — function-signature rules.
