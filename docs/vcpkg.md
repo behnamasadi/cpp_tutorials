@@ -1,731 +1,684 @@
-# Set up vcpkg
+# vcpkg
 
-First add it as submodule to your project:
+[vcpkg](https://github.com/microsoft/vcpkg) is a C/C++ package manager from Microsoft. It has two operating modes:
 
-```
+- **Classic mode** — a global install tree, populated by manual `vcpkg install foo` commands. Simple, but not reproducible across machines.
+- **Manifest mode** — each project has a `vcpkg.json` declaring its dependencies, like `package.json` in npm. **This is what you want for almost every real project.**
+
+This doc focuses on manifest mode and explains the central concept that trips most people up: **baselines**.
+
+- [1. Setup](#1-setup)
+- [2. Manifest-mode workflow with CMake](#2-manifest-mode-workflow-with-cmake)
+- [3. Baselines (the key concept)](#3-baselines-the-key-concept)
+- [4. Version constraints](#4-version-constraints)
+- [5. Triplets](#5-triplets)
+- [6. Ports and registries](#6-ports-and-registries)
+- [7. Common tasks](#7-common-tasks)
+- [8. Speeding up builds](#8-speeding-up-builds)
+- [9. Troubleshooting and tips](#9-troubleshooting-and-tips)
+
+---
+
+# 1. Setup
+
+Add vcpkg as a submodule of your project:
+
+```sh
 git submodule add https://github.com/microsoft/vcpkg
+./vcpkg/bootstrap-vcpkg.sh        # macOS / Linux
+.\vcpkg\bootstrap-vcpkg.bat       # Windows
 ```
 
-Then run the following script on Windows:
+The bootstrap script downloads the vcpkg executable. Tell vcpkg where it lives:
 
-```
-.\vcpkg\bootstrap-vcpkg.bat
-```
-
-on the bash:
-
-```
-./vcpkg/bootstrap-vcpkg.sh
-```
-The bootstrap script performs prerequisite checks and downloads the vcpkg executable.
-
-
-set the path:
-
-```
+```sh
 export VCPKG_ROOT=$PWD/vcpkg
 export PATH=$VCPKG_ROOT:$PATH
 ```
-Setting `VCPKG_ROOT` tells vcpkg where your vcpkg instance is located.
 
-### user-wide integration
-Appling user-wide integration:
-
-```
-./vcpkg integrate install
-```
-
-Removing user-wide integration:
-```
-./vcpkg integrate remove
-```
-
-# Dependencies
-
-./vcpkg --debug env --triplet x64-linux bash
-## Search for the Library
-```
-./vcpkg/vcpkg search opencv
-```
-
-## List of dependencies for packages
-
-```
-./vcpkg/vcpkg depend-info opencv4
-```
-
-dependencies tree
-```
-vcpkg depend-info opencv --format=tree
-```
-
-create dot file 
-```
-vcpkg depend-info opencv --format=dot > dep.dot
-```
-
-and postscript:
-
-```
-dot -Tps dep.dot -o outfile.ps
-```
-
-more [here](https://learn.microsoft.com/en-us/vcpkg/commands/depend-info)
-
-## Install the Specific Version
-
-```
-./vcpkg/vcpkg install <library-name>:<triplet>@<version>
-```
-- <triplet> refers to the system architecture (like x64-windows, x86-windows, etc.)
-
-
-# Manifest mode vs Classic mode 
-
-vcpkg has two operation modes: `classic` mode and `manifest` mode. 
-
-1. In classic mode, vcpkg maintains a central installed tree inside the vcpkg instance built up by individual vcpkg install and vcpkg remove commands. 
-
-2. Manifest mode uses declarative JSON files to describe metadata about your project or package. In any case, the name of this file is vcpkg.json.
-
-
-## Verify Installation
-```
-vcpkg list
-```
-
-# Build type
-`VCPKG_BUILD_TYPE`: By default this value is empty, When this value is empty vcpkg builds release and debug. Set this value to `release`.
-
-
-# Set the number of CPU cores (jobs) for vcpkg
-
-On Windows
-
-```
-set VCPKG_MAX_CONCURRENCY=<number-of-jobs>
-```
-
-On Unix-like Systems (Linux, macOS)
-
-```
-export VCPKG_MAX_CONCURRENCY=<number-of-jobs>
-```
-
-### Set vcpkg to use all available CPU cores automatically
-
-To set `vcpkg` to use all available CPU cores automatically,  and set the `VCPKG_MAX_CONCURRENCY` environment variable accordingly:
-
-### On Windows
-For Command Prompt:
-
-   ```sh
-   for /f "tokens=*" %i in ('wmic cpu get NumberOfCores /value ^| find "="') do set %i
-   set /a VCPKG_MAX_CONCURRENCY=%NUMBER_OF_CORES%
-   ```
-
-For PowerShell:
-
-   ```powershell
-   $cores = (Get-WmiObject -Class Win32_Processor).NumberOfCores
-   [System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::Process)
-   ```
-
-
-### On Unix-like Systems (Linux, macOS)
-
+(Optional) Pick a default triplet so you don't have to type `:x64-linux` everywhere:
 
 ```sh
-export VCPKG_MAX_CONCURRENCY=$(nproc)
+export VCPKG_DEFAULT_TRIPLET=x64-linux       # or x64-windows, arm64-osx, etc.
 ```
 
-### Persisting the Configuration
+# 2. Manifest-mode workflow with CMake
 
-#### On Windows (PowerShell)
+Two files in the project root:
 
-Add the following lines to your PowerShell profile script (e.g., `Microsoft.PowerShell_profile.ps1`):
+**`vcpkg.json`** — what your project depends on:
 
-```powershell
-$cores = (Get-WmiObject -Class Win32_Processor).NumberOfCores
-[System.Environment]::SetEnvironmentVariable('VCPKG_MAX_CONCURRENCY', $cores, [System.EnvironmentVariableTarget]::User)
-```
-
-#### On Unix-like Systems
-
-Add the following line to your shell profile file at `~/.bashrc` 
-
-```sh
-export VCPKG_MAX_CONCURRENCY=$(nproc)
-```
-
-reload the profile by running:
-
-```sh
-source ~/.bashrc  
-```
-
-
-# Triplet
-
-### Setting Triplet in Env: VCPKG_TARGET_TRIPLET
-
-- **Definition**: `VCPKG_TARGET_TRIPLET` is a  specification that includes not just the CPU architecture but also the operating system, CRT linkage type (static or dynamic), and other relevant build configuration details.
-- **Usage**: It is a composite identifier that allows precise control over the build configuration.
-- **Example Values**:
-  - `x64-windows` for 64-bit Windows builds
-  - `x86-windows-static` for 32-bit Windows builds with static linkage
-  - `arm64-android` for 64-bit ARM builds targeting Android
-  - `x64-linux` for 64-bit Linux builds
-
-to get the full list run:
-```
-./vcpkg  --help triplets
-```
-
-
-
-using `VCPKG_DEFAULT_TRIPLET`:
-
-```sh
-echo %VCPKG_DEFAULT_TRIPLET%  # For Windows
-echo $VCPKG_DEFAULT_TRIPLET   # For Unix-like systems
-```
-
-### Setting Triplet in CMake
-
-using `VCPKG_TARGET_TRIPLET`: 
-
-```
-cmake ../my/project -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=...
-```
-
-If you use `VCPKG_DEFAULT_TRIPLET` environment variable to control the unqualified triplet in vcpkg command lines you can default `VCPKG_TARGET_TRIPLET` in CMake as follow:
-
-
-```
-if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
-  set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
-endif()
-```
-
-
-
-### VCPKG_TARGET_ARCHITECTURE
-
-- **Definition**: `VCPKG_TARGET_ARCHITECTURE` specifies the target CPU architecture.
-- **Usage**: It defines the specific architecture such as x86, x64, arm, or arm64.
-- **Example Values**: 
-  - `x86` for 32-bit Intel/AMD processors
-  - `x64` for 64-bit Intel/AMD processors
-  - `arm` for 32-bit ARM processors
-  - `arm64` for 64-bit ARM processors
-- **Scope**: It focuses solely on the CPU architecture without considering the platform or other environment details.
-
-
-### Differences VCPKG_TARGET_ARCHITECTURE and VCPKG_TARGET_TRIPLET
-
-- **Detail Level**: 
-  - `VCPKG_TARGET_ARCHITECTURE` is concerned only with the CPU architecture.
-  - `VCPKG_TARGET_TRIPLET` includes CPU architecture along with other factors like OS and linkage type.
-
-- **Usage Context**:
-  - Use `VCPKG_TARGET_ARCHITECTURE` when you need to specify just the CPU architecture.
-  - Use `VCPKG_TARGET_TRIPLET` when you need to specify a complete build environment, ensuring that all aspects of the target platform are correctly configured.
-
-Example in Practice:
-
-Imagine you want to build a library for a 64-bit Windows system using static linkage:
-
-- **VCPKG_TARGET_ARCHITECTURE**: You would set this to `x64`.
-- **VCPKG_TARGET_TRIPLET**: You would set this to `x64-windows-static`.
-
-
-# Adding vcpkg toolchain to Your CMakeLists.txt
-
-Add the following to your CMakeLists.txt
-```
-cmake_minimum_required(VERSION 3.16.3)
-
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE PATH "toolchain file")
-endif()
-
-message("toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
-project(your-project-name)
-
-find_package(ZLIB REQUIRED)
-message("ZLIB_FOUND: "${ZLIB_FOUND})
-message("ZLIB_VERSION_MAJOR: "${ZLIB_VERSION_MAJOR})
-message("ZLIB_VERSION_MINOR: "${ZLIB_VERSION_MINOR})
-message("ZLIB_VERSION_PATCH: "${ZLIB_VERSION_PATCH})
-message("ZLIB_VERSION: "${ZLIB_VERSION})
-
-```
-
-After that, create the following file  `vcpkg.json` next to your `CMakeLists.txt`: 
-
-```
+```json
 {
-  "name": "your-project-name",
-  "version-string": "1.1.0",
-  "dependencies": [
-     { "name": "zlib" }
-  ]
-}
-```
-Now you can run:
-
-```
-cmake -S . -B build  -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
-```
-
-which by the time of this article it gives you:
-
-```
-ZLIB_VERSION: 1.3.1
-```
-
-#  Ports Concept
-
-**Definition:**
-Port files define how a specific library (or a "port" in vcpkg terminology) should be downloaded, built, and installed.  These instructions are primarily written in **CMake language**. 
-
-**Location**: Port files are located in the `ports` directory of your vcpkg installation, with each library having its own subdirectory. For example, the port files for a library named `examplelib` would be in `vcpkg/ports/examplelib/`.
-
-
-A typical port file directory for a library might contain the following:
-
-- **`portfile.cmake`**: This is the main script that vcpkg executes to handle the library. It includes commands for downloading the source code, applying patches, configuring the build process using CMake, building the library, and installing it.
-
-- **`vcpkg.json`**: This file provides metadata about the library, such as its name, version, description, homepage, and a list of its dependencies.
-
-- **Patches**: Sometimes, additional patch files are included to make necessary modifications to the library’s source code to ensure it works well with vcpkg or to fix bugs.
-
-
-
-
-
-
-more [here](https://learn.microsoft.com/en-us/vcpkg/concepts/ports)
-
-
-
-# Registries concepts
-
-Registries are collections of **ports** and their **versions**.
-
-
-The curated registry is the one hosted at [https://github.com/Microsoft/vcpkg](https://github.com/Microsoft/vcpkg)
-
-There are currently two options to implement your own registries: 
-
-1. Git-based registry 
-2. Filesystem-based registry.
-
-more [here](https://learn.microsoft.com/en-us/vcpkg/concepts/registries)
-
-
-## vcpkg-configuration.json
-
-
-more [here](https://learn.microsoft.com/en-us/vcpkg/reference/vcpkg-configuration-json)
-
-
-# Versioning reference
-
-## Version Constraints
-
-### Baselines
-Baselines define a global version floor for what versions will be considered. This enables top-level manifests to keep the entire graph of dependencies up-to-date **without needing to individually specify direct `"version>="` constraints**.
-
-Baselines, like other registry settings, are ignored from ports consumed as a dependency. If a minimum version is required during transitive version resolution the port should use "version>=".
-
-
-
-### version>=
-vcpkg selects the lowest version that matches all constraints, so a **less-than constraint is NOT required**.
-
-
-more [here](https://learn.microsoft.com/en-us/vcpkg/users/versioning)
-
-
-
-
-If you need version `1.2.11#9` of `zlib`, your `vcpkg` would look like:
-
-```
-{
-  "name": "your-project-name",
-  "version-string": "1.1.0",
-  "dependencies": [
-     { "name": "zlib", "version>=": "1.2.11#9" }
-  ],
-  "builtin-baseline":"3426db05b996481ca31e95fff3734cf23e0f51bc"
-}
-```
-
-and you have to specify `builtin-baseline`, how to get that?
-
-First: in vcpk root directory, this will give you all baselines:
-
-```
-git rev-list --all
-```
-
-
-
-
-
-
-
-
-Get all commits where `zlib` has been committed in
-```
-git log -p --pretty=format:"%H" -- versions/baseline.json | grep -B 10 -A 10 '"zlib"'
-```
-
-```
-git log -p -- versions/baseline.json | grep -B 4 -A 10 "zlib"
-```
-
-
-
-
-Then use the commit corresponding to your 
-
-git show $(git rev-list --all | grep 3426db05b996481ca31e95fff3734cf23e0f51bc)
-
-
-
-
-If you need version `8.2.0` of `vtk`, your file would look like:
-```
-{
-  "name": "your-project-name",
-  "version-string": "1.1.0",
-  "dependencies": [
-    {
-      "name": "vtk",
-      "version>=": "8.2.0"
-    }
-  ]
-}
-```
-
-Use Overrides to Pin a Specific Version
-```
-{
-  "name": "your-project-name",
-  "version-string": "1.1.0",
-  "dependencies": [
-    "vtk"
-  ],
-  "overrides": [
-    {
-      "name": "vtk",
-      "version": "9.2.0"
-    }
-  ]
-}
-```
-Note: The "overrides" feature is a powerful tool and should be used cautiously. It forces vcpkg to use the specified version, which might lead to compatibility issues with other libraries that require different versions of the same dependency.
-
-## Port File
-
-
-
-### 3. **Function of Port Files**
-
-   The port files serve several functions:
-
-   - **Automating Builds**: They automate the process of building a library from source, including resolving and installing dependencies.
-   - **Customization**: Through these files, vcpkg allows customization of the build process. Users can edit the port files to change how a library is built.
-   - **Cross-Platform Consistency**: Port files help ensure that a library can be built consistently across different platforms and configurations.
-
-### 4. **Editing Port Files**
-
-   Users can edit port files to customize the build process. This might be necessary to:
-
-   - **Apply Custom Patches**: You might have specific requirements or fixes that need to be applied to the library's source.
-   - **Change Build Options**: To enable or disable certain features of a library during the build.
-   - **Resolve Conflicts**: Sometimes, edits are needed to resolve conflicts with other libraries or with the system environment.
-
-### 5. **Updating and Maintaining Port Files**
-
-   The vcpkg team and community contributors regularly update port files to reflect new versions of libraries and incorporate improvements. Users can also contribute changes back to the vcpkg repository.
-
-Port files are a powerful aspect of vcpkg, allowing for a high degree of flexibility and control over how third-party libraries are integrated into your C++ projects. They are key to vcpkg’s ability to manage a wide array of C++ libraries across different platforms and environments.
-
-## Pass specific CMake parameters to dependencies
-
-To pass specific CMake parameters to dependencies when using vcpkg, you will typically modify the portfile of the library or use overlay ports. vcpkg does not directly support passing custom CMake options through the `vcpkg.json` manifest for third-party libraries. However, there are ways to achieve this:
-
-1. **Modify the Portfile**: The portfile of a library in vcpkg is a CMake script that defines how to download, build, and install the library. You can modify this file to include your specific CMake parameters.
-
-   - **Locate the Portfile**: Find the portfile for `vtk` in the vcpkg directory, usually under `vcpkg/ports/vtk`.
-   - **Edit the Portfile**: Add your custom CMake options in the portfile's `vcpkg_configure_cmake` call.
-   - **Reinstall the Library**: Run `vcpkg remove vtk` and then `vcpkg install vtk` to apply the changes.
-
-2. **Using Overlay Ports**: Overlay ports allow you to specify custom portfiles for vcpkg packages. This method is useful if you want to maintain your modifications separately from the main vcpkg repository.
-
-   - **Create a Custom Portfile**: Make a new directory outside your vcpkg installation, such as `my-ports`, and copy the `vtk` port directory into it.
-   - **Modify the Portfile**: In `my-ports/vtk`, add your CMake parameters as needed.
-   - **Use Overlay Ports**: Install `vtk` using your custom portfile by running vcpkg with the `--overlay-ports` option:
-
-     ```bash
-     vcpkg install vtk --overlay-ports=path/to/my-ports
-     ```
-
-3. **CMake Toolchain File**: If you are using a CMake project, you can set some options through the CMake toolchain file provided by vcpkg. However, this is more limited and generally applies to global settings rather than specific packages.
-
-4. **Feature Flags**: Some packages in vcpkg support feature flags, which can be used to enable or disable certain functionalities in the library. These are specified in the `vcpkg.json` or during installation:
-
-   ```bash
-   vcpkg install vtk[feature1,feature2]
-   ```
-
-Remember that modifying portfiles or using overlay ports can complicate the update process of vcpkg and the libraries, as you'll need to maintain your custom changes. Always document any changes you make for future reference and maintenance.
-
-
-To work with vcpkg and handle aspects like the default triplet, specifying build types (debug or release), and using Ninja with multiple configurations, you can follow these guidelines:
-
-## Example Customize VTK
-
-Passing specific CMake parameters to a vcpkg dependency like VTK requires a bit of customization in the vcpkg portfile for that library. This is because vcpkg's standard `vcpkg.json` manifest file doesn't directly support the injection of custom CMake parameters for individual dependencies. Here's how you can do it for VTK:
-
-### 1. **Modify the VTK Portfile**
-
-You need to edit the portfile for VTK within your vcpkg installation. Here are the steps:
-
-1. **Locate the Portfile**: Navigate to the directory where vcpkg is installed, and then go to `ports/vtk`.
-
-2. **Edit the Portfile**: Look for the `portfile.cmake` file in the `vtk` directory. Open this file in a text editor.
-
-3. **Modify the Build Options**: In the `portfile.cmake`, locate the `vcpkg_configure_cmake` command. This is where you can add your custom CMake parameters. You should add your options (`-DVTK_MODULE_ENABLE_VTK_RenderingQt=YES -DVTK_MODULE_ENABLE_VTK_hdf=YES`) in the OPTIONS list of this command.
-
-   It would look something like this:
-
-   ```cmake
-   vcpkg_configure_cmake(
-       SOURCE_PATH ${SOURCE_PATH}
-       PREFER_NINJA
-       OPTIONS
-           -DVTK_MODULE_ENABLE_VTK_RenderingQt=YES
-           -DVTK_MODULE_ENABLE_VTK_hdf=YES
-           # ... other existing options ...
-   )
-   ```
-
-4. **Save the Portfile**: After adding your parameters, save the changes to the `portfile.cmake` file.
-
-### 2. **Rebuild VTK**
-
-After modifying the portfile, you need to rebuild VTK:
-
-1. **Remove the Existing VTK Installation**: Run `vcpkg remove vtk` to remove the currently installed version of VTK.
-
-2. **Install VTK Again**: Run `vcpkg install vtk`. This will build VTK with your custom parameters.
-
-### 3. **Consider Using Overlay Ports**
-
-If you prefer not to modify the vcpkg repository directly, you can use overlay ports:
-
-1. **Create an Overlay Port**: Make a new directory outside your vcpkg installation, copy the `vtk` port directory into it, and then make your modifications in this copy.
-
-2. **Install Using Overlay**: Use the `--overlay-ports` option when running vcpkg to specify your custom ports directory.
-
-   ```bash
-   vcpkg install vtk --overlay-ports=path/to/your/overlay-ports
-   ```
-
-### 4. **Note on Maintenance**
-
-Modifying portfiles or using overlay ports requires you to manually maintain these changes, especially when updating vcpkg or the specific libraries. It's important to track these changes for future reference.
-
-### 5. **Alternative: Feature Flags**
-
-Before modifying portfiles, it's also worth checking if VTK in vcpkg supports enabling these modules through feature flags. Vcpkg's feature flags can sometimes offer a way to enable or disable specific functionalities in a library without directly modifying the portfile.
-
-
-
-## Getting the Default Triplet
-
-vcpkg uses a default triplet based on your system's architecture and platform. To find out the default triplet for your system:
-
-- **Check Environment Variable**: vcpkg respects the `VCPKG_DEFAULT_TRIPLET` environment variable. If set, this variable defines the default triplet.
-- **vcpkg Documentation**: Consult the vcpkg documentation or GitHub repository for information on default triplets for various platforms.
-- **Check vcpkg Configuration**: By looking at the vcpkg configuration files or running some test installations, you can infer the default triplet.
-
-## Specifying Build Type (Debug or Release)
-
-vcpkg installs both debug and release builds of libraries by default. If you want to specify only one type:
-
-- **Modify vcpkg Command**: Use the `--only` option when installing a package. For example, `vcpkg install <library>:<triplet> --only-release` will install only the release version.
-- **CMake Integration**: If you are using CMake, vcpkg's toolchain file usually handles the debug and release configurations automatically based on your CMake build type.
-
-## Using Ninja with Multiple Configurations
-
-To use Ninja with multiple configurations like Debug, Release, and RelWithDebInfo, you need to set up your build system accordingly:
-
-- **CMake Generator**: Ensure your CMake is configured to use Ninja as the generator, and it supports multi-configuration setups. You can specify this when configuring your CMake project:
-
-  ```bash
-  cmake -G "Ninja Multi-Config" ..
-  ```
-
-- **Build Configurations**: With Ninja Multi-Config, you can build different configurations by specifying the `--config` option. For example:
-
-  ```bash
-  cmake --build . --config Debug
-  cmake --build . --config Release
-  cmake --build . --config RelWithDebInfo
-  ```
-
-- **Integrate with vcpkg**: Ensure that your CMakeLists.txt or build setup integrates vcpkg correctly. Use the vcpkg toolchain file in your CMake configuration:
-
-  ```bash
-  cmake -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=[path/to/vcpkg]/scripts/buildsystems/vcpkg.cmake ..
-  ```
-
-Remember, when dealing with multiple configurations, the build system (like CMake with Ninja) is responsible for handling different build types, while vcpkg is responsible for providing the dependencies. The integration between them is crucial to ensure that the correct libraries for the corresponding build type are linked.
-
-
-## Understanding builtin-baseline
-The concept of `builtin-baseline` is closely related to how dependencies and their versions are managed, especially when using the `"version>="` constraint in the `vcpkg.json` manifest file.
-
-### Understanding `builtin-baseline`
-
-1. **Baseline Concept**: A baseline in vcpkg is a specific state or snapshot of the vcpkg repository, which includes all the port versions available at a certain point in time. It essentially locks the versions of all packages in the vcpkg repository as they were at that specific baseline.
-
-2. **Builtin Baseline**: The `builtin-baseline` refers to the baseline that is inherently part of your vcpkg installation or repository clone. This baseline is automatically used by vcpkg to resolve package versions unless you specify a different baseline.
-
-### Role in `"version>="`
-
-When you specify a dependency in your `vcpkg.json` with `"version>="`, you are indicating that your project requires at least a certain version of a library. Here’s how `builtin-baseline` plays a role:
-
-1. **Version Resolution**: When you request a version with `"version>="`, vcpkg looks at the available versions in the context of the current baseline – which, unless specified otherwise, is the `builtin-baseline`.
-
-2. **Ensuring Compatibility**: The baseline ensures that all package versions are compatible with each other. By using `builtin-baseline`, you're relying on a tested and stable set of package versions.
-
-3. **Impact on Version Selection**: If the version you specified with `"version>="` is not available in your `builtin-baseline`, vcpkg will typically use the next available version that is greater than or equal to the one you specified. This is constrained by the versions available at that baseline.
-
-### Updating Baseline
-
-- **Updating vcpkg**: When you update your vcpkg installation, the `builtin-baseline` also updates. This means newer versions of packages become available, and the resolution of `"version>="` might yield different results.
-
-- **Specifying a Different Baseline**: You can specify a different baseline in your `vcpkg.json` if you need to work with a set of package versions different from those in your current `builtin-baseline`.
-
-### Conclusion
-
-The `builtin-baseline` in vcpkg serves as a foundation for consistent and stable package version resolution. When using `"version>="`, it determines which versions of a package are available for installation, ensuring that your project gets a version that is at least as new as what you've specified, but still compatible with the rest of the packages in the vcpkg repository at that baseline.
-
-## Building and Installing Dependencies 
-Alternatively you can install everything globally/ locally
-
-Then run the following script on windows:
-
-`.\vcpkg\bootstrap-vcpkg.bat`
-
-on the bash:
-
-`./vcpkg/bootstrap-vcpkg.sh`
-
-Now you can install dependencies:
-
-`
-.\vcpkg.exe install opencv4:x64-windows
-.\vcpkg.exe install curl[openssl]:x64-windows
-.\vcpkg.exe  upgrade curl --no-dry-run
-.\vcpkg.exe  upgrade remove curl:x64-windows --recurse
-`
- If you don't want to type the architecture i.e. `x64-windows`, create a new environmental variable:
-```  
-Default x64/x32:
-Name:  VCPKG_DEFAULT_TRIPLET
-Value: x64-windows
-```
-
-You can create a `vcpkg.json` next to your cmake file:
-
-
-All available packages listed [here](https://vcpkg.io/en/packages.html):
-
-and locally they are  stored at:
-
-`vcpkg\ports\ffmpeg\portfile.cmake`
-
-Refs: [1](https://vcpkg.io/en/getting-started.html)
-
-##  vcpkg Baseline
-
-What is a vcpkg Baseline?
-A baseline in vcpkg refers to a specific set of library versions that are known to work well together. The baseline helps ensure that a consistent set of libraries is used across different environments and projects, reducing the chances of compatibility issues.
-
-## How to find baseline
-Here 
-[https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json)
-For instance:
-
-
-```
-"opencv4": {
-      "baseline": "4.8.0",
-      "port-version": 19
-    }
-```
-
-We select `4.8.0#18` in our `vcpkg.json`   which means `port-version=18`
-
-```
-{
-  "name": "myproject",
+  "name": "myapp",
   "version-string": "1.0.0",
   "dependencies": [
-    {
-      "name": "opencv4",
-      "version>=": "4.8.0#18"
-
-    }
+    "zlib",
+    "fmt"
   ],
   "builtin-baseline": "d68d1ecd932982ed7ee0cb98d557ef1d52ee9016"
 }
 ```
 
-Now if we visit: [https://github.com/microsoft/vcpkg/tree/master/versions/](https://github.com/microsoft/vcpkg/tree/master/versions/) and find `opencv4` in [https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json](https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json) we have:
+**`CMakeLists.txt`** — point CMake at the vcpkg toolchain:
 
+```cmake
+cmake_minimum_required(VERSION 3.16)
 
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE
+      "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      CACHE PATH "vcpkg toolchain")
+endif()
+
+project(myapp)
+
+find_package(ZLIB  REQUIRED)
+find_package(fmt   CONFIG REQUIRED)
+
+add_executable(myapp main.cpp)
+target_link_libraries(myapp PRIVATE ZLIB::ZLIB fmt::fmt)
 ```
+
+Configure once:
+
+```sh
+cmake -S . -B build -G "Ninja Multi-Config"
+```
+
+vcpkg automatically reads `vcpkg.json`, downloads and builds the listed dependencies, and exposes them through `find_package`. No separate `vcpkg install` step.
+
+# 3. Baselines (the key concept)
+
+## What a baseline is
+
+A **baseline is a git commit SHA from the vcpkg repository**. It pins your project to a specific snapshot of *every* port version that was available at that commit.
+
+Think of it as a lockfile for the entire vcpkg ecosystem — same SHA today and six months from now resolves to the same library versions.
+
+## Why baselines exist
+
+Without one, your build pulls "whatever versions my local vcpkg clone happens to have right now." Two developers on the same project, or your CI vs your laptop, can easily get different library versions and produce different binaries.
+
+With a baseline:
+- **Reproducibility** — same SHA → same versions, always.
+- **Floor for transitive dependencies** — if your direct dep needs `boost`, vcpkg picks the `boost` version that was canonical at your baseline, not whatever's newest.
+- **Team-wide consistency** — every clone resolves identically.
+
+## Simple example, walked through
+
+```json
 {
-  "versions": [
-    {
-      "git-tree": "85685a5e45ef916a21769da98c8346462ef179d0",
-      "version": "4.8.0",
-      "port-version": 19
-    },
-    {
-      "git-tree": "b69ea5e7ef839490d21d1ef5aed614d19d54e203",
-      "version": "4.8.0",
-      "port-version": 18
-    },
-    {
-      "git-tree": "d68d1ecd932982ed7ee0cb98d557ef1d52ee9016",
-      "version": "4.8.0",
-      "port-version": 17
-    }
+  "name": "myapp",
+  "version-string": "1.0.0",
+  "dependencies": ["zlib"],
+  "builtin-baseline": "d68d1ecd932982ed7ee0cb98d557ef1d52ee9016"
+}
 ```
- 
 
-More: [1](https://learn.microsoft.com/en-us/vcpkg/commands/help), [2](https://github.com/microsoft/vcpkg/blob/master/versions/z-/zlib.json), [3](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode), [4](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json), [5](https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json), [7](https://learn.microsoft.com/en-us/vcpkg/users/triplets), [9](https://learn.microsoft.com/en-us/vcpkg/commands/common-options#triplet)
+What vcpkg does when you build:
 
+1. Look up the file `versions/baseline.json` **at commit `d68d1ec...`** in the vcpkg repository.
+2. That file maps every port to its canonical version at that snapshot. The relevant entry might be:
+   ```json
+   "zlib": { "baseline": "1.3.1", "port-version": 0 }
+   ```
+3. vcpkg installs **zlib 1.3.1** — period. Doesn't matter what the latest zlib is; doesn't matter when you build.
 
+If you change the baseline SHA to a newer commit, the canonical zlib at that commit might be `1.3.2`. The next configure picks up the upgrade. **Updating the baseline = upgrading the whole ecosystem in one move.**
 
-cmake -S . -B build   -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+## How to get a baseline SHA
 
-## Asset caching
-Asset caching allows vcpkg to use alternative download endpoints to acquire a package's assets (such as source code and build tools) from a configured mirror location. If the asset is not available in the mirror location, vcpkg will download it from its original source and then store a copy in the mirror for future use.
+Inside your vcpkg checkout:
 
-Asset caching is configured via:
-- The `X_VCPKG_ASSET_SOURCES` environment variable
-- The `--x-asset-sources` command-line option.
-### Set up a vcpkg asset cache
-[more](https://learn.microsoft.com/en-us/vcpkg/consume/asset-caching?pivots=shell-cmd)
+```sh
+cd vcpkg
+git rev-parse HEAD
+# d68d1ecd932982ed7ee0cb98d557ef1d52ee9016
+```
+
+Paste that into `vcpkg.json`. Done.
+
+## Updating the baseline
+
+When you want newer library versions:
+
+```sh
+cd vcpkg
+git pull
+git rev-parse HEAD       # new SHA
+```
+
+Replace `builtin-baseline` in `vcpkg.json`. Run `cmake` again — vcpkg will rebuild any dependencies whose versions changed.
+
+## When you don't need a baseline
+
+- Quick experiments where "latest works for me" is fine.
+- Classic mode (no `vcpkg.json`).
+
+For anything checked into git, anything in CI, anything on a teammate's machine — **always set a baseline**.
+
+# 4. Version constraints
+
+Baselines give you a *floor*. Use these to constrain further.
+
+## The dependency graph
+
+vcpkg models your project as a directed graph: each **node** is a port, each **edge** is "depends on." Same shape as a Python `import` graph or a Maven dependency tree.
+
+How vcpkg builds it:
+
+1. Start at your manifest's `dependencies` array — these are your **direct dependencies**.
+2. For each direct dep, read *that port's* own `vcpkg.json` from the vcpkg repo (at your baseline SHA).
+3. Pull in its dependencies. Repeat. Everything reached this way is a **transitive dependency**.
+
+A small project might look like:
+
+```text
+myapp
+├── fmt
+├── boost-asio
+│   ├── boost-system
+│   ├── boost-coroutine
+│   │   └── boost-context
+│   └── boost-config        (...and ~30 more boost-* internals)
+└── curl
+    ├── openssl
+    └── zlib
+```
+
+You declared three deps; the resolved graph is much larger. `vcpkg depend-info myapp --format=tree` prints exactly this.
+
+Things that grow the graph:
+
+- **Features** — `"curl[openssl,http2]"` adds `openssl` and `nghttp2` edges that `curl` without features wouldn't have. Different feature sets → different graphs.
+- **Host dependencies** — tools that run *during your build*, not in your final binary: protobuf compilers, code generators, CMake helper modules. Marked `"host": true` in port manifests. When cross-compiling for `arm64-android`, `protoc` still runs on `x64-linux` — host deps follow the **host** triplet, target deps follow the **target** triplet. Effectively two graphs in one resolution.
+- **Platform-conditional deps** — a port may pull `pthreads` only on Linux, or `dbghelp` only on Windows. The graph shape can differ per triplet.
+
+The graph has no cycles — vcpkg rejects cyclic port definitions outright.
+
+## Resolution: turning the graph into versions
+
+Once the graph is built, vcpkg has to pick one concrete version for every node:
+
+1. **Walk every node**, collect every constraint anyone placed on that port:
+   - The baseline version from your `builtin-baseline`.
+   - Every `version>=` from any consumer along the way (yours and transitive).
+   - Any `overrides` entry — these jump the line.
+2. **For each port, pick the version**:
+   - If your top-level `overrides` names this port → that exact version wins. Done.
+   - Otherwise, take the **maximum** among the floors (`version>=` and baseline). "Newest only when needed" still applies, but the chosen version must clear every floor.
+3. **Verify** the chosen version exists in the port's history. If not, error.
+4. **Resolve per triplet** — host and target deps resolve independently when they differ.
+
+Inspect step 1's collection with `vcpkg install --dry-run`. Inspect the graph itself with `vcpkg depend-info <port>`.
+
+## `version>=`
+
+"I need at least this version, picked from those available at the baseline":
+
+```json
+{
+  "dependencies": [
+    { "name": "zlib", "version>=": "1.3.1" }
+  ],
+  "builtin-baseline": "d68d1ec..."
+}
+```
+
+vcpkg picks the **lowest** version that's `>= 1.3.1` AND available in the baseline. There is no `version<=` — the rule is "newest only when needed."
+
+The `1.2.11#9` syntax means version `1.2.11` with port revision `9` (vcpkg's own packaging-fix counter, independent of upstream).
+
+## `overrides` — pin a specific version
+
+When `version>=` won't do (e.g., you need *exactly* `8.2.0` of VTK, not `8.2.0` or anything newer):
+
+```json
+{
+  "dependencies": ["vtk"],
+  "overrides": [
+    { "name": "vtk", "version": "8.2.0" }
+  ],
+  "builtin-baseline": "d68d1ec..."
+}
+```
+
+`overrides` is a sledgehammer — it can break dependencies that legitimately need a newer version. Use sparingly.
+
+## Mixing old and new: per-package version selection
+
+The `builtin-baseline` is *global* — one SHA for the whole manifest. But two mechanisms let one package diverge from the rest:
+
+**1. `overrides` for "one package at an exact old version"** — most common case. Baseline pulls everything to a recent snapshot; `overrides` drags one package back:
+
+```json
+{
+  "dependencies": ["fmt", "boost-asio", "vtk"],
+  "builtin-baseline": "d68d1ec...",
+  "overrides": [
+    { "name": "vtk", "version": "8.2.0" }
+  ]
+}
+```
+
+`fmt` and `boost-asio` resolve at the recent baseline; `vtk` is forced to `8.2.0`. The version just has to exist in the port's history (`versions/v-/vtk.json` on GitHub) — it doesn't need to be at your baseline.
+
+**2. Per-package baseline via a custom registry** — when you want "track an older snapshot of the whole vcpkg repo just for this one port" (e.g., VTK 8.2.0 *plus* its era-appropriate transitive deps). In `vcpkg-configuration.json`:
+
+```json
+{
+  "default-registry": {
+    "kind": "builtin",
+    "baseline": "d68d1ec..."
+  },
+  "registries": [
+    {
+      "kind": "git",
+      "repository": "https://github.com/microsoft/vcpkg",
+      "baseline": "abc1234...",
+      "packages": ["vtk"]
+    }
+  ]
+}
+```
+
+`vtk` resolves against the old SHA, everything else against the new one. Heavier machinery — reach for it only when `overrides` isn't enough.
+
+## When two dependencies disagree (diamond conflicts)
+
+vcpkg installs **one version of each port per triplet** — same as a system package manager, unlike npm's per-consumer `node_modules`. So if `libA` and `libB` both depend on `boost`, the graph has only one `boost` node and they have to agree.
+
+### The silent 95%: both use `version>=`
+
+Suppose:
+
+- `libA/vcpkg.json`: `{ "dependencies": [{"name": "boost", "version>=": "1.75.0"}] }`
+- `libB/vcpkg.json`: `{ "dependencies": [{"name": "boost", "version>=": "1.83.0"}] }`
+- Your baseline ships boost `1.84`.
+
+vcpkg collects the constraints on `boost`: `>=1.75`, `>=1.83`, baseline `1.84`. It takes the maximum — `1.84` — and installs that. Both libraries compile against 1.84. **No conflict.** `version>=` means "newer is fine," and the highest floor satisfies everyone.
+
+### The actual conflict
+
+Now imagine `libA` is stricter — it pins boost exactly:
+
+```json
+// libA/vcpkg.json
+{ "overrides": [{"name": "boost", "version": "1.75.0"}] }
+```
+
+Constraints on `boost`: `==1.75` (libA), `>=1.83` (libB). No version satisfies both. vcpkg fails:
+
+```text
+error: version conflict:
+  boost-system@1.75.0 required by libA
+  boost-system>=1.83.0 required by libB
+```
+
+### Why can't vcpkg install both versions?
+
+This trips up everyone coming from npm or cargo, where `node_modules/libA/node_modules/boost@1.75/` happily coexists with `libB`'s `boost@1.83`. Those tools nest dependencies because JavaScript and Rust support per-module namespacing.
+
+**C++ does not.** Every translation unit that includes `<boost/asio.hpp>` emits symbols like `boost::asio::io_context::run()`. Two boost versions in one program → either the linker errors with "multiple definition," or it silently picks one and half your code calls the wrong implementation: mismatched struct layouts, memory corruption, exceptions that can't be caught.
+
+This is the **One Definition Rule (ODR)** — C++ assumes one definition per symbol across the whole linked program. No package manager can fake its way around it. So vcpkg, like apt or brew, picks one version per port per triplet.
+
+### Your options when you actually hit this
+
+In rough order of pragmatism:
+
+1. **Top-level `overrides` to force one version.** Your project's `overrides` outranks any port's. Force `boost 1.83`; libA gets the newer boost it claimed it couldn't handle. Often it just works — boost is mostly ABI-stable across minors, and library authors over-pin out of caution. Test thoroughly.
+
+2. **Overlay-port the stricter library.** Copy `vcpkg/ports/libA/` to `my-overlays/libA/`, edit its manifest to accept the newer boost, add a patch file if libA's source actually needs adjusting, then build with `cmake -S . -B build -DVCPKG_OVERLAY_PORTS=./my-overlays`. The "official" fix — patch the constraint locally without forking all of vcpkg. See [§6](#6-ports-and-registries).
+
+3. **Process boundary.** Put libA in its own executable that statically links boost 1.75. Talk to the rest of the app over pipes, sockets, or shared memory. Each process has its own private boost. Heavy but bulletproof.
+
+4. **Shared library with hidden symbol visibility.** Wrap libA + boost 1.75 in a `.so`/`.dll` built with `-fvisibility=hidden`, exposing only a C ABI or a PIMPL'd C++ interface. The host links boost 1.83. Works in theory; STL types and C++ exceptions cannot cross the boundary safely.
+
+5. **Vendor and patch.** Copy libA's source into your repo, modify it for the new boost, drop the package dependency entirely.
+
+In practice, options 1 and 2 cover almost every real case. Options 3+ only come up for genuine major-version splits — `boost 1.x` vs a hypothetical `boost 2.x` that broke everything.
+
+## Features
+
+Some ports expose optional features:
+
+```json
+{
+  "dependencies": [
+    { "name": "curl", "features": ["openssl", "http2"] }
+  ]
+}
+```
+
+Or in classic mode:
+
+```sh
+vcpkg install curl[openssl,http2]
+```
+
+## Finding versions and baselines
+
+Two directions to navigate, depending on what you know.
+
+### Baseline → version (what does this SHA ship?)
+
+Browse [`versions/baseline.json`](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json) on GitHub at the SHA you care about — it lists the canonical version of every port at that snapshot. For one port's full history:
+
+[`versions/o-/opencv4.json`](https://github.com/microsoft/vcpkg/blob/master/versions/o-/opencv4.json) — every version of OpenCV ever shipped, with port revisions.
+
+### Version → baseline (which SHA ships zlib 1.3.1?)
+
+Sometimes you know the version you need and want a baseline that delivers it. Two methods:
+
+**Method 1 — pickaxe in your local vcpkg checkout:**
+
+```sh
+cd vcpkg
+git log --oneline -S '"baseline": "1.3.1"' -- versions/baseline.json
+```
+
+The `-S` (pickaxe) flag finds commits that added or removed a literal string. The first commit shown is when zlib was bumped to `1.3.1` in the global baseline. Use that commit's SHA — or any later commit before zlib was bumped again. To see the window of validity:
+
+```sh
+git log --oneline -S '"baseline": "1.3' -- versions/baseline.json | head -20
+```
+
+**Method 2 — port's history file on GitHub:**
+
+Open [`versions/z-/zlib.json`](https://github.com/microsoft/vcpkg/blob/master/versions/z-/zlib.json) and use GitHub's "Blame" view to find the commit that introduced the `"version": "1.3.1"` entry. That commit's SHA is a valid baseline.
+
+**Method 3 (usually the right answer) — skip baseline hunting, use `overrides`:**
+
+If you just need the version installed and don't care which baseline ships it, pick any recent baseline and pin via `overrides`:
+
+```json
+{
+  "builtin-baseline": "<recent SHA>",
+  "overrides": [
+    { "name": "zlib", "version": "1.3.1" }
+  ]
+}
+```
+
+vcpkg fetches that exact version regardless of the baseline, as long as `1.3.1` appears anywhere in `versions/z-/zlib.json`. This avoids dragging the rest of your dependencies backward to whatever was canonical when zlib 1.3.1 was the baseline.
+
+# 5. Triplets
+
+A **triplet** describes the full build target: CPU + OS + linkage + runtime. Examples:
+
+| Triplet | Meaning |
+|---|---|
+| `x64-linux` | 64-bit Linux, dynamic linkage |
+| `x64-windows` | 64-bit Windows, dynamic CRT |
+| `x64-windows-static` | 64-bit Windows, static CRT |
+| `arm64-osx` | Apple Silicon macOS |
+| `arm64-android` | 64-bit Android |
+
+Set globally:
+
+```sh
+export VCPKG_DEFAULT_TRIPLET=x64-linux
+```
+
+Or per-CMake:
+
+```sh
+cmake -S . -B build \
+  -DVCPKG_TARGET_TRIPLET=x64-linux-static \
+  -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+```
+
+Full list: `./vcpkg help triplet`.
+
+# 6. Ports and registries
+
+A **port** is the recipe for a single library: a directory in `vcpkg/ports/<name>/` with a `portfile.cmake` (build recipe), `vcpkg.json` (metadata), and any patches.
+
+A **registry** is a collection of ports plus their version history. The default one is the `vcpkg` repository itself ([github.com/microsoft/vcpkg](https://github.com/microsoft/vcpkg)). You can add custom registries (git-based or filesystem-based) for your own internal libraries.
+
+## Overlay ports — patch a single port without forking vcpkg
+
+An **overlay port** is a local directory that *shadows* an upstream port of the same name. vcpkg looks at your overlay first; only if the port isn't there does it fall back to the builtin port. You change one library locally, the rest of vcpkg keeps working.
+
+Copy `vcpkg/ports/<name>/` to `my-overlays/<name>/`, edit what you need, then point CMake or `vcpkg install` at the overlay directory:
+
+```sh
+cmake -S . -B build -DVCPKG_OVERLAY_PORTS=./my-overlays ...
+# or:
+vcpkg install <name> --overlay-ports=./my-overlays
+```
+
+### Worked example: relaxing a transitive version constraint
+
+Recall the diamond conflict from [§4](#when-two-dependencies-disagree-diamond-conflicts) — `libA` pins `boost 1.75`, `libB` needs `boost >= 1.83`. The cleanest fix is to relax libA's constraint with an overlay port. Three steps:
+
+**1. Copy the upstream port:**
+
+```sh
+mkdir -p my-overlays
+cp -r vcpkg/ports/libA my-overlays/
+```
+
+**2. Edit `my-overlays/libA/vcpkg.json`** — change the boost constraint:
+
+```json
+{
+  "name": "liba",
+  "version": "2.0.0",
+  "port-version": 1,
+  "description": "Local overlay: relaxed boost constraint for compat with libB.",
+  "dependencies": [
+    { "name": "boost", "version>=": "1.83.0" }
+  ]
+}
+```
+
+(Bump `port-version` so vcpkg's binary cache doesn't reuse a stale build.)
+
+**3. Leave `my-overlays/libA/portfile.cmake` exactly as upstream.** A typical portfile downloads the source, configures CMake, installs:
+
+```cmake
+vcpkg_from_github(
+  OUT_SOURCE_PATH SOURCE_PATH
+  REPO upstream/libA
+  REF v2.0.0
+  SHA512 abc123...                # upstream's tarball hash
+  HEAD_REF main
+)
+
+vcpkg_cmake_configure(SOURCE_PATH "${SOURCE_PATH}")
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup()
+
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+```
+
+If libA's source actually doesn't compile against newer boost, add a patch:
+
+```sh
+# Make your changes in a checkout of libA, then:
+git diff > my-overlays/libA/fix-boost-1.83.patch
+```
+
+…and reference it from the portfile:
+
+```cmake
+vcpkg_from_github(
+  ...
+  PATCHES
+    fix-boost-1.83.patch
+)
+```
+
+**4. Tell CMake about the overlay:**
+
+```sh
+cmake -S . -B build -DVCPKG_OVERLAY_PORTS=./my-overlays
+```
+
+That's it. Resolution now sees libA wanting `boost >= 1.83`, libB wanting `boost >= 1.83`, and both happily resolve to whatever the baseline ships.
+
+### Other things overlay ports are good for
+
+- Enabling a build option upstream doesn't expose (`-DVTK_MODULE_ENABLE_*=YES` in `vcpkg_cmake_configure`).
+- Adding a one-off patch while you wait for an upstream PR to merge.
+- Carrying a bleeding-edge version of a port that hasn't been picked up by the central registry yet.
+
+Overlay ports are local-only — they're *not* checked into the vcpkg repo. Commit `my-overlays/` to your project's repo so teammates and CI get the same patched ports.
+
+# 7. Common tasks
+
+## Find a library
+
+```sh
+vcpkg search opencv
+```
+
+## Inspect dependencies
+
+```sh
+vcpkg depend-info opencv4
+vcpkg depend-info opencv4 --format=tree
+vcpkg depend-info opencv4 --format=dot > deps.dot && dot -Tpng deps.dot -o deps.png
+```
+
+## List installed packages (classic mode)
+
+```sh
+vcpkg list
+```
+
+## User-wide CMake integration (no toolchain flag needed)
+
+```sh
+./vcpkg integrate install        # apply
+./vcpkg integrate remove         # undo
+```
+
+# 8. Speeding up builds
+
+vcpkg defaults toward thoroughness — both Debug and Release configurations, every default feature, full source compile from scratch. On heavy ports (LLVM, OpenCV, Boost) that's hours you don't need to spend. The levers below are independent; stack them.
+
+## Skip the Debug configuration
+
+By default each port builds twice: Debug and Release. If you only ship Release:
+
+```sh
+export VCPKG_BUILD_TYPE=release
+```
+
+Roughly halves build time. For per-project control without affecting other vcpkg consumers on your machine, drop a custom triplet file at `triplets/x64-linux-release.cmake`:
+
+```cmake
+include("${VCPKG_ROOT}/triplets/x64-linux.cmake")
+set(VCPKG_BUILD_TYPE release)
+```
+
+Then point CMake at it:
+
+```sh
+cmake -S . -B build -DVCPKG_TARGET_TRIPLET=x64-linux-release ...
+```
+
+## Trim features on heavy ports
+
+Ports often enable a default feature set you don't need. List a port's features:
+
+```sh
+vcpkg search opencv4
+```
+
+Disable defaults and pick only what you use:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "default-features": false,
+      "features": ["core", "imgproc"]
+    }
+  ]
+}
+```
+
+`"default-features": false` is the key — without it, vcpkg adds the upstream's default features on top of what you list.
+
+For Boost, **don't depend on the meta-port `boost`** (which pulls all 100+ Boost libraries). Depend only on the sub-libraries you `#include`:
+
+```json
+{
+  "dependencies": ["boost-asio", "boost-system", "boost-fiber"]
+}
+```
+
+Same idea for LLVM, Qt, and other mega-libraries: select components, don't take the kitchen sink.
+
+## Pick a single CPU architecture
+
+For macOS universal binaries (`x64+arm64`) or Android multi-ABI builds, vcpkg compiles each port once *per architecture*. Pin to one:
+
+```sh
+export VCPKG_DEFAULT_TRIPLET=arm64-osx        # not a "universal" triplet
+```
+
+For Android, set `ANDROID_ABI` to a single value (`arm64-v8a`) rather than a list. If you genuinely need multiple ABIs, build them in separate output trees so binary caching kicks in per-ABI.
+
+## Binary caching — reuse builds across machines
+
+This is the biggest win once your team is past day one. Once a port builds with a given (version, triplet, features, compiler) tuple, vcpkg caches the result. Next time anyone — your CI, a teammate's laptop, this same machine after `rm -rf build/` — needs the same tuple, vcpkg unpacks the cache instead of rebuilding from source.
+
+Default cache lives at `~/.cache/vcpkg/archives` (Linux/macOS) or `%LOCALAPPDATA%\vcpkg\archives` (Windows). To share across a team, set `VCPKG_BINARY_SOURCES`:
+
+```sh
+# Shared NFS / network mount
+export VCPKG_BINARY_SOURCES="clear;files,/mnt/team-cache,readwrite"
+
+# GitHub Actions
+export VCPKG_BINARY_SOURCES="clear;x-gha,readwrite"
+```
+
+S3, Azure Blob, GCS, and NuGet feeds also work — see the [binary caching docs](https://learn.microsoft.com/en-us/vcpkg/users/binarycaching).
+
+The cache key is sensitive to *everything* that could affect the build — compiler version, triplet, features, port-version. Change any of those and you get a cache miss, which is correct behavior but worth knowing when debugging "why did it rebuild?"
+
+## Maximize local parallelism
+
+```sh
+export VCPKG_MAX_CONCURRENCY=$(nproc)         # Linux/macOS
+set VCPKG_MAX_CONCURRENCY=8                   # Windows cmd
+```
+
+The default is conservative on memory-constrained machines. Bump to your core count if you have RAM to spare — figure ~2 GB per concurrent port build as a safe rule, more for LLVM or Qt.
+
+# 9. Troubleshooting and tips
+
+## "version not found" errors
+
+Means the version you requested with `version>=` doesn't exist at your baseline. Either:
+- Bump the baseline to a newer SHA that includes the version, or
+- Lower your `version>=` constraint, or
+- Add an `overrides` entry (last resort).
+
+## Asset caching for offline / mirror builds
+
+Set `X_VCPKG_ASSET_SOURCES` to redirect downloads through a mirror — useful in restricted networks or for build farms. See the [asset caching docs](https://learn.microsoft.com/en-us/vcpkg/consume/asset-caching).
+
+## Where binaries are stored
+
+- Per-project (manifest mode): `<project>/build/vcpkg_installed/<triplet>/`
+- Global (classic mode): `$VCPKG_ROOT/installed/<triplet>/`
+
+Delete the per-project tree to force a rebuild from scratch.
+
+# References
+
+- [vcpkg GitHub](https://github.com/microsoft/vcpkg)
+- [vcpkg.io/packages](https://vcpkg.io/en/packages.html) — searchable package index
+- [Manifest mode docs](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode)
+- [Versioning reference](https://learn.microsoft.com/en-us/vcpkg/users/versioning)
+- [Triplets reference](https://learn.microsoft.com/en-us/vcpkg/users/triplets)
+- [Registries](https://learn.microsoft.com/en-us/vcpkg/concepts/registries)
+- [versions/baseline.json](https://github.com/microsoft/vcpkg/blob/master/versions/baseline.json) — current canonical versions of every port
