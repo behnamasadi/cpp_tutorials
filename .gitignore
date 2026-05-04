@@ -2,4 +2,5 @@
 *.user
 *.kdev4
 src/sandbox/*
+src/main.cpp
 CMakeLists.txt.user
