@@ -36,7 +36,8 @@
     - [4.3.2. std::binary_semaphore — One-Shot Signaling](#432-stdbinary_semaphore--one-shot-signaling)
   - [4.4. Condition Variables](#44-condition-variables)
     - [4.4.1. Spurious Wakeups](#441-spurious-wakeups)
-    - [4.4.2. Worked Example: Producer–Consumer](#442-worked-example-producerconsumer)
+    - [4.4.2. Worked Example: Worker Notifies Main](#442-worked-example-worker-notifies-main)
+    - [4.4.3. The Shared State Doesn't Have to Be a Bool](#443-the-shared-state-doesnt-have-to-be-a-bool)
   - [4.5. Choosing the Right Primitive](#45-choosing-the-right-primitive)
 - [5. Async Tasks and std::future](#5-async-tasks-and-stdfuture)
   - [5.1. std::async and Launch Policy](#51-stdasync-and-launch-policy)
@@ -93,14 +94,16 @@ Each thread has its **own**:
 
 # 2. Creating and Terminating Threads
 
-`std::thread` represents a single thread. Construct one with any *callable* and the new thread starts immediately:
+A thread is constructed with `std::jthread` and any *callable*; the new thread starts immediately, and the destructor cleanly waits for it to finish (auto-join):
 
 ```cpp
 #include <thread>
 
 void task();
-std::thread t(task);   // task() begins running on a new thread
-t.join();              // wait for it to finish
+
+{
+    std::jthread t(task);   // task() begins running on a new thread
+}                           // destructor joins t — no manual call needed
 ```
 
 Callables that work as the thread function:
@@ -108,6 +111,8 @@ Callables that work as the thread function:
 - A pointer-to-member function plus an instance
 - A function object (a class with `operator()`)
 - A lambda expression
+
+> **Note.** New C++20 code should default to `std::jthread`. The older `std::thread`, with its manual `join()` / `detach()` API and the "forgot to join → `terminate()`" footgun, is covered in [§2.7](#27-joining-threads) and [§2.8](#28-detaching-threads). [§2.9](#29-stdjthread-c20) covers the cooperative-cancellation feature `jthread` adds on top.
 
 ## 2.1. Function Pointer
 
@@ -120,9 +125,8 @@ void greet(int n) {
 }
 
 int main() {
-    std::thread t(greet, 42);   // arguments are forwarded after the callable
-    t.join();
-}
+    std::jthread t(greet, 42);   // arguments are forwarded after the callable
+}                                // destructor joins t
 ```
 
 ## 2.2. Member Function
@@ -136,12 +140,12 @@ public:
 };
 
 Worker w;
-std::thread t1(&Worker::run, &w, 7, 'a');           // by pointer — no copy
-std::thread t2(&Worker::run, w, 7, 'a');            // by value — copies w
-std::thread t3(&Worker::run, std::move(w), 7, 'a'); // by move — w is gone after this
+std::jthread t1(&Worker::run, &w, 7, 'a');           // by pointer — no copy
+std::jthread t2(&Worker::run, w, 7, 'a');            // by value — copies w
+std::jthread t3(&Worker::run, std::move(w), 7, 'a'); // by move — w is gone after this
 ```
 
-`std::thread` arguments are *decay-copied* by default, so passing `w` by value really does copy it into the new thread's storage. Use `&w` (raw pointer) or `std::ref(w)` if you mean to share.
+Thread arguments are *decay-copied* by default, so passing `w` by value really does copy it into the new thread's storage. Use `&w` (raw pointer) or `std::ref(w)` if you mean to share.
 
 ## 2.3. Function Object (Functor)
 
@@ -154,21 +158,20 @@ struct PrintN {
     }
 };
 
-std::thread t(PrintN{}, 5);
-t.join();
+std::jthread t(PrintN{}, 5);
 ```
 
 > **Most vexing parse.** This line:
 >
 > ```cpp
-> std::thread t(PrintN());   // ⚠️ declares a function, not a thread
+> std::jthread t(PrintN());   // ⚠️ declares a function, not a thread
 > ```
 >
 > is parsed as a function declaration. Two ways to fix it:
 >
 > ```cpp
-> std::thread t1((PrintN()));   // extra parens
-> std::thread t2{PrintN{}};     // brace init
+> std::jthread t1((PrintN()));   // extra parens
+> std::jthread t2{PrintN{}};     // brace init
 > ```
 
 ## 2.4. Lambda Expression
@@ -177,48 +180,50 @@ The most common style today:
 
 ```cpp
 int n = 10;
-std::thread t([n] { std::cout << "n = " << n << '\n'; });
-t.join();
+std::jthread t([n] { std::cout << "n = " << n << '\n'; });
 ```
 
 ## 2.5. Passing Arguments by Reference
 
-`std::thread` copies arguments into its internal storage, so a reference parameter binds to that *copy*, not your original — a classic surprise:
+Thread arguments are copied into the thread's internal storage, so a reference parameter binds to that *copy*, not your original — a classic surprise:
 
 ```cpp
 void modify(std::string& msg) { msg = "new value"; }
 
 std::string s = "old";
-std::thread t(modify, s);            // ⚠️ compile error in modern compilers,
+std::jthread t(modify, s);           // ⚠️ compile error in modern compilers,
                                      //    or modifies a copy on older ones
 ```
 
 To actually share the original, wrap it in `std::ref`:
 
 ```cpp
-std::thread t(modify, std::ref(s));
-t.join();
-std::cout << s << '\n';              // "new value"
+{
+    std::jthread t(modify, std::ref(s));
+}                                     // joins here
+std::cout << s << '\n';               // "new value"
 ```
 
 For read-only sharing use `std::cref`.
 
 ## 2.6. Move-Only Semantics
 
-`std::thread` cannot be copied — it owns an OS resource. It can be moved:
+`std::jthread` cannot be copied — it owns an OS resource. It can be moved:
 
 ```cpp
-std::thread t1(task);
-std::thread t2 = std::move(t1);   // t1 is now empty, t2 owns the thread
-// t1.join();  // would throw — t1 is empty
-t2.join();
+std::jthread t1(task);
+std::jthread t2 = std::move(t1);   // t1 is now empty, t2 owns the thread
+// t1's destructor is a no-op — it's no longer joinable.
+// t2's destructor joins the running thread.
 ```
 
 Full example: [creating_and_terminating_threads.cpp](../src/multithreading/creating_and_terminating_threads.cpp).
 
 ## 2.7. Joining Threads
 
-`t.join()` blocks the calling thread until `t` finishes. You **must** call either `join()` or `detach()` before `t` is destroyed — otherwise its destructor calls `std::terminate()`.
+`std::jthread` joins automatically in its destructor. The older `std::thread` does not — and that's the footgun this section is about.
+
+`t.join()` blocks the calling thread until `t` finishes. With a plain `std::thread` you **must** call either `join()` or `detach()` before `t` is destroyed — otherwise its destructor calls `std::terminate()` and your program aborts.
 
 ```cpp
 std::thread t(task);
@@ -226,7 +231,7 @@ std::thread t(task);
 t.join();   // wait, then continue
 ```
 
-Common pattern: launch a fleet of workers, then join them at the end:
+Common pattern with `std::thread`: launch a fleet of workers, then join them at the end:
 
 ```cpp
 std::vector<std::thread> pool;
@@ -235,6 +240,8 @@ for (int i = 0; i < 4; ++i)
 for (auto& t : pool)
     t.join();
 ```
+
+The same pattern with `std::jthread` drops the explicit `join()` loop entirely — when the vector goes out of scope, every `jthread` joins itself.
 
 ## 2.8. Detaching Threads
 
@@ -257,10 +264,77 @@ Full example: [join_detach_threads.cpp](../src/multithreading/join_detach_thread
 
 ## 2.9. std::jthread (C++20)
 
-`std::thread` has two sharp edges: forgetting to `join()` calls `std::terminate()`, and there's no built-in way to ask a thread to stop. `std::jthread` ("joining thread") fixes both:
+We've been using `std::jthread` since §2.1 because of its auto-join behavior. It also adds a second feature that `std::thread` doesn't have: **cooperative cancellation** via `std::stop_token`.
 
-1. **Auto-joins on destruction** — the destructor calls `join()` for you (RAII).
-2. **Cooperative cancellation** — the thread carries a `std::stop_token`; the parent flips it via `request_stop()`.
+### Scope controls when the join happens
+
+`std::jthread` **always** joins — the destructor guarantees it. The question is *when* the destructor runs, and that's the variable's scope. If you read shared state before the destructor runs, you're reading mid-flight.
+
+The classic surprise:
+
+```cpp
+int counter = 0;
+
+int main() {
+    std::jthread t1([&]{ for (int i = 0; i < 1'000'000; ++i) ++counter; });
+    std::jthread t2([&]{ for (int i = 0; i < 1'000'000; ++i) ++counter; });
+
+    std::cout << counter << '\n';   // ⚠️ runs WHILE the threads are still working
+}                                   //    threads only join HERE, after the cout
+```
+
+The print runs microseconds after the threads start. They haven't done any meaningful work yet, so you'll typically see `0` or a tiny number. Then `main` exits, the destructors run, the threads finish — but you never see the result.
+
+**Fix: force the join earlier.** Either give the threads their own scope, or call `.join()` explicitly.
+
+Inner scope (idiomatic):
+
+```cpp
+{
+    std::jthread t1(work);
+    std::jthread t2(work);
+}                                   // both joined HERE
+std::cout << counter << '\n';       // now safe to read
+```
+
+Explicit join (equally fine):
+
+```cpp
+std::jthread t1(work);
+std::jthread t2(work);
+t1.join();
+t2.join();
+std::cout << counter << '\n';
+```
+
+**When you don't need this trick.** If your function does nothing after spawning the threads (or only does work that doesn't touch shared state), leave them at function scope — they'll join when the function returns. The inner-scope idiom is only needed when there's more code after the threads that depends on them having finished.
+
+> **What's *not* happening.** The threads aren't leaking, being abandoned, or "failing to join properly" — `jthread`'s whole point is that this is impossible. The only thing scope changes is the *timing* of the guaranteed join.
+
+### When you need `stop_token` (and when you don't)
+
+`stop_token` is **optional**. `std::jthread` accepts any callable; if the first parameter happens to be a `std::stop_token`, the framework injects one. If not, you just get auto-join — same as every example so far.
+
+You don't need `stop_token` for **finite work**:
+
+```cpp
+std::jthread t([] {
+    auto pose = computePose();          // runs once, returns
+    publish(pose);
+});                                     // destructor joins
+```
+
+You **do** need it for **threads that loop or block forever**, otherwise the `jthread` destructor will call `request_stop()` (no one listens) and then `join()` — which blocks your program forever:
+
+```cpp
+std::jthread t([] {
+    while (true) { /* never exits */ }
+});                                     // destructor hangs here
+```
+
+The `while (true)` worker has to give the destructor a way to ask it to stop. That way is `stop_token`.
+
+### A long-running worker with `stop_token`
 
 ```cpp
 #include <thread>
@@ -282,9 +356,11 @@ int main() {
 }                                                          // destructor: request_stop() + join()
 ```
 
-If the first parameter of the callable is `std::stop_token`, `jthread` passes one in. Otherwise it works just like `std::thread`. The destructor calls `request_stop()` then `join()`, so leaving scope is always safe.
+The destructor calls `request_stop()` *then* `join()`, so leaving scope is always safe — provided the worker actually checks the token (or has a `stop_callback` wired up; see below).
 
-**Rule of thumb:** prefer `std::jthread` over `std::thread` in new C++20 code. Use `std::thread` only when targeting an older standard or when you genuinely need detach semantics.
+**Rule of thumb:** if your thread runs forever or blocks indefinitely, give it a `stop_token` and check it. If your thread does finite work, skip the token.
+
+> **When you'd still use `std::thread`.** Targeting a pre-C++20 standard, interoperating with a library that hands you a `std::thread`, or genuinely needing `detach()` semantics — those are the only remaining cases.
 
 ### How std::stop_token actually works
 
@@ -388,7 +464,7 @@ The callback runs on whatever thread called `request_stop()`. It must be safe to
 
 ## 3.1. Order of Execution
 
-The OS scheduler decides which thread runs and when. Treat the order as **random** unless you've added explicit synchronization. Two consecutive `std::thread` constructions don't guarantee the first one starts first.
+The OS scheduler decides which thread runs and when. Treat the order as **random** unless you've added explicit synchronization. Two consecutive `std::jthread` constructions don't guarantee the first one starts first.
 
 ## 3.2. Hardware Concurrency and Oversubscription
 
@@ -408,14 +484,13 @@ Each thread has a unique ID:
 ```cpp
 std::cout << "this thread: " << std::this_thread::get_id() << '\n';
 
-std::thread t([] {
+std::jthread t([] {
     std::cout << "child thread: " << std::this_thread::get_id() << '\n';
 });
 std::cout << "child's id seen from parent: " << t.get_id() << '\n';
-t.join();
 ```
 
-`std::thread::id` is comparable (`==`, `<`) and hashable, so you can store it in `std::set` / `std::unordered_map` for per-thread bookkeeping.
+`std::thread::id` is comparable (`==`, `<`) and hashable, so you can store it in `std::set` / `std::unordered_map` for per-thread bookkeeping. Both `std::thread` and `std::jthread` use the same `std::thread::id` type.
 
 Full example: [differentiating_between_threads.cpp](../src/multithreading/differentiating_between_threads.cpp).
 
@@ -514,11 +589,9 @@ void log(const std::string& tag) {
 }
 
 int main() {
-    std::thread a(log, "A");
-    std::thread b(log, "B");
-    a.join();
-    b.join();
-}
+    std::jthread a(log, "A");
+    std::jthread b(log, "B");
+}                              // both threads joined when their destructors run
 ```
 
 Possible (messy) output:
@@ -571,10 +644,8 @@ void log(const std::string& tag, int i) {
 }                                          // unlocks here, even on exception
 
 int main() {
-    std::thread a([] { for (int i = 0; i < 5; ++i) log("A", i); });
-    std::thread b([] { for (int i = 0; i < 5; ++i) log("B", i); });
-    a.join();
-    b.join();
+    std::jthread a([] { for (int i = 0; i < 5; ++i) log("A", i); });
+    std::jthread b([] { for (int i = 0; i < 5; ++i) log("B", i); });
 }
 ```
 
@@ -860,6 +931,38 @@ Four things worth absorbing:
 - **The predicate form of `wait`** (`cv.wait(lock, predicate)`) handles spurious wakeups for free — it re-checks the predicate on every wake-up.
 - **`notify_*` outside the lock.** Releasing first is a tiny optimization that avoids the woken thread immediately blocking on the still-held lock. That's why the worker scopes the lock to `{ done = true; }` and calls `notify_one()` *after* the block ends.
 
+**Why the inner scope around `done = true;`?** Both patterns are correct, but the inner-scope form avoids a small race called the **wake-bounce**. If the worker held the lock for the whole function:
+
+```cpp
+// function-scope lock — works, but suboptimal
+void worker() {
+    compute();
+    std::scoped_lock lock(mu);
+    done = true;
+    cv.notify_one();       // notify while still holding the lock
+}                          // lock released here
+```
+
+then the kernel wakes the waiter, but the waiter immediately tries to **reacquire** `mu` — which the worker still holds. The waiter blocks on the mutex and goes back to sleep. When `worker` finally exits and releases the lock, the kernel wakes the waiter *again*. **Two wakeups for one notification.**
+
+The inner-scope pattern avoids this:
+
+```cpp
+// inner-scope lock — preferred
+void worker() {
+    compute();
+    {
+        std::scoped_lock lock(mu);
+        done = true;
+    }                       // lock released BEFORE notify
+    cv.notify_one();        // waiter wakes up, takes the lock immediately
+}
+```
+
+> **Modern caveat.** Linux's futex implementation can transfer the wait directly from the CV to the mutex without a userspace round-trip, so the actual wake-bounce cost is often near-zero in practice. But the inner-scope pattern is still standard practice because it's clearer, portable, and removes the question entirely.
+
+The deeper rule: **hold the lock only over the read/write of shared state.** Slow or unrelated work (logging, I/O, the notify itself) belongs outside. Any code you add to the function later won't accidentally extend the critical section.
+
 **Why the mutex matters even with `notify_one`.** Without the mutex you can hit the classic lost-wakeup race:
 
 1. Main checks `done` → false.
@@ -874,9 +977,87 @@ The mutex serializes "check predicate" (main) and "set predicate + notify" (work
 cv.wait(unique_lock<mutex>& lock, Predicate pred);
 ```
 
-Atomically: unlocks `lock`, blocks the thread, reacquires `lock` on wakeup, re-checks `pred`, returns when `pred` is true.
+When `cv.wait` decides to sleep, it does the following **atomically**:
+
+1. **Releases** the mutex (so other threads can change the shared state).
+2. **Sleeps**, blocked on the CV.
+3. **Reacquires** the mutex when notified (or after a spurious wakeup).
+4. **Re-checks** the predicate. If true, returns. If false, goes back to step 1.
+
+This is the part most people miss the first time: `wait` does *not* keep the lock while sleeping. If it did, no other thread could touch the shared state and you'd deadlock. The `unique_lock` parameter exists precisely so that `wait` can release and reacquire it for you.
+
+Lock state across `cv.wait`'s lifetime:
+
+| Phase                       | Mutex held by waiter? |
+| --------------------------- | --------------------- |
+| Before `cv.wait`            | yes                   |
+| While sleeping              | **no**                |
+| After wakeup, on return     | yes                   |
+
+The full dance, step by step, for the worked example above:
+
+1. Main acquires `mu` (via `std::unique_lock`). Calls `cv.wait(lock, predicate)`.
+2. Predicate reads `done` — safe because main holds `mu`. It's false.
+3. `wait` **releases `mu`** and sleeps.
+4. Worker now locks `mu` (it's free), sets `done = true`, releases `mu`.
+5. Worker calls `cv.notify_one()`.
+6. Main wakes up. `wait` **reacquires `mu`** before doing anything else.
+7. `wait` re-checks the predicate — `done` is now true → returns.
+8. Main is back in user code, still holding `mu`, and can safely read `done`.
+
+> **One-line version:** the lock changes hands during the sleep, and the predicate is checked under the lock both before sleeping and after waking.
 
 Full example: [condition_variable.cpp](../src/multithreading/condition_variable.cpp).
+
+### 4.4.3. The Shared State Doesn't Have to Be a Bool
+
+The worked example used `bool done` because it's the simplest possible state. But the predicate in `cv.wait(lock, predicate)` can be over **any shared state** the mutex protects:
+
+```cpp
+// A queue's emptiness — most common in real code
+cv.wait(lock, [&]{ return !frames.empty(); });
+
+// A counter
+cv.wait(lock, [&]{ return frames_received >= batch_size; });
+
+// A combination
+cv.wait(lock, [&]{ return shutdown_requested || data_ready; });
+```
+
+The pattern is the same regardless of the variable's type: some shared state changes, and a predicate over it tells the waiter whether to proceed. Every read and write of that state must be inside the same mutex.
+
+#### Why a CV always needs accompanying state
+
+A `std::condition_variable` has **no memory of its own.** `notify_one()` doesn't store "I notified" anywhere — if no one is waiting at the moment, the notification simply vanishes. The shared variable is what *records* whether the event happened, so a thread arriving "after the event" can still tell.
+
+That's why the predicate form exists. It lets `wait`:
+
+- check "did I miss the event?" *before* sleeping (returns immediately if the predicate is already true), and
+- check "is the event still relevant?" after every wakeup (handles spurious wakeups).
+
+Mental model:
+
+> A condition variable is a **waiting room**, not a **message**. The shared variable (under a mutex) is the *message*. The CV just lets the reader stop spinning while waiting for the message to change.
+
+#### When you don't want state at all — use a semaphore
+
+If your need is purely "signal once, wait once" with no associated data and no predicate, `std::binary_semaphore` (§4.3.2) has its own internal counter — no flag, no mutex, no predicate:
+
+```cpp
+std::binary_semaphore data_ready(0);
+
+void worker() {
+    compute();
+    data_ready.release();   // signal — no mutex, no shared bool
+}
+
+void waiter() {
+    data_ready.acquire();   // blocks until released
+    use_data();
+}
+```
+
+A semaphore *has* memory (its internal count), so it doesn't need an external flag. For one-shot or fixed-count signaling it's simpler than a CV. Reach for a CV when the wait condition is **over shared state** (a queue's contents, a counter's value, a combination of flags) — that's what CVs are uniquely good at.
 
 ## 4.5. Choosing the Right Primitive
 
@@ -1073,6 +1254,36 @@ But futures have a strict shape, and condition variables cover everything outsid
 3. **Bidirectional sync.** Bounded buffer: producer blocks when full, consumer blocks when empty. Both sides wait and wake repeatedly. No future shape captures this.
 4. **You don't own the thread.** If the work is already happening on an event loop, a worker pool, or a hardware-driven callback, there's no `async` call to make. CV doesn't care who's doing the work.
 
+### Real-world examples — when each fits
+
+**`std::async` / `std::future` — typical robotics shape:**
+
+- **Path planning request.** "Plan a route from current pose to the goal." The motion planner kicks off a planning job, the UI keeps drawing the live map, and `path_future.get()` blocks only when motion control actually needs the path. One task → one result → one waiter.
+- **Loading a SLAM map at boot.** `std::async(load_map, "warehouse.pcd")` runs while sensor drivers and TF initialize in parallel. The main loop calls `.get()` once it's ready to start. The map is loaded once, used by one consumer.
+- **Inverse-kinematics solve.** "What joint angles place the end-effector at this pose?" Pure compute, runs off the main thread, caller awaits with `.get()`.
+- **Camera intrinsic calibration.** Capture 30 chessboard frames, run the solver, return a 3×3 matrix. Do-this-thing → hand-back-result.
+- **ML model warmup.** Load weights, do a few warmup inferences to JIT/cache the kernels, signal "engine ready." Used once, by one thread, at startup.
+
+Pattern: *one task → one result → one waiter → fires once.*
+
+**`std::condition_variable` — typical robotics shape:**
+
+- **CAN bus → perception queue.** A reader thread pushes incoming frames into a shared queue thousands of times per second; the perception thread sleeps on `cv.wait` whenever the queue is empty. A future would only fire once — useless when frames arrive continuously.
+- **Multi-consumer camera stream.** The camera publishes a new frame at 30 Hz. A vision pipeline, a recorder, and a remote viewer all want each frame. Every consumer waits on the same CV; each `notify_all` wakes them together.
+- **Watchdog over a heartbeat counter.** A monitor thread wakes whenever `now - last_heartbeat > deadline OR shutdown_requested`. The condition is over a continuously-updating counter — no single "done" moment, just a question that keeps getting re-evaluated.
+- **Shutdown coordinator.** Every long-running thread sleeps on `shutdown_requested || work_in_my_queue`. When shutdown flips, `notify_all` wakes them all and they exit gracefully. Compound predicate over multiple shared variables — exactly what CV predicates were designed for.
+- **Buffered logger flush.** The log writer wakes when the buffer has ≥ N entries *or* the flush timer fires. Two conditions, both over evolving state, both keep firing as long as the program runs.
+- **Producer/consumer thread pool.** N worker threads share one job queue. Each waits on `cv.wait(lock, []{ return !queue.empty() || shutdown; })`. Each notify wakes exactly one worker. A future per job would work but with massively more allocation and bookkeeping.
+
+Pattern: *recurring events → condition over shared state that mutates over time → possibly many waiters.*
+
+**Mental shortcut.** Look at the *shape* of the wait, not its contents:
+
+- "Run X. When it finishes, hand me the result." → **future / async**
+- "Wake me whenever this expression over shared state becomes true — and keep doing it." → **CV + mutex**
+
+Path planning fires once and you want the path. Frame consumption fires forever and you want each frame. The watchdog never "finishes" — it keeps watching. The first is future; the rest are CV.
+
 **The `~future` from `async` gotcha.** A future returned by `std::async(std::launch::async, ...)` blocks in its destructor until the task finishes. If you forget to call `get()`, your "fire and forget" silently turns into "block at end of scope." CV + flag has no such surprise — but you also have to manage the synchronization yourself.
 
 **Rule of thumb:** if the problem reads as *"compute X, give me X"*, use `future`. If it reads as *"wake me when this condition over shared state holds, possibly more than once, possibly with multiple waiters"*, use a condition variable. The §4.4.2 example sits on that boundary — `future` is the cleaner real-world choice for that exact shape; the CV version is there because that section is teaching CVs.
@@ -1096,14 +1307,15 @@ Mutexes are correct but heavy: lock/unlock costs tens to hundreds of nanoseconds
 std::atomic<int> counter{0};
 
 int main() {
-    std::vector<std::jthread> pool;
-    for (int i = 0; i < 8; ++i)
-        pool.emplace_back([] {
-            for (int j = 0; j < 100'000; ++j)
-                ++counter;            // atomic read-modify-write — no mutex
-        });
-    for (auto& t : pool) t.join();
-    std::cout << counter << '\n';      // exactly 800000
+    {
+        std::vector<std::jthread> pool;
+        for (int i = 0; i < 8; ++i)
+            pool.emplace_back([] {
+                for (int j = 0; j < 100'000; ++j)
+                    ++counter;            // atomic read-modify-write — no mutex
+            });
+    }                                     // all 8 jthreads joined here
+    std::cout << counter << '\n';         // exactly 800000
 }
 ```
 

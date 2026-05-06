@@ -5,12 +5,16 @@ This doc builds directly on the atomics and memory-ordering material in [multith
 > **Realistic warning.** Production lock-free queues take experts months to get right and years to fully verify. The code in this doc is correct for the cases shown but you should not deploy hand-rolled lock-free containers without benchmarking, stress-testing, and reviewing memory-order proofs. Real codebases use libraries — see §10.
 
 - [1. Lock-Free vs Wait-Free vs Blocking](#1-lock-free-vs-wait-free-vs-blocking)
+- [1b. Why Not Just `std::queue` + a Mutex?](#1b-why-not-just-stdqueue--a-mutex)
 - [2. Producer/Consumer Taxonomy](#2-producerconsumer-taxonomy)
 - [3. Cache Lines and False Sharing](#3-cache-lines-and-false-sharing)
 - [4. Single-Producer, Single-Consumer (SPSC) Ring Buffer](#4-single-producer-single-consumer-spsc-ring-buffer)
   - [4.1. Why it works](#41-why-it-works)
-  - [4.2. Variants and gotchas](#42-variants-and-gotchas)
+  - [4.2. Gotchas](#42-gotchas)
 - [5. Single-Producer, Single-Consumer (SPSC) Unbounded Queue](#5-single-producer-single-consumer-spsc-unbounded-queue)
+  - [5.1. Why we can't just use a bigger array](#51-why-we-cant-just-use-a-bigger-array)
+  - [5.2. Why it works](#52-why-it-works)
+  - [5.3. Trade-offs vs the bounded version](#53-trade-offs-vs-the-bounded-version)
 - [6. Multiple-Producer, Single-Consumer (MPSC) Queue — Vyukov's Intrusive](#6-multiple-producer-single-consumer-mpsc-queue--vyukovs-intrusive)
 - [7. Single-Producer, Multiple-Consumer (SPMC) — Chase–Lev Work-Stealing Deque](#7-single-producer-multiple-consumer-spmc--chaselev-work-stealing-deque)
 - [8. Multiple-Producer, Multiple-Consumer (MPMC) — Vyukov's Bounded Queue](#8-multiple-producer-multiple-consumer-mpmc--vyukovs-bounded-queue)
@@ -47,6 +51,69 @@ What it costs you:
 - **Much harder to reason about and test.** Wrong code may "work" for years before the right interleaving surfaces.
 - **More expensive in the uncontended case** than a mutex (which is essentially free when uncontended).
 - **Memory reclamation is hard** — you can't just `delete` a node another thread might still be reading. See §9.
+
+# 1b. Why Not Just `std::queue` + a Mutex?
+
+Reasonable question. For most code the answer is **"you should — that's exactly the right tool."** This whole document only matters for the cases where blocking is unacceptable.
+
+## What `std::queue` gives you (and doesn't)
+
+`std::queue<T>` is a container adaptor — by default a thin wrapper over `std::deque<T>`. It is **not thread-safe.** Calling `push` and `pop` from two threads concurrently is undefined behavior — corrupted memory, lost elements, or a crash.
+
+To use it across threads you have to add the synchronization yourself:
+
+```cpp
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+
+class MutexQueue {
+    std::queue<int>         q_;
+    std::mutex              m_;
+    std::condition_variable cv_;
+
+public:
+    void push(int value) {
+        {
+            std::lock_guard lock(m_);
+            q_.push(value);
+        }
+        cv_.notify_one();
+    }
+
+    int pop() {                               // blocks until something is available
+        std::unique_lock lock(m_);
+        cv_.wait(lock, [&] { return !q_.empty(); });
+        int value = q_.front();
+        q_.pop();
+        return value;
+    }
+};
+```
+
+This is correct, simple, and **the right answer for most code.** An uncontended Linux mutex is around 20 ns; the `condition_variable` lets the consumer block instead of spinning. For a thread-pool task queue, a GUI event dispatcher, a CRUD server's request queue — use this and stop reading.
+
+## Why we need lock-free anyway
+
+The "blocking" part is what disqualifies `std::queue + mutex` for the cases this doc cares about:
+
+- **Realtime / audio / motor control** — taking a kernel-backed mutex is forbidden on these threads. An audio callback that calls `lock()` and gets descheduled produces an audible glitch. A motor-control loop that misses its deadline can damage hardware.
+- **Priority inversion** — a low-priority producer holding the mutex stalls a high-priority consumer waiting on it. Priority-inheritance mutexes help but aren't free, and aren't always available on every platform.
+- **Tail latency under contention** — under heavy load the mutex serializes everyone; threads pile up and worst-case latency explodes. Lock-free's "at least one thread always makes progress" guarantee bounds this.
+- **Descheduling** — preempt the lock holder and *every other thread* that wants the queue is stuck until the OS reschedules it. Lock-free continues regardless.
+
+Lock-free queues trade implementation difficulty (and a small constant-time penalty per op for the atomics) for **never blocking another thread.**
+
+## Decision table
+
+| You need...                                | Use                                                  |
+| ------------------------------------------ | ---------------------------------------------------- |
+| Single-threaded                            | `std::queue` directly                                |
+| Multi-threaded, normal latency budget      | `std::queue` + `std::mutex` (+ `condition_variable`) |
+| Hard latency, one-producer/one-consumer    | Lock-free SPSC (§4 / §5)                             |
+| Hard latency, many producers and consumers | Vyukov MPMC (§8) or a library (§10)                  |
+
+The rest of this document is for the bottom two rows. If your problem is in the top two, you already have your answer.
 
 # 2. Producer/Consumer Taxonomy
 
@@ -92,118 +159,152 @@ struct GoodQueue {
 Pair with `std::hardware_constructive_interference_size` for the *opposite* problem: things you *want* on the same cache line because they're always accessed together.
 
 > **Validation.** `perf c2c` (Linux) and Intel VTune both surface false-sharing hotspots. Don't trust intuition here.
+>
+> **Note for the rest of this doc.** The queue implementations in §§4–8 **omit** the `alignas(...)` decorations on hot atomics to keep the algorithms readable. For production code, pad each producer-side and consumer-side counter onto its own cache line as shown above; the rule is the same regardless of the queue.
 
 # 4. Single-Producer, Single-Consumer (SPSC) Ring Buffer
 
-The simplest correct lock-free queue. One thread pushes, another pops, indices into a fixed-size circular buffer, two atomic counters. Wait-free on each side.
+The simplest correct lock-free queue. **One thread produces integers, another thread consumes them.** They share a fixed-size circular buffer of `int` and two atomic indices. Wait-free on each side.
 
 ```cpp
 #include <atomic>
-#include <array>
-#include <new>          // hardware_destructive_interference_size
 
-template <typename T, std::size_t Size>
-class SpscRingBuffer {
-    static_assert((Size & (Size - 1)) == 0, "Size must be a power of two");
+class BoundedSpscQueue {
+    static constexpr std::size_t Capacity = 8;
 
-#ifdef __cpp_lib_hardware_interference_size
-    static constexpr std::size_t LineSize = std::hardware_destructive_interference_size;
-#else
-    static constexpr std::size_t LineSize = 64;
-#endif
-
-    alignas(LineSize) std::atomic<std::size_t> head_{0};   // written by producer only
-    alignas(LineSize) std::atomic<std::size_t> tail_{0};   // written by consumer only
-    alignas(LineSize) std::array<T, Size>      buffer_;
-
-    static constexpr std::size_t mask_ = Size - 1;
+    int                      buffer_[Capacity]{};
+    std::atomic<std::size_t> head_{0};   // producer writes here
+    std::atomic<std::size_t> tail_{0};   // consumer reads from here
 
 public:
-    bool push(T value) {
-        const auto h    = head_.load(std::memory_order_relaxed);
-        const auto next = (h + 1) & mask_;
+    // Producer side
+    bool push(int value) {
+        std::size_t h    = head_.load(std::memory_order_relaxed);
+        std::size_t next = (h + 1) % Capacity;
         if (next == tail_.load(std::memory_order_acquire))
             return false;                                  // full
-        buffer_[h] = std::move(value);
-        head_.store(next, std::memory_order_release);     // publishes the write to buffer_[h]
+        buffer_[h] = value;
+        head_.store(next, std::memory_order_release);     // publishes buffer_[h]
         return true;
     }
 
-    bool pop(T& out) {
-        const auto t = tail_.load(std::memory_order_relaxed);
+    // Consumer side
+    bool pop(int& out) {
+        std::size_t t = tail_.load(std::memory_order_relaxed);
         if (t == head_.load(std::memory_order_acquire))
             return false;                                  // empty
-        out = std::move(buffer_[t]);
-        tail_.store((t + 1) & mask_, std::memory_order_release);
+        out = buffer_[t];
+        tail_.store((t + 1) % Capacity, std::memory_order_release);
         return true;
     }
 };
+```
+
+Usage:
+
+```cpp
+BoundedSpscQueue q;
+
+// producer thread
+for (int i = 0; i < 1000; ++i) {
+    while (!q.push(i)) { /* spin until there's room */ }
+}
+
+// consumer thread
+int value;
+while (true) {
+    if (q.pop(value)) std::cout << value << '\n';
+}
 ```
 
 ## 4.1. Why it works
 
-- **Each index has exactly one writer.** `head_` is only ever stored to by the producer; `tail_` only by the consumer. There's never a write/write race on either, so no CAS is needed.
-- **Acquire/release pairing publishes the data.** The producer writes `buffer_[h]` *then* `head_.store(release)`. The consumer's `head_.load(acquire)` synchronizes with that release: if the consumer sees the new `head_`, it's guaranteed to also see the write to `buffer_[h]`.
-- **The relaxed self-loads are safe.** A side reading its own counter never sees a stale value of *its own* writes — that's the program-order rule.
-- **Power-of-two size + bitmask** is faster than `% Size` and dodges the integer-division pipeline stall. Also avoids the "is the buffer full" ambiguity (we leave one slot empty so head==tail uniquely means "empty").
-- **Per-line alignment** kills the false-sharing bounce on `head_`/`tail_` (§3).
+- **Each index has exactly one writer.** `head_` is only stored to by the producer, `tail_` only by the consumer. There's never a write/write race on either index, so no CAS is needed — plain `store` is enough.
+- **One slot is left empty so empty/full are distinguishable.** When `head_ == tail_` the queue is empty; when `(head_ + 1) % Capacity == tail_` it's full. Without that wasted slot, both states would look identical.
+- **Acquire/release pairing publishes the data.** The producer writes `buffer_[h]` *first*, then `head_.store(release)`. The consumer's `head_.load(acquire)` synchronizes with that release: if the consumer sees the new `head_`, it's guaranteed to also see the write to `buffer_[h]`.
+- **Relaxed self-loads are safe.** A thread reading its own counter never sees a stale value of *its own* writes — program order takes care of it. Only the *other* side's counter needs acquire.
 
-## 4.2. Variants and gotchas
+## 4.2. Gotchas
 
-- **Wasting one slot.** The "leave one empty" trick means a `Size`-sized buffer holds at most `Size - 1` items. To use the full capacity, track full/empty with a separate flag or a "lap counter" in the high bits of head/tail.
-- **Caching the other side's index.** Hot SPSC implementations cache `tail_` locally on the producer side and only refresh it when the cached value indicates "full" — saves an atomic load on the fast path.
-- **`T` must be cheap to move.** This buffer stores by value; if `T` is heavy, store `unique_ptr<T>` instead.
-- **Single producer, single consumer means *exactly one of each*.** Calling `push()` from two threads concurrently is undefined behavior here. Even with no contention, the algorithm relies on each side having one writer.
+- **Wasting one slot.** A `Capacity` of 8 holds at most 7 items.
+- **`%` is fine here, but production code uses bitmask.** If you make `Capacity` a power of two and replace `% Capacity` with `& (Capacity - 1)`, you skip the integer-division stall. Same algorithm, same correctness.
+- **Single producer, single consumer means *exactly one of each*.** Calling `push()` from two threads concurrently is undefined behavior — the algorithm relies on each side having one writer.
+- **Production note:** `head_` and `tail_` should each sit on their own cache line via `alignas(64)` to avoid the false sharing described in §3 — omitted here for clarity.
 
-The "cache the opposite index" optimization is significant under load and almost always worth it. See [Folly's `ProducerConsumerQueue`](https://github.com/facebook/folly/blob/main/folly/ProducerConsumerQueue.h) for a battle-tested version of this pattern.
+For a battle-tested version of this pattern with the bitmask trick, an "index caching" optimization, and proper alignment, see [Folly's `ProducerConsumerQueue`](https://github.com/facebook/folly/blob/main/folly/ProducerConsumerQueue.h).
 
 # 5. Single-Producer, Single-Consumer (SPSC) Unbounded Queue
 
-The ring buffer's main drawback is its fixed capacity. If you need an unbounded SPSC queue, you switch to a linked list — the producer appends nodes, the consumer pops from the head:
+## 5.1. Why we can't just use a bigger array
+
+The ring buffer's only weakness is that `Capacity` is fixed. You might be tempted to fix that by growing the array when it fills up — but you can't, lock-free:
+
+- The producer would have to allocate a new larger array, copy items over, and swap a pointer.
+- The consumer might be reading from the old array at that exact moment.
+- There's no safe way to free the old array without coordinating with the consumer — which means a lock.
+
+So an unbounded lock-free queue can't be a single growable array. Instead, the producer allocates one tiny piece of storage per `push` and links it to the previous one. **That's all a linked list is here — the smallest unit you can grow by.** Each "node" stores one int and a pointer to the next node:
 
 ```cpp
-template <typename T>
-class SpscUnboundedQueue {
+#include <atomic>
+
+class UnboundedSpscQueue {
     struct Node {
+        int                value{};
         std::atomic<Node*> next{nullptr};
-        T                  value;
     };
 
-    alignas(64) std::atomic<Node*> head_;     // producer side
-    alignas(64) Node*              tail_;     // consumer side (no atomic — single consumer)
+    std::atomic<Node*> head_;   // producer side: points at the newest node
+    Node*              tail_;   // consumer side: points at the next node to read
 
 public:
-    SpscUnboundedQueue() {
-        Node* dummy = new Node{};            // sentinel: avoids head==tail edge cases
-        head_.store(dummy, std::memory_order_relaxed);
+    UnboundedSpscQueue() {
+        Node* dummy = new Node{};        // sentinel — start with one empty node so the
+        head_.store(dummy);              // queue is never literally empty (simplifies pop)
         tail_ = dummy;
     }
 
-    void push(T value) {
+    // Producer side
+    void push(int value) {
         Node* n = new Node{};
-        n->value = std::move(value);
+        n->value = value;
         Node* prev = head_.exchange(n, std::memory_order_acq_rel);
-        prev->next.store(n, std::memory_order_release);
+        prev->next.store(n, std::memory_order_release);   // link it on
     }
 
-    bool pop(T& out) {
+    // Consumer side
+    bool pop(int& out) {
         Node* next = tail_->next.load(std::memory_order_acquire);
-        if (!next) return false;             // empty
-        out   = std::move(next->value);
-        Node* old_tail = tail_;
+        if (!next) return false;          // empty
+        out = next->value;
+        Node* old = tail_;
         tail_ = next;
-        delete old_tail;                     // safe: only the consumer touches old nodes
+        delete old;                       // safe: only the consumer ever touches old nodes
         return true;
     }
 };
 ```
 
-The single-consumer property makes deletion trivial: only one thread ever touches "old" nodes, so we can `delete` immediately. Multi-consumer queues lose this property and need the reclamation strategies in §9.
+Usage is identical to the bounded version — `q.push(i)` and `q.pop(value)`, except `push` never fails because the queue grows on demand.
 
-This implementation:
-- Allocates per-push (typically a per-thread node pool fixes that).
-- Is unbounded — runaway producers will OOM you.
-- Has no overflow handling — that's by design for an *unbounded* queue.
+## 5.2. Why it works
+
+- **The producer never blocks.** It just allocates a new node and atomically swings `head_` to point at it.
+- **The consumer walks the chain.** `tail_->next` is the next int to read; if it's `null`, nothing has been pushed since the last `pop`.
+- **Single consumer = trivial deletion.** Only one thread ever touches "old" nodes, so we can `delete` immediately. Multi-consumer queues lose this property — see §9 for what they need instead.
+- **Sentinel/dummy node** sidesteps the awkward "queue is exactly empty" edge case: `tail_` always points to a real node, and the question is just whether `tail_->next` is set yet.
+
+## 5.3. Trade-offs vs the bounded version
+
+| Aspect              | Bounded ring buffer (§4) | Unbounded linked list (§5)              |
+| ------------------- | ------------------------ | --------------------------------------- |
+| Storage             | one fixed array          | one node per item                       |
+| Allocation per push | none                     | `new Node`                              |
+| Push can fail       | yes (full)               | never                                   |
+| Memory growth       | capped                   | unbounded — runaway producers OOM you   |
+| Cache friendliness  | excellent                | poor (nodes scattered on the heap)      |
+
+Pick bounded unless you genuinely can't predict an upper bound. Even then, real implementations usually batch nodes into chunks (a node-pool, or a linked list of arrays) to claw back cache friendliness.
 
 # 6. Multiple-Producer, Single-Consumer (MPSC) Queue — Vyukov's Intrusive
 
@@ -216,9 +317,9 @@ struct Node {
 };
 
 class MpscQueue {
-    alignas(64) std::atomic<Node*> head_;   // producer side
-    alignas(64) Node*              tail_;   // consumer side
-    Node                           stub_;   // sentinel, never deleted
+    std::atomic<Node*> head_;   // producer side
+    Node*              tail_;   // consumer side
+    Node               stub_;   // sentinel, never deleted
 
 public:
     MpscQueue() : head_{&stub_}, tail_{&stub_} {}
@@ -272,21 +373,14 @@ The structure is asymmetric:
 #include <atomic>
 #include <array>
 #include <cstdint>
-#include <new>
 
 template <typename T, std::size_t Size>
 class ChaseLevDeque {
     static_assert((Size & (Size - 1)) == 0, "Size must be a power of two");
 
-#ifdef __cpp_lib_hardware_interference_size
-    static constexpr std::size_t LineSize = std::hardware_destructive_interference_size;
-#else
-    static constexpr std::size_t LineSize = 64;
-#endif
-
-    alignas(LineSize) std::atomic<int64_t>      top_{0};       // thieves
-    alignas(LineSize) std::atomic<int64_t>      bottom_{0};    // owner
-    alignas(LineSize) std::array<std::atomic<T>, Size> buf_;
+    std::atomic<int64_t>            top_{0};       // thieves
+    std::atomic<int64_t>            bottom_{0};    // owner
+    std::array<std::atomic<T>, Size> buf_;
 
     static constexpr int64_t mask_ = Size - 1;
 
@@ -361,27 +455,20 @@ The trick: each cell has its own **sequence number** that tracks "what's the nex
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <new>
 
 template <typename T, std::size_t Size>
 class MpmcBoundedQueue {
     static_assert((Size & (Size - 1)) == 0, "Size must be a power of two");
     static_assert(Size >= 2, "Size must be at least 2");
 
-#ifdef __cpp_lib_hardware_interference_size
-    static constexpr std::size_t LineSize = std::hardware_destructive_interference_size;
-#else
-    static constexpr std::size_t LineSize = 64;
-#endif
-
     struct Cell {
         std::atomic<std::size_t> seq;
         T                        data;
     };
 
-    alignas(LineSize) std::array<Cell, Size>     buf_;
-    alignas(LineSize) std::atomic<std::size_t>   enq_pos_{0};
-    alignas(LineSize) std::atomic<std::size_t>   deq_pos_{0};
+    std::array<Cell, Size>     buf_;
+    std::atomic<std::size_t>   enq_pos_{0};
+    std::atomic<std::size_t>   deq_pos_{0};
 
     static constexpr std::size_t mask_ = Size - 1;
 
@@ -454,7 +541,7 @@ Properties:
 - **Per-cell false sharing matters.** For best performance, pad each `Cell` to a cache line:
 
 ```cpp
-struct alignas(LineSize) Cell { ... };
+struct alignas(64) Cell { ... };
 ```
 
 Otherwise neighboring cells thrash the cache when multiple producers/consumers operate at adjacent positions.
