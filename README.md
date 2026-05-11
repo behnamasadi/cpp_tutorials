@@ -170,7 +170,6 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
   - [Optional](docs/optional.md)
   - [Variant](docs/std_variant.md)
   - [Visit](docs/std_visit.md)
-  - [Any](docs/any.md)
 - [Loading Classes Dynamically From Plugins](docs/loading_classes_dynamically_from_plugins.md)
 - [Lexical Analyzer](docs/lexical_analyzer.md)
 - [Tricky Questions](docs/tricky_questions.md)

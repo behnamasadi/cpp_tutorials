@@ -490,6 +490,45 @@ Notice the API: `any` is the **storage type**, but every read funnels through a 
 - Slower than `variant` (allocation + type-erased dispatch internally).
 - `any_cast<T>(a)` throws `std::bad_any_cast` on type mismatch; `any_cast<T>(&a)` returns `nullptr`.
 
+### The CopyConstructible requirement
+
+`std::any` copies the value it holds, so the contained type must be copy-constructible. A type with a deleted copy constructor (move-only sensor handles, `std::unique_ptr<T>`, `std::thread`, lock guards) **cannot** be stored directly:
+
+```cpp
+class SensorHandle {
+public:
+    SensorHandle() = default;
+    SensorHandle(const SensorHandle&) = delete;        // not copyable
+    SensorHandle& operator=(const SensorHandle&) = delete;
+};
+
+SensorHandle h;
+// std::any a = h;           // ❌ compile error: deleted copy ctor
+std::any a = &h;              // ✅ pointers are copyable
+std::any b = std::make_shared<SensorHandle>();  // ✅ or wrap in shared_ptr
+```
+
+Check at compile time with `std::is_copy_constructible_v<T>` from `<type_traits>` before constraining APIs around it:
+
+```cpp
+static_assert(std::is_copy_constructible_v<SensorConfig>,
+              "SensorConfig must be copyable to live in the blackboard");
+```
+
+### `any` vs templates — runtime vs compile-time genericity
+
+Both let you "work with any type," but they sit at opposite ends of the type-erasure spectrum:
+
+| Aspect          | `std::any`                                  | Templates                                |
+| --------------- | ------------------------------------------- | ---------------------------------------- |
+| Type known at   | runtime                                     | compile time                             |
+| Type safety     | runtime (`bad_any_cast`)                    | compile time                             |
+| Overhead        | type check + possible heap allocation       | none after instantiation                 |
+| Code shape      | one container holds *different* types       | code is regenerated *per* type           |
+| Fits when       | heterogeneous storage behind a stable API   | generic algorithms with known call sites |
+
+Templates are the right tool when the call site knows the type — `std::vector<T>`, `std::sort`, a function operating on any iterator. `any` is for the rare case where the type genuinely isn't known until runtime and you can't enumerate it as a `variant`.
+
 ### Why it's dangerous
 
 - No compile-time type checking — typos in `T` become runtime errors.

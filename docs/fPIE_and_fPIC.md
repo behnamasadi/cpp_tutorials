@@ -1,82 +1,143 @@
-# fPIE (Position Independent Executable) and fPIC(Position Independent Code and)
+# `-fPIC` and `-fPIE`
 
-## -fPIC (Position Independent Code)
+- [The one-sentence version](#the-one-sentence-version)
+- [Why position-independent code exists](#why-position-independent-code-exists)
+- [fPIC: for shared libraries](#fpic-for-shared-libraries)
+- [fPIE: for executables (security/ASLR)](#fpie-for-executables-securityaslr)
+- [The error you'll actually hit](#the-error-youll-actually-hit)
+- [CMake: how to set it](#cmake-how-to-set-it)
+- [Real-world scenarios](#real-world-scenarios)
+- [Seeing the difference in assembly](#seeing-the-difference-in-assembly)
 
-- **Purpose**: The `-fPIC` option is used when compiling shared libraries. It generates code that can be loaded at any memory address without needing modification. This is crucial for shared libraries because it allows multiple programs to share the same library code in memory, reducing the overall memory footprint.
+## The one-sentence version
 
-- **How It Works**: When compiled with `-fPIC`, the code uses relative addressing for data and function references. This means that the code does not assume a fixed address for its execution and can be relocated in memory without issue.
+- **`-fPIC`** — compile this code so it works no matter what address the loader puts
+  it at. Required for shared libraries (`.so`).
+- **`-fPIE`** — same idea, but for the main executable, so the OS can randomize its
+  load address (ASLR). A hardening flag.
 
-- **Usage**: Typically used for shared libraries (.so files on Linux, .dylib files on macOS) because these libraries need to be shared between different programs and possibly loaded at different addresses in each program's address space.
+## Why position-independent code exists
 
+A shared library on disk has no idea where in a process's address space it will end
+up. Process A might map `libfoo.so` at `0x7f1234...`, process B at `0x7f5678...`. If
+the compiler had baked absolute addresses into the code ("jump to function at
+`0x401050`"), every load would need a fix-up pass to patch those addresses — and
+worse, each process would need its *own* private copy of the patched code, defeating
+the whole point of sharing.
 
+Position-independent code sidesteps this by using **relative addressing**:
+"jump to the function 0x40 bytes after wherever I am right now." No fix-ups, one
+copy in physical memory, mapped into many processes.
 
-### Without `-fPIC`
+## fPIC: for shared libraries
 
-- **Absolute Addressing**: When you compile code without `-fPIC`, the compiler generates machine code that uses absolute addressing. This means the code contains direct, fixed memory address references for functions, variables, and data. This type of code expects to be loaded at a specific address in memory to function correctly.
-
-- **Relocation Overhead**: If the code is loaded at a different address than it was compiled for, the operating system must perform relocations. This means adjusting the absolute addresses in the code to reflect where it has actually been loaded. This process can be time-consuming and increases the load time of the executable or library.
-
-- **Multiple Copies in Memory**: Without `-fPIC`, each process that uses the shared library may require its own copy of the library in memory if the addresses need to be adjusted differently for each process. This results in higher memory usage.
-
-### With `-fPIC`
-
-- **Relative Addressing**: Compiling with `-fPIC` instructs the compiler to generate code using relative addressing instead of absolute. This means the code uses offsets from the program's current address rather than fixed addresses. As a result, the code can be loaded at any memory address without requiring relocation.
-
-- **Efficiency and Sharing**: Since the code can be loaded anywhere in memory without modifications, it's more efficient for the operating system to manage. Shared libraries compiled with `-fPIC` can be shared between multiple processes more easily, reducing memory usage. Only one copy of the library needs to be loaded into memory, and different programs can use it simultaneously.
-
-- **Compatibility**: Position Independent Code is essential for creating shared libraries on most modern operating systems. It ensures compatibility and efficiency across different systems and software.
-
-
-
-
-### Setting -fPIC flag
+Rule of thumb: **if it ends up inside a `.so`, it must be built with `-fPIC`.** That
+includes static libraries you intend to link *into* a shared library — they have to
+be PIC too, otherwise the final `.so` link will fail.
 
 ```bash
-g++ -fPIC -c mysourcefile.cpp
+# Compile object files as PIC
+g++ -fPIC -c motor_driver.cpp -o motor_driver.o
+g++ -fPIC -c encoder.cpp      -o encoder.o
+
+# Link into a shared library
+g++ -shared -o libmotors.so motor_driver.o encoder.o
 ```
 
-Globally set Position Independent Code for all targets:
+CMake does this automatically for `SHARED` libraries, but **not** for `STATIC` ones
+— see the [CMake section](#cmake-how-to-set-it) below.
+
+## fPIE: for executables (security/ASLR)
+
+`-fPIE` is `-fPIC` applied to the main program. The linker companion is `-pie`. With
+both, the kernel can map the executable itself to a random base address every run, so
+an attacker who knows offsets inside your binary still can't predict absolute
+addresses. Most modern distros (Ubuntu, Debian, Fedora) default to PIE for everything.
+
+```bash
+g++ -fPIE -pie -o robot_control main.cpp
+```
+
+You generally don't write this by hand — your distro's compiler is already
+configured this way. You only think about `-fPIE` when *disabling* it (e.g.
+`-no-pie`) for tools that need a fixed load address, or when explicitly hardening a
+build.
+
+## The error you'll actually hit
+
+The classic moment people learn what `-fPIC` is:
+
+```text
+/usr/bin/ld: libutils.a(crc.o): relocation R_X86_64_32 against `.rodata'
+    can not be used when making a shared object; recompile with -fPIC
+/usr/bin/ld: failed to set dynamic section sizes: bad value
+collect2: error: ld returned 1 exit status
+```
+
+Translation: you tried to link a static library (`libutils.a`) into a shared library
+(`libdriver.so`), but `libutils.a` was built without `-fPIC`. The fix is to rebuild
+`libutils.a` with `-fPIC`. There is no way around it on x86-64.
+
+## CMake: how to set it
 
 ```cmake
+# Apply to every target in the project (simplest, recommended)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ```
 
-If you prefer to set POSITION_INDEPENDENT_CODE for a specific target rather than globally, you can do so using the set_target_properties function. Here's an example 
-
-```
-add_library(mySpecificLibrary STATIC source_file1.cpp source_file2.cpp)
-set_target_properties(mySpecificLibrary PROPERTIES    POSITION_INDEPENDENT_CODE ON)
-```
-
-send it as parameter:
-
-```
--DCMAKE_POSITION_INDEPENDENT_CODE=ON
+```cmake
+# Or apply it to a single target — useful for a static lib that
+# gets pulled into a shared lib downstream.
+add_library(robot_utils STATIC src/crc.cpp src/log.cpp)
+set_target_properties(robot_utils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 ```
 
+```bash
+# Or pass it on the command line at configure time
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
+```
 
+Notes:
 
+- `add_library(foo SHARED ...)` enables PIC automatically.
+- `add_library(foo STATIC ...)` does **not** — you must opt in if it'll be linked
+  into a shared library.
+- `add_executable(...)` does not enable PIE just from
+  `CMAKE_POSITION_INDEPENDENT_CODE`. For PIE executables on older CMake, you need
+  the linker flag too; modern CMake (≥3.14) propagates it correctly for executables
+  when the variable is on.
 
-## `-fPIE` (Position Independent Executable)
+## Real-world scenarios
 
-- **Purpose**: The `-fPIE` option is similar to `-fPIC` but is specifically designed for generating executables, not libraries. It instructs the compiler to produce position-independent code for the entire executable, which enhances security through mechanisms like Address Space Layout Randomization (ASLR).
+**1. Plugin system in a robotics stack.** Your motion planner loads
+`libtrajectory_rrt.so` and `libtrajectory_lattice.so` at runtime via `dlopen` so users
+can swap planners without rebuilding. Every planner plugin must be `-fPIC` — they're
+shared objects loaded into a process that doesn't know their layout in advance.
 
-- **How It Works**: Like `-fPIC`, `-fPIE` uses relative addressing for accessing functions and data. This allows the operating system to load the executable at any address in memory, making it harder for attackers to predict the location of specific code or data segments.
+**2. Driver library that wraps a vendor static lib.** You're shipping
+`libcan_driver.so`, and it depends on the vendor's `libpeak_can.a`. If the vendor
+built their static lib without `-fPIC` (sadly common with proprietary drivers), you
+can't link it into your `.so` on x86-64. You either get the vendor to ship a PIC
+build, or you ship `libcan_driver` as a static library too and let the final
+executable do the linking.
 
-- **Usage**: Used when compiling executables that benefit from being position-independent. It's particularly important for systems where security is a concern, as it enables the executable to be loaded at random memory addresses.
+**3. ROS 2 nodes.** Each `rclcpp_components`-registered node is compiled into a
+shared library so the component container can load it at runtime. CMake's
+`ament_auto_add_library(... SHARED ...)` takes care of `-fPIC` for you — but the
+moment you add a third-party static dep, the relocation error from
+[above](#the-error-youll-actually-hit) shows up.
 
+**4. Hardening a robot's onboard binary.** For a robot that exposes a network
+interface (e.g. a ROS bridge or a teleop server), building the main executable with
+`-fPIE -pie` and the kernel's ASLR enabled makes ROP-style exploits significantly
+harder. The cost is one extra register pressure on x86-64 — negligible for a control
+loop running at 1 kHz.
 
+## Seeing the difference in assembly
 
+A minimal program with a function-local static (so the compiler has to emit a data
+reference) — save this as `example.cpp`:
 
-## Example
-
-To illustrate the differences in assembly code generated with and without the `-fPIC` (Position Independent Code) option in C++, let's consider a simple example. We'll create a small C++ program and compile it twice: once with `-fPIC` and once without, then we'll use the `objdump` tool to inspect the assembly differences.
-
-### Example C++ Program
-
-Let's start with a simple C++ program that defines a function and uses a static variable. This example will help us see how references to data are handled differently with and without `-fPIC`.
-
-**example.cpp**:
 ```cpp
 #include <iostream>
 
@@ -86,47 +147,32 @@ int counter() {
 }
 
 int main() {
-    std::cout << "Counter: " << counter() << std::endl;
+    std::cout << "Counter: " << counter() << '\n';
     return 0;
 }
 ```
 
-### Compilation Without `-fPIC`
-
-First, let's compile this program without `-fPIC`:
+Build both flavors and diff the disassembly:
 
 ```bash
-g++ -o example_nofpic example.cpp
+g++ -O1 -fno-pie -no-pie -c example.cpp -o example_nopic.o
+g++ -O1 -fPIC               -c example.cpp -o example_fpic.o
+
+objdump -d example_nopic.o > nopic.asm
+objdump -d example_fpic.o  > fpic.asm
+
+diff -u nopic.asm fpic.asm   # or: meld nopic.asm fpic.asm
 ```
 
-### Compilation With `-fPIC`
+What to look for inside `counter()`:
 
-Now, let's compile the same program with `-fPIC`:
+- **Without `-fPIC`** — the access to `count` shows up as an absolute address that
+  the linker will fill in, e.g.
+  `mov 0x0(%rip),%eax  # R_X86_64_PC32 against count` followed by a relocation entry.
+- **With `-fPIC`** — the same access goes through the GOT (Global Offset Table):
+  `mov count@GOTPCREL(%rip),%rax` then `mov (%rax),%eax`. One extra indirection, no
+  load-time fix-up of the code itself.
 
-```bash
-g++ -fPIC -o example_fpic example.cpp
-```
-
-### Inspecting Assembly Differences
-
-To inspect the assembly differences, we can use `objdump` to disassemble the compiled executables or, more precisely, the object files if we want to focus on the function's implementation without the executable's overhead.
-
-Let's disassemble both versions:
-
-**Without `-fPIC`**:
-```bash
-objdump -d example_nofpic > example_nofpic.asm
-```
-
-**With `-fPIC`**:
-```bash
-objdump -d example_fpic > example_fpic.asm
-```
-
-now run: 
-
-```
-meld example_fpic.asm example_nofpic.asm
-```
-
-
+That extra indirection is the price of position independence. On modern x86-64 it's
+typically 1–2% on data-heavy code and often unmeasurable on control-flow-heavy code
+like a real-time loop.
