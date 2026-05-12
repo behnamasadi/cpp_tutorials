@@ -1,94 +1,63 @@
-#include <functional>
-#include <future>
+// Demonstrates §2.1–2.6 of docs/multithreading.md: the different ways to
+// hand a callable to std::jthread.
+
 #include <iostream>
-#include <mutex>
 #include <string>
+#include <syncstream>
 #include <thread>
 
-// A callable object
-void functionPointer(int n) { std::cout << ++n << std::endl; }
+// osyncstream keeps each line atomic when several threads share std::cout.
+void greet(int frame_id) {
+  std::osyncstream(std::cout)
+      << "[free fn]   processing frame " << frame_id << '\n';
+}
 
-void functionPointerByRef(std::string &msg) { msg = "New value!"; }
-
-// A callable object
-class callableObject1 {
+class SensorReader {
 public:
-  void operator()(int n) { std::cout << ++n << std::endl; }
+  void read(int id, char bus) const {
+    std::osyncstream(std::cout)
+        << "[member fn] reader " << id << " on bus '" << bus << "'\n";
+  }
 };
 
-class callableObject2 {
-public:
-  void operator()() {}
+struct FramePrinter {
+  void operator()(int id) const {
+    std::osyncstream(std::cout) << "[functor]   frame " << id << '\n';
+  }
 };
 
-class myClass {
-public:
-  void f(int x, char c) {}
-  long g(double x) { return 0; }
-  int operator()(int n) { return 0; }
-};
-
-void foo(int x) {}
+void relabel(std::string &label) { label = "tracker.front_left"; }
 
 int main() {
-  int n = 12;
+  // Function pointer with a forwarded argument.
+  std::jthread t1(greet, 42);
 
-  // function pointer
-  std::thread t1(functionPointer, n);
-  std::thread t2{functionPointer, n};
+  // Member function on a heap-free instance. The instance is decay-copied
+  // by default; pass &reader to share, std::ref(reader) to bind a reference.
+  SensorReader reader;
+  std::jthread t2(&SensorReader::read, &reader, 1, 'A');
 
-  // function object
-  std::thread t3(callableObject1(), n);
+  // Function object.
+  std::jthread t3(FramePrinter{}, 7);
 
-  // This will not compile and cause most vexing parse
-  // std::thread t4(callableObject2());
+  // Lambda — the common style today.
+  int n = 10;
+  std::jthread t4(
+      [n] { std::osyncstream(std::cout) << "[lambda]    n = " << n << '\n'; });
 
-  // first solution
-  std::thread t4((callableObject2()));
+  // Move-only ownership: t5 transfers the thread to t6, t5 is left empty.
+  std::jthread t5([] {
+    std::osyncstream(std::cout) << "[move]      running on the moved thread\n";
+  });
+  std::jthread t6 = std::move(t5);
 
-  // second solution
-  callableObject2 threadObj;
-  std::thread t5(threadObj);
-
-  // lambda expression
-  auto lambdaExpression = [](int n) { std::cout << ++n << std::endl; };
-  std::thread t6(lambdaExpression, n);
-
-  t1.join();
-  t2.join();
-  t3.join();
-  t4.join();
-  t5.join();
-  t6.join();
-
-  std::string msg = "Old Value";
-  std::thread t7(functionPointerByRef, std::ref(msg));
-  t7.join();
-  std::cout << msg << std::endl;
-
-  std::thread::hardware_concurrency();
-
-  unsigned int con_threads;
-  // calculating number of concurrent threads  supported in the hardware
-  // implementation
-  con_threads = std::thread::hardware_concurrency();
-  std::cout << "Number of concurrent threads supported are: " << con_threads
-            << std::endl;
-
+  // Pass by reference via std::ref. Without ref(), `label` would bind to
+  // an internal copy and the original would stay "imu_raw".
+  std::string label = "imu_raw";
   {
-    myClass myObject;
-    std::thread t1(myObject, 6);
-    std::thread t2(std::ref(myObject), 6);
-    std::thread t3(myClass(), 6);
-    std::thread t4([](int n) { std::cout << ++n << std::endl; }, 6);
-    std::thread t5(foo, 7);
-    std::thread t6(&myClass::f, myObject, 8, 'w');
-    std::thread t7(&myClass::f, &myObject, 8, 'w');
-    std::thread t8(&myClass::f, std::move(myObject), 8, 'w');
+    std::jthread t7(relabel, std::ref(label));
+  } // joined here
+  std::cout << "[ref]       label after thread: " << label << '\n';
 
-    std::async(std::launch::async, myObject, 6);
-    std::bind(myObject, 6);
-    std::once_flag flag;
-    std::call_once(flag, myObject, 6);
-  }
+  // All other jthreads join when main returns.
 }

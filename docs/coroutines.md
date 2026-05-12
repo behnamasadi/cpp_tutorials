@@ -10,7 +10,7 @@ That single capability covers a surprising range of use cases:
 
 The common thread: control flow that *naturally* wants to pause.
 
-For a higher-level intro to async in C++ see [asynchronous_programming.md](asynchronous_programming.md). For where coroutines fit among the other "callable" things in C++ see [callable_callbacks.md](callable_callbacks.md).
+For a higher-level intro to async in C++ see [multithreading.md §5](multithreading.md#5-async-tasks-and-stdfuture). For where coroutines fit among the other "callable" things in C++ see [callable_callbacks.md](callable_callbacks.md).
 
 ---
 
@@ -264,7 +264,7 @@ These read like blocking code while running on a single thread, multiplexed over
 ## See also
 
 - [callable_callbacks.md §9](callable_callbacks.md) — coroutines as one of C++'s "callable" things.
-- [asynchronous_programming.md](asynchronous_programming.md) — `std::async`, `std::future`, threads — the pre-coroutine async toolbox.
+- [multithreading.md §5](multithreading.md#5-async-tasks-and-stdfuture) — `std::async`, `std::future`, `std::promise`, `std::packaged_task` — the pre-coroutine async toolbox.
 - [cppreference: Coroutines](https://en.cppreference.com/w/cpp/language/coroutines)
 - [Lewis Baker, "C++ Coroutines: Understanding the promise type"](https://lewissbaker.github.io/2018/09/05/understanding-the-promise-type) — still the best deep-dive on the mechanism.
 - [`std::generator` (C++23)](https://en.cppreference.com/w/cpp/coroutine/generator)

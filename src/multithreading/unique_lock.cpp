@@ -1,101 +1,51 @@
-#include <fstream>
+// Demonstrates §4.2.6 of docs/multithreading.md: when unique_lock buys you
+// something scoped_lock can't — deferred locking, unlock/relock partway,
+// and (the most common case) condition_variable::wait, which requires it.
+
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
 #include <mutex>
-#include <string>
 #include <thread>
 
-// std::defer_lock, std::try_lock, std::adopt_lock
+std::mutex mu;
+std::condition_variable cv;
+bool ready = false;
 
-class LogFile {
-  std::mutex mu;
-  std::ofstream file;
+// 1. Deferred locking + unlock-relock within one scope.
+void deferred_demo() {
+  std::unique_lock<std::mutex> lock(mu, std::defer_lock); // not yet locked
 
-public:
-  LogFile() { file.open("log.txt"); }
+  // ... preparation that doesn't need the lock ...
 
-  void sharedPrint(std::string msg, int id) {
-    std::lock_guard<std::mutex> locker(mu);
-    file << "From " << id << ": " << msg << std::endl;
-  }
-};
+  lock.lock();
+  std::cout << "  deferred: now under the lock\n";
+  lock.unlock();
 
-namespace unique_lock {
-class LogFile {
-  std::mutex mu;
-  std::ofstream file;
+  // ... more lock-free work ...
 
-public:
-  LogFile() { file.open("log.txt"); }
+  lock.lock();
+  std::cout << "  deferred: re-acquired the lock\n";
+} // unlocks on destruction if still held
 
-  void sharedPrint(std::string msg, int id) {
-    std::unique_lock<std::mutex> locker(mu, std::defer_lock);
-
-    // some operation here
-    locker.lock();
-    file << "From " << id << ": " << msg << std::endl;
-    locker.unlock();
-    // some operation here
-    locker.lock();
-    //...
-    locker.unlock();
-  }
-};
-} // namespace unique_lock
-
-namespace lazy_initialization {
-class LogFile {
-  std::mutex mu;
-  std::mutex mu_open_file;
-  std::ofstream file;
-  std::once_flag flag;
-
-public:
-  LogFile() {}
-
-  void sharedPrint(std::string msg, int id) {
+// 2. condition_variable::wait *requires* unique_lock<mutex> because it has
+// to release and re-acquire the mutex around the sleep.
+void cv_demo() {
+  std::jthread worker([] {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     {
-      std::unique_lock<std::mutex> locker2(mu_open_file);
-      if (!file.is_open()) {
-        file.open("log.txt");
-      }
+      std::scoped_lock lock(mu);
+      ready = true;
     }
-    std::unique_lock<std::mutex> locker(mu, std::defer_lock);
+    cv.notify_one();
+  });
 
-    // some operation here
-    locker.lock();
-    file << "From " << id << ": " << msg << std::endl;
-    locker.unlock();
-    // some operation here
-    locker.lock();
-    //...
-    locker.unlock();
-  }
-};
-} // namespace lazy_initialization
+  std::unique_lock<std::mutex> lock(mu);
+  cv.wait(lock, [] { return ready; }); // predicate form handles spurious wakeups
+  std::cout << "  cv: woke up, ready = " << std::boolalpha << ready << '\n';
+}
 
-namespace call_once {
-class LogFile {
-  std::mutex mu;
-  std::mutex mu_open_file;
-  std::ofstream file;
-  std::once_flag flag;
-
-public:
-  LogFile() {}
-
-  void sharedPrint(std::string msg, int id) {
-    std::call_once(flag, [&]() { file.open("log.txt"); });
-    std::unique_lock<std::mutex> locker(mu, std::defer_lock);
-
-    // some operation here
-    locker.lock();
-    file << "From " << id << ": " << msg << std::endl;
-    locker.unlock();
-    // some operation here
-    locker.lock();
-    //...
-    locker.unlock();
-  }
-};
-} // namespace call_once
-
-int main() {}
+int main() {
+  deferred_demo();
+  cv_demo();
+}

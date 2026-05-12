@@ -1,986 +1,618 @@
-// count min max compare linear_searh attribute
+// Companion to docs/algorithms.md. Each function corresponds to one section of
+// the doc; main() runs them in order so the binary produces meaningful output.
+//
+// Build target: algorithms_library  (C++20, pthread)
+// Examples are framed around robotics: joint errors, lidar scans, motor torque,
+// path-planning cells.
+
 #include <algorithm>
 #include <array>
 #include <cctype>
-#include <forward_list>
-#include <iomanip>
+#include <cmath>
+#include <execution>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <list>
-#include <map>
-#include <memory>
 #include <numeric>
 #include <queue>
 #include <random>
+#include <ranges>
+#include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
-/*
-std::unique
-std::rotate
-std::count
-std::min_max
-std::distance
-std::find
-std::search
-std::adjacent_find
-std::equal
-std::mismatch
-std::partition
-std::transform
-std::swap
-std::exchange
-std::fill
-std::generate
-std::replace
-std::remove
-std::next_permutation
-std::lexicographical_compare
-std::shuffel
-std::sort
-std::heap
-std::binary_search
-std::includes
-std::priority_queue
-std::lower_upper_equal_bound
-std::upper_bound
-std::advance
-std::merge
-std::accumulate
-*/
+// ---------- small printing helpers ----------
 
-template <typename T> void print_queue(T &q) {
-  while (!q.empty()) {
-    std::cout << q.top() << " ";
-    q.pop();
-  }
+template <typename Range> void print_range(std::string_view label, const Range &r) {
+  std::cout << label;
+  for (const auto &x : r) std::cout << x << ' ';
   std::cout << '\n';
 }
 
-template <typename T> void printArray(T array) {
-  for (const auto &element : array)
-    std::cout << element << " ";
+template <typename PQ> void drain_pq(std::string_view label, PQ q) {
+  std::cout << label;
+  while (!q.empty()) { std::cout << q.top() << ' '; q.pop(); }
+  std::cout << '\n';
 }
 
-bool IsOdd(int i) { return (i % 2) == 1; }
+// =====================================================================
+// Section 1. Non-modifying sequence operations
+// =====================================================================
+void non_modifying() {
+  std::cout << "\n--- 1. Non-modifying ---\n";
 
-void unique() {
-  // std::unique
-  // will eliminate every consecutive group of equivalent elements
-  std::vector<int> vec1 = {2, 1, 5, 2, 2, 3, 1, 1, 7};
-  std::vector<int>::iterator last_it =
-      std::unique(vec1.begin(), vec1.end()); //==> 2,1,5,2,3,1,7
+  // count_if: how many joints exceed 1 degree of tracking error.
+  std::vector<double> error_deg = {0.2, -1.5, 0.4, 2.0, -0.8, 1.1};
+  auto bad = std::count_if(error_deg.begin(), error_deg.end(),
+                           [](double e) { return std::abs(e) > 1.0; });
+  std::cout << "joints with |err| > 1 deg: " << bad << '\n';
 
-  for (std::vector<int>::iterator it = vec1.begin(); it != last_it;
-       it++) // 1,5,3,1,7
-  {
-    std::cout << *it << ',';
-  }
-  std::cout << '\n';
+  // find / find_if on an unsorted vector.
+  std::vector<int> nums = {2, 3, 1, 0, -4, 7, 5, 3};
+  auto it = std::find(nums.begin(), nums.end(), 3);
+  std::cout << "first 3 at index " << std::distance(nums.begin(), it) << '\n';
+  auto it2 = std::find_if(nums.begin(), nums.end(),
+                          [](int x) { return x > 3; });
+  std::cout << "first > 3 at index " << std::distance(nums.begin(), it2) << '\n';
 
-  std::sort(vec1.begin(), vec1.end());
-  last_it = std::unique(vec1.begin(), vec1.end());
+  // find_first_of: first element from set B inside A.
+  std::vector<int> targets = {87, 5, 43};
+  auto f = std::find_first_of(nums.begin(), nums.end(),
+                              targets.begin(), targets.end());
+  std::cout << "first of {87,5,43} at index "
+            << std::distance(nums.begin(), f) << '\n';
 
-  for (std::vector<int>::iterator it = vec1.begin(); it != vec1.end(); it++) {
-    std::cout << *it << ',';
-  }
-  std::cout << '\n';
+  // adjacent_find with a predicate (n followed by n+2).
+  std::vector<int> seq = {-1, -2, 3, 4, 6, -4, 7, 5, 3};
+  auto a = std::adjacent_find(seq.begin(), seq.end(),
+                              [](int x, int y) { return y == x + 2; });
+  std::cout << "first (n, n+2) at index "
+            << std::distance(seq.begin(), a) << '\n';
 
-  vec1.erase(last_it, vec1.end());
-  for (int i : vec1)
-    std::cout << i << " ";
-  std::cout << "\n";
+  // search / search_n.
+  std::vector<int> log = {2, 3, 3, 0, -4, 7, 5, 3};
+  auto s1 = std::search_n(log.begin(), log.end(), 2, 3);
+  std::cout << "two consecutive 3s at index "
+            << std::distance(log.begin(), s1) << '\n';
+  std::vector<int> sub = {0, -4, 7};
+  auto s2 = std::search(log.begin(), log.end(), sub.begin(), sub.end());
+  std::cout << "subseq {0,-4,7} at index "
+            << std::distance(log.begin(), s2) << '\n';
 
-  // std::unique_copy(vec1.begin(),vec1.end(),vec2.being());
+  // equal vs is_permutation.
+  std::vector<int> a1 = {-1, -2, 3, 4, 0};
+  std::vector<int> a2 = {-1, -2, 3, 4, 0};
+  std::vector<int> a3 = {-2, -1, 3, 4, 0};
+  std::cout << "equal a1==a2: "
+            << std::equal(a1.begin(), a1.end(), a2.begin()) << '\n';
+  std::cout << "is_permutation a1<->a3: "
+            << std::is_permutation(a1.begin(), a1.end(), a3.begin()) << '\n';
 
-  // remove consecutive spaces
+  // mismatch.
+  std::vector<int> b1 = {-1, -2,  3, 4, 0};
+  std::vector<int> b2 = {-1, -2, -3, 4, 0};
+  auto m = std::mismatch(b1.begin(), b1.end(), b2.begin());
+  std::cout << "first mismatch at index "
+            << std::distance(b1.begin(), m.first)
+            << " (" << *m.first << " vs " << *m.second << ")\n";
+
+  // any_of / all_of / none_of quantifiers.
+  std::vector<double> torques = {0.1, 0.2, 0.05, 0.4};
+  bool any_overload = std::any_of(torques.begin(), torques.end(),
+                                  [](double t) { return t > 1.0; });
+  bool all_positive = std::all_of(torques.begin(), torques.end(),
+                                  [](double t) { return t >= 0.0; });
+  std::cout << "any overload: " << any_overload
+            << ", all non-negative: " << all_positive << '\n';
+
+  // for_each: the lambda's return value is discarded.
+  std::vector<int> v = {0, 1, 2, 3, 4, 5};
+  std::for_each(v.begin(), v.end(), [](int x) { return x * 3; }); // no-op
+  print_range("for_each return-discarded: ", v);
+  std::for_each(v.begin(), v.end(), [](int &x) { ++x; });          // mutates
+  print_range("for_each by-ref:           ", v);
+}
+
+// =====================================================================
+// Section 2. Modifying sequence operations
+// =====================================================================
+void modifying() {
+  std::cout << "\n--- 2. Modifying ---\n";
+
+  // copy / copy_n / copy_backward
+  std::vector<int> src = {1, 2, 3};
+  std::vector<int> dst(4, 0);
+  std::copy(src.begin(), src.end(), dst.begin());
+  print_range("copy:        ", dst);
+
+  // transform: unary and binary.
+  std::vector<int> in = {0, 1, 2, 3, 4};
+  std::vector<int> sq(in.size());
+  std::transform(in.begin(), in.end(), sq.begin(),
+                 [](int x) { return x * x; });
+  print_range("transform sq: ", sq);
+
+  std::vector<int> sum(in.size());
+  std::transform(in.begin(), in.end(), sq.begin(), sum.begin(),
+                 [](int a, int b) { return a + b; });
+  print_range("transform sum:", sum);
+
+  // replace / replace_if.
+  std::vector<int> r = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::replace(r.begin(), r.end(), 0, 1);
+  std::replace_if(r.begin(), r.end(),
+                  [](int x) { return x > 2; }, -1);
+  print_range("replace_if:   ", r);
+
+  // Erase-remove idiom vs C++20 std::erase_if.
+  std::vector<int> v1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  v1.erase(std::remove_if(v1.begin(), v1.end(),
+                          [](int x) { return x % 2 == 0; }),
+           v1.end());
+  print_range("erase-remove odd: ", v1);
+
+  std::vector<int> v2 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::erase_if(v2, [](int x) { return x % 2 == 0; }); // C++20
+  print_range("erase_if odd:     ", v2);
+
+  // unique: only collapses consecutive duplicates; sort first for true dedup.
+  std::vector<int> u = {2, 1, 5, 2, 2, 3, 1, 1, 7};
+  auto last = std::unique(u.begin(), u.end());
+  u.erase(last, u.end());
+  print_range("unique on unsorted (consecutive only): ", u);
+
+  std::vector<int> u2 = {2, 1, 5, 2, 2, 3, 1, 1, 7};
+  std::sort(u2.begin(), u2.end());
+  u2.erase(std::unique(u2.begin(), u2.end()), u2.end());
+  print_range("sort+unique (true dedup):              ", u2);
+
+  // Collapse consecutive whitespace.
   std::string s = "wanna go    to      space?";
-  auto end = std::unique(s.begin(), s.end(), [](char l, char r) {
-    return std::isspace(l) && std::isspace(r) && l == r;
-  });
-  // s now holds "wanna go to space?xxxxxxxx", where 'x' is indeterminate
-  std::cout << std::string(s.begin(), end) << '\n';
+  auto e = std::unique(s.begin(), s.end(),
+                       [](char l, char r) { return std::isspace(static_cast<unsigned char>(l))
+                                                && std::isspace(static_cast<unsigned char>(r)); });
+  std::cout << "compact spaces: \"" << std::string(s.begin(), e) << "\"\n";
+
+  // rotate.
+  std::vector<int> rot = {1, 2, 3, 4};
+  std::rotate(rot.begin(), rot.begin() + 1, rot.end());
+  print_range("rotate left:  ", rot);
+  std::rotate(rot.rbegin(), rot.rbegin() + 1, rot.rend());
+  print_range("rotate right: ", rot);
+
+  // shift_left as a sliding IMU window: drop the oldest, append the newest.
+  std::array<double, 8> imu_window{1, 2, 3, 4, 5, 6, 7, 8};
+  std::shift_left(imu_window.begin(), imu_window.end(), 1);
+  imu_window.back() = 9.0;
+  print_range("imu_window after shift_left+append: ", imu_window);
+
+  // fill / generate.
+  std::vector<int> f(6, 0);
+  std::fill(f.begin(), f.end(), 1);
+  std::fill_n(f.begin(), 2, 0);
+  print_range("fill+fill_n:  ", f);
+
+  std::mt19937 rng(42);
+  std::uniform_int_distribution<int> dist(0, 99);
+  std::vector<int> g(5);
+  std::generate(g.begin(), g.end(), [&]() { return dist(rng); });
+  print_range("generate:     ", g);
+
+  // swap two vectors.
+  std::vector<int> x = {1, 2, 3}, y = {9, 8, 7, 6};
+  std::swap(x, y);
+  print_range("after swap x: ", x);
+  print_range("after swap y: ", y);
 }
 
-void rotate() {
-  std::vector<int> vec1 = {1, 2, 3, 4};
-
-  std::rotate(vec1.begin(), vec1.begin() + 1, vec1.end());
-  std::cout << "simple rotate left:\n";
-  for (int i : vec1)
-    std::cout << i << " ";
-
-  std::cout << "\n";
-
-  std::cout << "simple rotate right:\n";
-  std::rotate(vec1.rbegin(), vec1.rbegin() + 1, vec1.rend());
-  for (int i : vec1)
-    std::cout << i << " ";
-
-  std::cout << "\n";
-
-  std::vector<int>::iterator element_to_became_first_element = vec1.begin() + 2;
-  std::rotate(vec1.begin(), element_to_became_first_element, vec1.end());
-  for (int i : vec1)
-    std::cout << i << " ";
-}
-
-void count() {
-  std::vector<int> numbers = {2, 3, 1, 0, -4, 7, 5, 3};
-  int larger_than_five = std::count_if(numbers.begin(), numbers.end(),
-                                       [](int x) { return x > 5; });
-  std::cout << "there is (are) " << larger_than_five << " number larger than 5"
-            << std::endl;
-
-  int number_three = 3;
-  int how_many_three = std::count(numbers.begin(), numbers.end(), number_three);
-  std::cout << "there is (are) " << how_many_three << " three(s)" << std::endl;
-}
-
-void min_max() {
-  std::vector<int> numbers = {20, 30, 10, 0, -40, 7, 5, 3};
-  std::vector<int>::iterator abs_max =
-      std::max_element(numbers.begin(), numbers.end());
-  std::cout << "the absolute max is: " << *abs_max << std::endl;
-
-  std::vector<int>::iterator first_digit_max =
-      std::max_element(numbers.begin(), numbers.end(),
-                       [](int x, int y) { return (x % 10) < (y % 10); });
-  std::cout << "the number with first digit max is : " << *first_digit_max
-            << std::endl;
-
-  std::pair<std::vector<int>::iterator, std::vector<int>::iterator> min_max =
-      std::minmax_element(numbers.begin(), numbers.end());
-
-  std::cout << "min is : " << *min_max.first << std::endl;
-  std::cout << "max is : " << *min_max.second << std::endl;
-}
-
-void distance() {
-  std::vector<int> numbers = {20, 30, 10, 0, -40, 7, 5, 3};
-  int index = 2;
-  std::vector<int>::iterator nth = numbers.begin() + index;
-  std::cout << std::distance(numbers.begin(), nth) << std::endl;
-  std::vector<int>::iterator it = numbers.begin();
-  std::advance(it, index);
-  std::cout << std::distance(numbers.begin(), nth) << std::endl;
-}
-
-void find() {
-  // use it wehn data is not sorted
-  std::vector<int> numbers = {2, 3, 1, 0, -4, 7, 5, 3};
-  int number_three = 3;
-  std::vector<int>::iterator find_it =
-      std::find(numbers.begin(), numbers.end(), number_three);
-  if (find_it != std::end(numbers)) {
-    std::cout << "numbers vector contains " << number_three << '\n';
-    size_t i = find_it - numbers.begin();
-    std::cout << "and its index in the vector is:" << i << std::endl;
-
-    std::ptrdiff_t pos = std::distance(
-        numbers.begin(), find(numbers.begin(), numbers.end(), number_three));
-    std::cout << "and its index in the vector is:" << pos << std::endl;
-  } else {
-    std::cout << "numbers vector does not contain " << number_three << '\n';
-  }
-
-  int number_to_find = 3;
-  find_it =
-      std::find_if(numbers.begin(), numbers.end(),
-                   [number_to_find](int x) { return x > number_to_find; });
-  std::ptrdiff_t pos = std::distance(numbers.begin(), find_it);
-  std::cout << "the first element larger than 3 located at " << pos << '\n';
-}
-
-void search() {
-  // search for n consecutive occurrence of numbers
-  std::vector<int> numbers = {2, 3, 3, 0, -4, 7, 5, 3};
-  int how_many_three = 2;
-  int number_three = 3;
-  std::vector<int>::iterator find_it = std::search_n(
-      numbers.begin(), numbers.end(), how_many_three, number_three);
-  std::cout << "the first consecutive occurrence of three number two times "
-               "located at "
-            << find_it - numbers.begin() << '\n';
-
-  std::vector<int> sub_range = {0, -4, 7};
-  find_it = std::search(numbers.begin(), numbers.end(), sub_range.begin(),
-                        sub_range.end());
-  std::cout << "the first consecutive occurrence of 0,-4,7 located at "
-            << find_it - numbers.begin() << '\n';
-
-  std::vector<int> items = {87, 5, 43};
-  find_it = std::find_first_of(numbers.begin(), numbers.end(), items.begin(),
-                               items.end());
-  std::cout << "the first occurrence of any 87,5,43 located at "
-            << find_it - numbers.begin() << '\n';
-}
-
-void adjacent_find() {
-  // Searches the range [first, last) for two consecutive identical elements.
-  std::vector<int> numbers = {-1, -2, 3, 4, 6, -4, 7, 5, 3};
-  std::vector<int>::iterator find_it =
-      std::adjacent_find(numbers.begin(), numbers.end(),
-                         [](int x, int y) { return (y == x + 2); });
-  std::cout << "the first occurrence n,n+1 happens at: "
-            << find_it - numbers.begin() << std::endl;
-}
-
-void equal() {
-  // std::equal
-  std::vector<int> numbers_replicate = {-1, -2, 3, 4, 0, -4, 7, 5, 3};
-  std::vector<int> numbers = {-1, -2, 3, 4, 0, -4, 7, 5, 3};
-  if (std::equal(numbers.begin(), numbers.end(), numbers_replicate.begin())) {
-    std::cout << "both vectors are equal " << std::endl;
-  }
-
-  numbers_replicate = {-2, -1, 3, 4, 0, -4, 7, 5, 3};
-  if (std::is_permutation(numbers.begin(), numbers.end(),
-                          numbers_replicate.begin())) {
-    std::cout << "vectors are permutation of each other " << std::endl;
-  }
-}
-
-void mismatch() {
-  // std::mismatch
-  std::vector<int> numbers = {-1, -2, 3, 4, 0, -4, 7, 5, 3};
-  std::vector<int> numbers_changed = {-1, -2, -3, 4, 0, -4, 7, 5, 3};
-  std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
-      mis_matches = std::mismatch(numbers.begin(), numbers.end(),
-                                  numbers_changed.begin());
-  std::cout << "Mismatch at " << (mis_matches.first - numbers.begin())
-            << ". Because: " << *mis_matches.first
-            << " != " << *mis_matches.second << std::endl;
-}
-
-void partition() {
-  // std::partition
-  std::vector<int> v = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::cout << "Original vector:\n    ";
-  for (int elem : v)
-    std::cout << elem << ' ';
-
-  auto partition_it =
-      std::partition(v.begin(), v.end(), [](int i) { return i % 2 == 0; });
-
-  std::cout << "\nPartitioned vector:\n    ";
-  std::copy(std::begin(v), partition_it,
-            std::ostream_iterator<int>(std::cout, " "));
-  std::cout << " * ";
-  std::copy(partition_it, std::end(v),
-            std::ostream_iterator<int>(std::cout, " "));
-  std::cout << '\n';
-
-  std::vector<int> myvector;
-
-  // set some values:
-  for (int i = 1; i < 10; ++i)
-    myvector.push_back(i); // 1 2 3 4 5 6 7 8 9
-
-  std::vector<int>::iterator bound;
-  bound = std::partition(myvector.begin(), myvector.end(), IsOdd);
-
-  // print out content:
-  std::cout << "odd elements:";
-  for (std::vector<int>::iterator it = myvector.begin(); it != bound; ++it)
-    std::cout << ' ' << *it;
-  std::cout << '\n';
-
-  std::cout << "even elements:";
-  for (std::vector<int>::iterator it = bound; it != myvector.end(); ++it)
-    std::cout << ' ' << *it;
-  std::cout << '\n';
-}
-
-void copy() {
-  std::vector<int> vec1 = {1, 2, 3};
-  std::vector<int> vec2 = {0, 0, 0, 0};
-  std::vector<int> vec3 = {0, 0, 0, 0};
-  std::copy(vec1.begin(), vec1.end(), vec2.begin());
-  std::copy_if(vec1.begin(), vec1.end(), vec2.begin(),
-               [](int x) { return x % 2 == 0; });
-  std::copy_n(vec1.begin(), 2, vec2.begin());
-  std::copy_backward(vec1.begin(), vec1.end(), vec2.end());
-}
-
-void move() {
-  // std::move
-  // std::move_backward
-}
-
-void transform() {
-  /*
-std::transform applies the given function to a range and stores the result in
-another range, keeping the original elements order and beginning at d_first.
-
-OutputIt transform( InputIt first1,
-                  InputIt last1,
-                  OutputIt d_first,
-                  UnaryOperation unary_op );
-
-first1, last1	-	the first range of elements to transform
-first2	-	the beginning of the second range of elements to transform
-d_first	-	the beginning of the destination range, may be equal to first1
-or first2
-policy	-	the execution policy to use. See execution policy for details.
-unary_op	-	unary operation function object that will be applied.
-The signature of the function should be equivalent to the following:
-
-
-*/
-
-  std::vector<int> vec1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::vector<int> vec2(10, 0);
-  std::vector<int> vec3(10, 0);
-  std::transform(vec1.begin(), vec1.end(), vec2.begin(),
-                 [](int x) { return x + 1; }); // vec2=vec1+1
-  std::transform(vec1.begin(), vec1.end(), vec2.begin(), vec3.begin(),
-                 [](int x, int y) { return x + y; }); // vec3=vec1+vec2
-}
-
-void swap() {
-  std::vector<int> vec1 = {
-      4,
-      12,
-      3,
-      6,
-  };
-  std::vector<int> vec2 = {-7, -1, 2, 3, 1, 8, 9};
-  std::swap(vec1, vec2);
-}
-
-// provide a swap function for a class
-// https://stackoverflow.com/questions/6380862/how-to-provide-a-swap-function-for-my-class
-
-//  is a setter returning the old value
-void exchange() {
-  int x, y, z;
-  x = 2;
-  y = 4;
-  //    x is assigned the value of y,
-  //    z is assigned the value that x had initially.
-  z = std::exchange(x, y);
-}
-
-// The std::exchange can be used when implementing
-// move assignment operators and move constructors:
-struct S {
-  int n;
-
-  S(S &&other) noexcept : n{std::exchange(other.n, 0)} {}
-
-  S &operator=(S &&other) noexcept {
-    if (this != &other)
-      n = std::exchange(other.n, 0); // move n, while leaving zero in other.n
+// std::exchange in a move constructor (doc's "Handle" example for a fd).
+struct Handle {
+  int fd;
+  explicit Handle(int f) : fd(f) {}
+  Handle(Handle &&other) noexcept : fd(std::exchange(other.fd, -1)) {}
+  Handle &operator=(Handle &&other) noexcept {
+    if (this != &other) fd = std::exchange(other.fd, -1);
     return *this;
   }
 };
 
-void fill() {
-  std::vector<int> vec2(10, 0);
-  std::fill(vec2.begin(), vec2.end(), 1);
-  std::fill_n(vec2.begin(), 2, 0);
+void exchange_demo() {
+  std::cout << "\n--- exchange in move ctor ---\n";
+  Handle h1{42};
+  Handle h2{std::move(h1)};
+  std::cout << "h1.fd=" << h1.fd << "  h2.fd=" << h2.fd << '\n';
 }
 
-void generate() {
-  // Assigns each element in range [first, last) a value generated by the given
-  // function object g.
-  std::random_device rd;
-  std::mt19937 g(rd());
+// =====================================================================
+// Section 3. Partitioning
+// =====================================================================
+void partitioning() {
+  std::cout << "\n--- 3. Partitioning ---\n";
 
-  // int upperbound=100;
-  // std::srand(std::time(0)); //use current time as seed for random generator
-  // //Will return an integer between [0,upperbound)
-  // std::cout<<(rand() % upperbound) <<std::endl;
+  // Treat 'range < 5' as the obstacle predicate.
+  struct Point { double range; };
+  std::vector<Point> points = {{2.1}, {7.3}, {0.9}, {12.0}, {4.5}, {6.2}, {3.0}};
+  auto bound = std::partition(points.begin(), points.end(),
+                              [](const Point &p) { return p.range < 5.0; });
+  std::cout << "close-range points: ";
+  for (auto it = points.begin(); it != bound; ++it) std::cout << it->range << ' ';
+  std::cout << "\nfar points:         ";
+  for (auto it = bound; it != points.end(); ++it) std::cout << it->range << ' ';
+  std::cout << '\n';
 
-  std::vector<int> vec1;
-  vec1.resize(5);
-  std::generate(vec1.begin(), vec1.end(), g);
-  printArray(vec1);
-}
-
-void replace() {
-  std::vector<int> vec1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::replace(vec1.begin(), vec1.end(), 0, 1); // replace 0 with 1 in vec1
-  std::replace_if(
-      vec1.begin(), vec1.end(), [](int x) { return x > 2; },
-      -1); // if values are bigger 2, they will be replaced by -1
-}
-
-void remove() {
-  std::vector<int> vec1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::remove(vec1.begin(), vec1.end(), 3); // removes 3 from vec1
-  std::remove_if(vec1.begin(), vec1.end(), [](int x) {
-    return x % 2 == 0;
-  }); // removes even number from vec1
-}
-
-void permutation() {
-  // std::prev_permutation
-  // std::next_permutation
-
-  int arr[] = {1, 2, 3};
-  std::sort(arr, arr + 3);
-
-  std::cout << "The 3! possible permutations with 3 elements:\n";
-  do {
-    std::cout << arr[0] << " " << arr[1] << " " << arr[2] << "\n";
-  } while (std::next_permutation(arr, arr + 3));
-
-  std::cout << "After loop: " << arr[0] << ' ' << arr[1] << ' ' << arr[2]
+  std::cout << "is_partitioned: "
+            << std::is_partitioned(points.begin(), points.end(),
+                                   [](const Point &p) { return p.range < 5.0; })
             << '\n';
 }
 
-void lexicographical_compare() {
+// =====================================================================
+// Section 4. Sorting
+// =====================================================================
+void sorting() {
+  std::cout << "\n--- 4. Sorting ---\n";
 
-  // std::lexicographical_compare
-  std::vector<int> number_set1, number_set2;
-  number_set1 = {1, 2, 3};
-  number_set2 = {1, 2, 4};
-  // {1,2,4} > {1,2,3}
+  std::vector<int> v = {0, 1, 3, 6, 9, 8, 7};
+  std::sort(v.begin(), v.end()); // default std::less<>
+  print_range("sort ascending: ", v);
 
-  // Is number_set1 less than number_set2?
-  bool number_set1_less_than_number_set1 =
-      std::lexicographical_compare(number_set1.begin(), number_set1.end(),
-                                   number_set2.begin(), number_set2.end());
+  std::vector<int> w = {10, 20, 50, 30, 40};
+  auto stop = std::is_sorted_until(w.begin(), w.end());
+  std::cout << "is_sorted_until index: "
+            << std::distance(w.begin(), stop) << '\n';
 
-  if (number_set1_less_than_number_set1) {
+  // Top-K closest obstacles, sorted by range (partial_sort).
+  struct Obstacle { int id; double range; };
+  std::vector<Obstacle> obs = {{1, 9.5}, {2, 0.4}, {3, 6.1},
+                               {4, 2.0}, {5, 1.3}, {6, 7.7}};
+  constexpr int K = 4;
+  std::partial_sort(obs.begin(), obs.begin() + K, obs.end(),
+                    [](const Obstacle &a, const Obstacle &b) {
+                      return a.range < b.range;
+                    });
+  std::cout << "4 closest obstacles: ";
+  for (int i = 0; i < K; ++i) std::cout << obs[i].id << "(" << obs[i].range << ") ";
+  std::cout << '\n';
 
-    for (auto c : number_set1)
-      std::cout << c << ' ';
-    std::cout << "< ";
-    for (auto c : number_set2)
-      std::cout << c << ' ';
-    std::cout << '\n';
-  } else {
-    for (auto c : number_set1)
-      std::cout << c << ' ';
-    std::cout << ">= ";
-    for (auto c : number_set2)
-      std::cout << c << ' ';
-    std::cout << '\n';
-  }
+  // Median via nth_element — the O(n) average pick for median filters.
+  std::vector<int> samples = {3, 7, 4, 9, 2, 5, 8, 1, 6};
+  auto mid = samples.begin() + samples.size() / 2;
+  std::nth_element(samples.begin(), mid, samples.end());
+  std::cout << "median sample: " << *mid << '\n';
 
-  //{1,3} > {1,2,3}
-  number_set1 = {1, 2, 3};
-  number_set2 = {1, 3};
-
-  number_set1_less_than_number_set1 =
-      std::lexicographical_compare(number_set1.begin(), number_set1.end(),
-                                   number_set2.begin(), number_set2.end());
-
-  if (number_set1_less_than_number_set1) {
-
-    for (auto c : number_set1)
-      std::cout << c << ' ';
-    std::cout << "< ";
-    for (auto c : number_set2)
-      std::cout << c << ' ';
-    std::cout << '\n';
-  } else {
-    for (auto c : number_set1)
-      std::cout << c << ' ';
-    std::cout << ">= ";
-    for (auto c : number_set2)
-      std::cout << c << ' ';
-    std::cout << '\n';
-  }
+  // stable_partition preserves original order inside each side.
+  std::vector<int> sp = {5, 3, 9, 1, 4, 8, 2, 7};
+  std::stable_partition(sp.begin(), sp.end(),
+                        [](int x) { return x < 5; });
+  print_range("stable_partition(<5): ", sp);
 }
 
-void shuffel() {
-  std::vector<int> vec1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::random_device rd;
-  std::mt19937 g(rd());
+// =====================================================================
+// Section 5. Binary search on sorted ranges
+// =====================================================================
+void binary_search_demo() {
+  std::cout << "\n--- 5. Binary search ---\n";
 
-  std::shuffle(vec1.begin(), vec1.end(), g);
-  for (int i : vec1)
-    std::cout << i << " ";
-  std::cout << "\n";
+  std::vector<double> ts = {0.1, 0.2, 0.35, 0.5, 0.5, 0.7, 1.0};
+  double t_query = 0.5;
+  auto lo = std::lower_bound(ts.begin(), ts.end(), t_query);
+  auto hi = std::upper_bound(ts.begin(), ts.end(), t_query);
+  std::cout << "lower_bound(0.5) at " << std::distance(ts.begin(), lo)
+            << ", upper_bound(0.5) at " << std::distance(ts.begin(), hi) << '\n';
+  std::cout << "binary_search(0.35): "
+            << std::binary_search(ts.begin(), ts.end(), 0.35) << '\n';
+
+  auto eq = std::equal_range(ts.begin(), ts.end(), 0.5);
+  std::cout << "equal_range(0.5): ["
+            << std::distance(ts.begin(), eq.first) << ", "
+            << std::distance(ts.begin(), eq.second) << ")\n";
 }
 
-bool cmp_sort_algorithm(int x, int y) { return x < y; }
+// =====================================================================
+// Section 6. Set operations on sorted ranges
+// =====================================================================
+void set_operations() {
+  std::cout << "\n--- 6. Set operations ---\n";
 
-void sort() {
-  // only works on vector,deque,container array, native array
+  struct Sample { double t; int src; };
+  std::vector<Sample> imu     = {{0.10, 0}, {0.30, 0}, {0.50, 0}};
+  std::vector<Sample> encoder = {{0.15, 1}, {0.20, 1}, {0.55, 1}};
+  std::vector<Sample> fused;
+  fused.reserve(imu.size() + encoder.size());
+  std::merge(imu.begin(), imu.end(),
+             encoder.begin(), encoder.end(),
+             std::back_inserter(fused),
+             [](const Sample &a, const Sample &b) { return a.t < b.t; });
+  std::cout << "merged timeline: ";
+  for (auto &s : fused) std::cout << '(' << s.t << ',' << s.src << ") ";
+  std::cout << '\n';
 
-  std::random_device rd;
-  std::mt19937 g(rd());
+  std::vector<int> a = {1, 3, 5, 7, 9};
+  std::vector<int> b = {2, 3, 5, 8};
+  std::vector<int> out;
+  std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+                        std::back_inserter(out));
+  print_range("set_intersection: ", out);
 
-  /////////////////////normal sort///////////////////
-  std::vector<int> vec1 = {0, 1, 3, 6, 9, 8, 7};
-  std::sort(vec1.begin(), vec1.end(), cmp_sort_algorithm);
-
-  for (int i : vec1)
-    std::cout << i << " ";
-  std::cout << "\n";
-
-  /////////////////////is_sorted///////////////////
-  std::vector<int> number_set1 = {3, 2, 1};
-  bool is_number_set1_sorted_descendingly =
-      std::is_sorted(number_set1.begin(), number_set1.end(),
-                     [](int x, int y) { return x >= y; });
-  if (is_number_set1_sorted_descendingly)
-    std::cout << "number_set1 is sorted descendingly" << std::endl;
-
-  /////////////////////is_sorted_until///////////////////
-  number_set1 = {10, 20, 50, 30, 40};
-  std::vector<int>::iterator the_vector_is_sorted_unitil =
-      std::is_sorted_until(number_set1.begin(), number_set1.end());
-  std::cout << *the_vector_is_sorted_unitil << std::endl;
-  std::cout << "The array is sorted until element at: "
-            << std::distance(number_set1.begin(), the_vector_is_sorted_unitil)
-            << std::endl;
-
-  std::shuffle(vec1.begin(), vec1.end(), g);
-
-  ///////////////////partial_sort, finding top 3 students,
-  /// sorted///////////////////
-  std::partial_sort(number_set1.begin(), number_set1.begin() + 3,
-                    number_set1.end());
-
-  for (int i : number_set1)
-    std::cout << i << " ";
-  std::cout << "\n";
-
-  /////////////////////nth_element, finding top 3 students, not necessarily
-  /// sorted/////////////////////
-  std::shuffle(vec1.begin(), vec1.end(), g);
-  std::nth_element(number_set1.begin(), number_set1.begin() + 3,
-                   number_set1.end());
-  for (int i : number_set1)
-    std::cout << i << " ";
-  std::cout << "\n";
-
-  ///////////////////////partion data into two groups, neither of the groups are
-  /// sorted/////////////////////
-  std::shuffle(number_set1.begin(), number_set1.end(), g);
-  std::vector<int>::iterator iterator_to_the_first_element_of_the_second_group =
-      std::partition(number_set1.begin(), number_set1.end(),
-                     [](int x) { return x < 30; });
-
-  std::cout << "Element of the first group"
-            << "\n";
-  for (std::vector<int>::iterator it = number_set1.begin();
-       it != iterator_to_the_first_element_of_the_second_group; it++) {
-    std::cout << *it << " ";
-  }
-  std::cout << "\n";
-
-  std::cout << "Element of the second group"
-            << "\n";
-  for (std::vector<int>::iterator it =
-           iterator_to_the_first_element_of_the_second_group;
-       it != number_set1.end(); it++) {
-    std::cout << *it << " ";
-  }
-  std::cout << "\n";
-
-  /////////////////////////stable_partition,partion data into two groups, but it
-  /// preserve the original order///////////////////////
-  std::shuffle(number_set1.begin(), number_set1.end(), g);
-  std::stable_partition(number_set1.begin(), number_set1.end(),
-                        [](int x) { return x < 30; });
+  std::vector<int> probe = {3, 5};
+  std::cout << "includes({3,5} in a): "
+            << std::includes(a.begin(), a.end(),
+                             probe.begin(), probe.end())
+            << '\n';
 }
 
-void heap() {
-  /*
+// =====================================================================
+// Section 7. Heap and priority_queue
+// =====================================================================
+struct Cell {
+  int idx;
+  float cost;
+  bool operator<(const Cell &o) const { return cost < o.cost; } // max-heap on cost
+};
 
-  Examples of Min Heap:
-
-              10                      10
-           /      \               /       \
-         20        100          15         30
-        /                      /  \        /  \
-      30                     40    50    100   40
-
-  Examples of Max Heap:
-
-                                     17
-                                  /       \
-                                15         10
-                               /  \        /
-                              6    10     7
-
-  Below table shows indexes of other nodes for the ith node, i.e., Arr[i]:
-  Arr[i/2]	Returns the parent node
-  Arr[(2*i)+1]	Returns the left child node
-  Arr[(2*i)+2]	Returns the right child node
-
-  1) getMini(): It returns the root element of Min Heap. Time Complexity of this
-  operation is O(1).
-
-  2) extractMin(): Removes the minimum element from Min Heap. Time Complexity of
-  this Operation is O(Logn) as this operation needs to maintain the heap
-  property (by calling heapify()) after removing root.
-
-  3) decreaseKey(): Decreases value of key. Time complexity of this operation is
-  O(Logn). If the decreases key value of a node is greater than parent of the
-  node, then we don’t need to do anything. Otherwise, we need to traverse up to
-  fix the violated heap property.
-
-  4) insert(): Inserting a new key takes O(Logn) time.
-  We add a new key at the end of the tree. IF new key is greater than its
-  parent, then we don’t need to do anything. Otherwise, we need to traverse up
-  to fix the violated heap property.
-
-  5) delete(): Deleting a key also takes O(Logn) time. We replace the key to be
-  deleted with minum infinite by calling decreaseKey(). After decreaseKey(), the
-  minus infinite value must reach root, so we call extractMin() to remove key.
-
-
-
-
-  Applications of Heaps:
-  1) Heap Sort: Heap Sort uses Binary Heap to sort an array in O(nLogn) time.
-
-  2) Priority Queue: Priority queues can be efficiently implemented using Binary
-  Heap because it supports insert(), delete() and extractmax(), decreaseKey()
-  operations in O(logn) time. Binomoial Heap and Fibonacci Heap are variations
-  of Binary Heap. These variations perform union also efficiently.
-
-  3) Graph Algorithms: The priority queues are especially used in Graph
-  Algorithms like Dijkstra’s Shortest Path and Prim’s Minimum Spanning Tree.
-
-  4) Many problems can be efficiently solved using Heaps. See following for
-  example. a) K’th Largest Element in an array. b) Sort an almost sorted array/
-  c) Merge K Sorted Arrays.
-
-  */
+void heap_demo() {
+  std::cout << "\n--- 7. Heap ---\n";
 
   std::vector<int> v = {6, 10, 7, 17, 10, 15};
+  std::make_heap(v.begin(), v.end()); // max-heap by default; std::less<> is OK
+  print_range("max-heap:           ", v);
+  std::cout << "top: " << v.front() << '\n';
 
-  std::cout << "initially, v: ";
-  for (auto i : v)
-    std::cout << i << ' ';
-  std::cout << '\n';
-
-  if (!std::is_heap(v.begin(), v.end())) {
-    std::cout << "making heap...\n";
-    std::make_heap(v.begin(), v.end(), std::greater_equal());
-  }
-
-  std::cout << "after make_heap, v: ";
-  for (auto i : v)
-    std::cout << i << ' ';
-  std::cout << '\n';
-
-  std::cout << "The maximum element of heap is : ";
-  std::cout << v.front() << std::endl;
-
-  // remove the largest element
+  v.push_back(100);
+  std::push_heap(v.begin(), v.end());
+  print_range("after push 100:     ", v);
   std::pop_heap(v.begin(), v.end());
   v.pop_back();
-
-  // Adding a new element
-  v.push_back(100);
-  std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap"
-                                                 : "it is not a heap")
-            << std::endl;
-  std::push_heap(v.begin(), v.end());
-  std::cout << (std::is_heap(v.begin(), v.end()) ? "it is a heap"
-                                                 : "it is not a heap")
-            << std::endl;
-
-  // sorting a heap -> it only works on a heap, so you should first turn your
-  // vetor into a heap
+  print_range("after pop:          ", v);
   std::sort_heap(v.begin(), v.end());
+  print_range("sort_heap ascending:", v);
+
+  // A* / Dijkstra open set as a min-heap on cost.
+  struct ByCost {
+    bool operator()(const Cell &a, const Cell &b) const { return a.cost > b.cost; }
+  };
+  std::priority_queue<Cell, std::vector<Cell>, ByCost> open;
+  open.push({1, 5.0f});
+  open.push({2, 2.5f});
+  open.push({3, 7.5f});
+  std::cout << "A* open pops (cheapest first): ";
+  while (!open.empty()) {
+    std::cout << '(' << open.top().idx << ',' << open.top().cost << ") ";
+    open.pop();
+  }
+  std::cout << '\n';
+
+  // Lambda comparator with decltype.
+  auto by_cost = [](const Cell &a, const Cell &b) { return a.cost > b.cost; };
+  std::priority_queue<Cell, std::vector<Cell>, decltype(by_cost)> open2(by_cost);
+  open2.push({10, 4.0f});
+  open2.push({11, 1.0f});
+  std::cout << "lambda PQ top: " << open2.top().idx << '\n';
+
+  // Default operator< -> max-heap on cost.
+  std::priority_queue<Cell> pq;
+  pq.push({1, 5.0f});
+  pq.push({2, 9.0f});
+  pq.push({3, 3.0f});
+  std::cout << "max-PQ top (cost): " << pq.top().cost << '\n';
 }
 
-void binary_search() {
-  // your data shoudl be always sorted
-  std::vector<int> vec1 = {3, 6, 7, 9, 12, 5, -1};
-  std::sort(vec1.begin(), vec1.end());
-  int number_to_search_for = 7;
-  bool number_exist =
-      std::binary_search(vec1.begin(), vec1.end(), number_to_search_for);
+// =====================================================================
+// Section 8. Min / Max / Clamp
+// =====================================================================
+void min_max_clamp() {
+  std::cout << "\n--- 8. Min/Max/Clamp ---\n";
+
+  std::vector<int> nums = {20, 30, 10, 0, -40, 7, 5, 3};
+  auto mn = std::min_element(nums.begin(), nums.end());
+  auto mx = std::max_element(nums.begin(), nums.end());
+  auto mm = std::minmax_element(nums.begin(), nums.end());
+  std::cout << "min=" << *mn << " max=" << *mx
+            << " minmax=(" << *mm.first << "," << *mm.second << ")\n";
+
+  // Saturate a motor command before sending it on the CAN bus.
+  constexpr double MAX_TORQUE = 5.0;
+  double controller_output = 8.7;
+  double cmd = std::clamp(controller_output, -MAX_TORQUE, MAX_TORQUE);
+  std::cout << "clamp(8.7, +/-5) = " << cmd << '\n';
+
+  // Lifetime trap: take min by value, not by const-ref, for the init-list overload.
+  auto m_ok = std::min({1, 2, 3});
+  std::cout << "min({1,2,3}) by value: " << m_ok << '\n';
 }
 
-void includes() {
-  std::vector<int> vec1 = {3, 6, 7, 9, 12, 5, -1};
-  std::sort(vec1.begin(), vec1.end());
+// =====================================================================
+// Section 9. Comparison
+// =====================================================================
+void comparison() {
+  std::cout << "\n--- 9. Comparison ---\n";
 
-  std::vector<int> elements_to_search = {9, 3};
-  std::sort(elements_to_search.begin(), elements_to_search.end());
+  std::vector<int> s1 = {1, 2, 3};
+  std::vector<int> s2 = {1, 2, 4};
+  bool less = std::lexicographical_compare(s1.begin(), s1.end(),
+                                           s2.begin(), s2.end());
+  std::cout << "{1,2,3} < {1,2,4}: " << less << '\n';
 
-  bool found =
-      std::includes(vec1.begin(), vec1.end(), elements_to_search.begin(),
-                    elements_to_search.end());
-
-  (found ? std::cout << "found" : std::cout << "not found") << std::endl;
+  s2 = {1, 3};
+  less = std::lexicographical_compare(s1.begin(), s1.end(),
+                                      s2.begin(), s2.end());
+  std::cout << "{1,2,3} < {1,3}:   " << less << '\n';
 }
 
-void priority_queue() {
-  // use heap for finding max/min value,
-  std::priority_queue<int> q;
+// =====================================================================
+// Section 10. Permutation / shuffle / sample
+// =====================================================================
+void permutation_shuffle_sample() {
+  std::cout << "\n--- 10. Permutation / shuffle / sample ---\n";
 
-  for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    q.push(n);
+  int arr[] = {1, 2, 3};
+  std::sort(std::begin(arr), std::end(arr));
+  std::cout << "all 3! permutations:\n";
+  do {
+    std::cout << "  " << arr[0] << ' ' << arr[1] << ' ' << arr[2] << '\n';
+  } while (std::next_permutation(std::begin(arr), std::end(arr)));
 
-  print_queue(q);
+  // shuffle with a real generator.
+  std::vector<int> v = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::mt19937 g{std::random_device{}()};
+  std::shuffle(v.begin(), v.end(), g);
+  print_range("shuffled: ", v);
 
-  std::priority_queue<int, std::vector<int>, std::greater<int>> q2;
+  // Downsample a dense lidar cloud — k samples without replacement.
+  std::vector<int> cloud(50);
+  std::iota(cloud.begin(), cloud.end(), 0);
+  std::vector<int> sparse;
+  sparse.reserve(10);
+  std::sample(cloud.begin(), cloud.end(),
+              std::back_inserter(sparse), 10, g);
+  print_range("sample(k=10):  ", sparse);
+}
 
-  for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    q2.push(n);
+// =====================================================================
+// Section 11. Numeric operations
+// =====================================================================
+void numeric_ops() {
+  std::cout << "\n--- 11. Numeric ---\n";
 
-  print_queue(q2);
+  constexpr int N = 8;
+  std::vector<double> x(N);
+  std::iota(x.begin(), x.end(), 0.0);
+  print_range("iota: ", x);
 
-  // Using lambda to compare elements.
-  auto comparator = [](int left, int right) {
-    return (left ^ 1) < (right ^ 1);
+  double acc = std::accumulate(x.begin(), x.end(), 0.0);
+  double red = std::reduce(x.begin(), x.end(), 0.0);
+  double sumsq = std::transform_reduce(x.begin(), x.end(), 0.0,
+                                       std::plus<>{},
+                                       [](double v) { return v * v; });
+  std::cout << "accumulate=" << acc
+            << " reduce=" << red
+            << " sum-of-squares=" << sumsq << '\n';
+
+  // inner_product: generalized dot product.
+  std::vector<double> y(N, 2.0);
+  double dot = std::inner_product(x.begin(), x.end(), y.begin(), 0.0);
+  std::cout << "inner_product(x, 2*ones) = " << dot << '\n';
+
+  // partial_sum / inclusive_scan / exclusive_scan.
+  std::vector<int> in = {1, 2, 3, 4, 5};
+  std::vector<int> ps(in.size());
+  std::partial_sum(in.begin(), in.end(), ps.begin());
+  print_range("partial_sum:    ", ps);
+  std::vector<int> is(in.size());
+  std::inclusive_scan(in.begin(), in.end(), is.begin());
+  print_range("inclusive_scan: ", is);
+  std::vector<int> es(in.size());
+  std::exclusive_scan(in.begin(), in.end(), es.begin(), 0);
+  print_range("exclusive_scan: ", es);
+
+  // adjacent_difference: out[i] = in[i] - in[i-1].
+  std::vector<int> ad(in.size());
+  std::adjacent_difference(in.begin(), in.end(), ad.begin());
+  print_range("adjacent_diff:  ", ad);
+
+  // gcd, lcm, midpoint.
+  std::cout << "gcd(24,18)=" << std::gcd(24, 18)
+            << " lcm(4,6)=" << std::lcm(4, 6)
+            << " midpoint(2,9)=" << std::midpoint(2, 9) << '\n';
+}
+
+// =====================================================================
+// Section 12. C++20 ranges algorithms (projections!)
+// =====================================================================
+struct Robot { std::string name; double battery; };
+
+void ranges_algorithms() {
+  std::cout << "\n--- 12. Ranges algorithms ---\n";
+
+  std::vector<Robot> fleet = {
+      {"alpha", 0.85}, {"beta", 0.12}, {"gamma", 0.55}, {"delta", 0.18},
   };
 
-  std::priority_queue<int, std::vector<int>, decltype(comparator)>
-      q_custom_comparator(comparator);
-  for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    q_custom_comparator.push(n);
+  // Sort by battery descending using a projection — no comparator needed.
+  std::ranges::sort(fleet, std::greater<>{}, &Robot::battery);
+  std::cout << "fleet by battery desc:\n";
+  for (const auto &r : fleet)
+    std::cout << "  " << r.name << " " << r.battery << '\n';
 
-  print_queue(q_custom_comparator);
+  // First robot below 20% battery using a projection.
+  auto low = std::ranges::find_if(
+      fleet, [](double b) { return b < 0.2; }, &Robot::battery);
+  if (low != fleet.end())
+    std::cout << "first below 20%: " << low->name << '\n';
+
+  // back_inserter + ranges::transform.
+  std::vector<int> in = {1, 2, 3, 4}, out;
+  std::ranges::transform(in, std::back_inserter(out),
+                         [](int x) { return x * 2; });
+  print_range("ranges::transform*2: ", out);
 }
 
-void customStructPQ() {
+// =====================================================================
+// Section 13. C++20 views — lazy pipelines
+// =====================================================================
+struct Reading { double value; bool valid; };
 
-  // Define the cell struct
-  struct cell {
-    int index;
-    float cost;
-  };
+void views_demo() {
+  std::cout << "\n--- 13. Views ---\n";
+  namespace rv = std::views;
 
-  // Define a custom comparison functor
-  struct CompareCell {
-    bool operator()(const cell &a, const cell &b) {
-      return a.cost > b.cost; // Min-heap: smallest cost has highest priority
-    }
-  };
+  std::vector<Reading> readings = {
+      {1.0, true}, {2.0, false}, {3.5, true}, {4.2, true},
+      {5.0, false}, {6.1, true}, {7.0, true}};
 
-  cell c1{1, 5.0};
-  cell c2{2, 3.0};
-  cell c3{3, 7.0};
-  cell c4{4, 4.0};
+  auto fresh = readings
+             | rv::filter([](const Reading &r) { return r.valid; })
+             | rv::transform(&Reading::value)
+             | rv::take(3);
 
-  // Initialize a vector of cells
-  std::vector<cell> cells = {c1, c2, c3, c4};
+  std::cout << "first 3 valid readings: ";
+  for (double v : fresh) std::cout << v << ' ';
+  std::cout << '\n';
 
-  // Initialize a priority_queue with custom comparison
-  std::priority_queue<cell, std::vector<cell>, CompareCell> pq_vec;
-
-  // Initialize a priority_queue with std::list as the underlying container
-  std::priority_queue<cell, std::list<cell>> pq_list;
-
-  // Push all cells into the priority queue
-  for (const auto &c : cells) {
-    pq_vec.push(c);
-  }
-
-  // Display the elements in priority_queue (will be in ascending order of cost)
-  while (!pq_vec.empty()) {
-    cell top = pq_vec.top();
-    std::cout << "Index: " << top.index << ", Cost: " << top.cost << std::endl;
-    pq_vec.pop();
-  }
+  // Materialize a view back into a vector (pre-C++23 way).
+  std::vector<double> positives;
+  auto positives_view = readings
+                      | rv::transform(&Reading::value)
+                      | rv::filter([](double v) { return v > 0; });
+  std::ranges::copy(positives_view, std::back_inserter(positives));
+  print_range("positives: ", positives);
 }
 
-void customStructOverloadedLessOperatorPQ() {
-  struct cell {
-    int index;
-    float cost;
+// =====================================================================
+// Section 14. Parallel and unsequenced execution
+// =====================================================================
+void parallel_demo() {
+  std::cout << "\n--- 14. Parallel execution ---\n";
 
-    bool operator<(const cell &other) const { return cost < other.cost; }
-  };
-  // Max-heap by default, largest `cost` is at the top
-  std::priority_queue<cell> pq;
+  std::vector<double> v(1000);
+  std::iota(v.begin(), v.end(), 0.0);
+
+  // Parallel policies on libstdc++ need TBB linked. Use seq for portability.
+  std::sort(std::execution::seq, v.begin(), v.end());
+  double s = std::reduce(std::execution::seq, v.begin(), v.end(), 0.0);
+  std::cout << "reduce(seq) sum [0..999] = " << s << '\n';
 }
 
-void lower_upper_equal_bound() {
-  // find the first position where an item can be iserted while still keep the
-  // sorting
-  std::vector<int> vec1 = {12, 3, 4, 7, 7, 0};
-  //    std::sort(vec1.begin(),vec1.end(),std::greater<int>() );
-  std::sort(vec1.begin(), vec1.end(), std::less<int>());
-  for (auto i : vec1)
-    std::cout << i << " ";
-  std::cout << "\n";
-  int number_to_be_inserted = 7;
-  std::vector<int>::iterator first_location_of_number_to_be_inserted,
-      last_location_of_number_to_be_inserted;
-  first_location_of_number_to_be_inserted =
-      std::lower_bound(vec1.begin(), vec1.end(), number_to_be_inserted);
-  last_location_of_number_to_be_inserted =
-      std::upper_bound(vec1.begin(), vec1.end(), number_to_be_inserted);
-
-  std::cout << "First location that " << number_to_be_inserted
-            << " can be inserted" << std::endl;
-
-  std::cout << std::distance(vec1.begin(),
-                             first_location_of_number_to_be_inserted)
-            << std::endl;
-
-  std::cout << "Last location that " << number_to_be_inserted
-            << " can be inserted" << std::endl;
-  std::cout << std::distance(vec1.begin(),
-                             last_location_of_number_to_be_inserted)
-            << std::endl;
-
-  // std::equal_range() ->return both first and last index
-}
-
-void upper_bound() {}
-
-void advance() {
-  std::vector<int> numbers = {20, 30, 10, 0, -40, 7, 5, 3};
-  int index = 2;
-  std::vector<int>::iterator nth = numbers.begin() + index;
-  std::cout << std::distance(numbers.begin(), nth) << std::endl;
-  std::vector<int>::iterator it = numbers.begin();
-  std::advance(it, index);
-  std::cout << std::distance(numbers.begin(), nth) << std::endl;
-}
-
-void merge() {
-  std::vector<int> vec1 = {1, 2, 3, 4};
-  std::vector<int> vec2 = {4, 8, 9, 12};
-  std::vector<int> vec_out(10, 0);
-  std::merge(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(),
-             vec_out.begin()); // keep duplicate items
-}
-
-void accumulateExample() {
-  int array[] = {2, 3, 4};
-  int sum = std::accumulate(std::begin(array), std::end(array), 0);
-  std::cout << sum << std::endl;
-}
-
-/*
-you should send the object by ref to mak any changes and return parameters
-doesn't override the original object
-*/
-void for_eachExample() {
-  std::vector<int> my_vec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-
-  // this only returns so the original object is unchanged
-  std::for_each(std::begin(my_vec), std::end(my_vec),
-                [](int a) { return a * 3; });
-  printArray(my_vec);
-  std::for_each(my_vec.begin(), my_vec.end(), [](int &a) { a++; });
-  printArray(my_vec);
-}
-
-// https://stackoverflow.com/questions/28644245/string-validation-in-stdvector
-// std::none_of checks if no element in a range satisfies a condition
-bool validate(const std::vector<std::string> &in) {
-  return std::none_of(std::begin(in), std::end(in), [](std::string const &s) {
-    return s.find('c') == std::string::npos;
-  });
-}
-
-void partial_sort() {
-  int Kth = 4;
-  std::vector<int> numbers = {64, 25, 12, 22, 11, 90};
-  std::vector<int> result(Kth); // We want the 4 smallest elements
-
-  std::partial_sort_copy(numbers.begin(), numbers.end(), result.begin(),
-                         result.end());
-
-  std::cout << "Original numbers: ";
-  for (int num : numbers) {
-    std::cout << num << " ";
-  }
-  std::cout << std::endl;
-
-  std::cout << "Smallest" << Kth << "numbers: ";
-  for (int num : result) {
-    std::cout << num << " ";
-  }
-  std::cout << std::endl;
-}
-int main(int argc, char **argv) {
-
-  // for_eachExample();
-  //  accumulateExample();
-  /*
-      unique();
-      count();
-      min_max();
-      distance();
-      find();
-      search();
-      adjacent_find();
-      equal();
-      mismatch();
-      lexicographical_compare();
-      partition();
-      transform();
-      copy();
-      move();//--> not done yet, should be done for complicated data structures
-  and classes swap(); fill(); generate(); replace(); remove(); shuffel();
-      unique();
-      rotate();
-      permutation();
-      sort();
-      heap();
-      priority_queue();
-
-  //    Sorted Data Algorithm, only works on sorted data
-  //    1)Binary Search
-  //    2)Merge
-  //    3)Set Operation
-
-      binary_search();
-      includes();
-      lower_upper_equal_bound();
-      merge();
-
-  //    https://www.youtube.com/watch?v=s6_meQVkwgc
-  //    std::set_union()
-  //    std::set_intersection();
-  //    std::set_difference();
-  //    std::set_symmetric_difference();
-
-      //accumalte
-      //std::accumulate
-      //std::inner_product()
-
-
-      //std::partial_sum()
-      //std::adjacent_difference();
-
-
-      */
-
-  ////Iterator vector, deque, array
-
-  //    //std::queue
-  //    std::array<int, 3> a1{ {1, 2, 3} };
-  //    std::array<int, 3>::iterator array_it;
-  //    array_it++;
-  //    array_it=array_it+5;
-  //    //if(array_it>array2_it)
-
-  ////1) Random Access -> Vector, Deque, Array
-
-  //    //double-ended queue
-  //    //As opposed to std::vector, the elements of a deque are not stored
-  //    contiguously std::deque<int>::iterator deque_it;
-
-  ////2) Biderectional Iterator -> List, Set, Multi set, Multimap
-  //    std::list<int>::iterator list_it;
-  //    list_it++;
-  //    list_it--;
-  //    //list_it=list_it+5; -> error
-
-  ////3) Forward Iterator
-
-  //    std::forward_list<int>::iterator forward_list_iterator;
-
-  //    //std::ostream_iterator
-  //    //std::back_insert_iterator
-  //    //std::back_inserter
-
-  //    //std::tie
-  //    //std::begin(digits), std::end(digits)
-  //    //std::align();
-
-  //     permutation();
-  // https://leetcode.com/problems/path-sum/description/
-  // https://leetcode.com/problems/word-search/description/
-  partial_sort();
+// =====================================================================
+// main: exercise each section in order.
+// =====================================================================
+int main() {
+  non_modifying();
+  modifying();
+  exchange_demo();
+  partitioning();
+  sorting();
+  binary_search_demo();
+  set_operations();
+  heap_demo();
+  min_max_clamp();
+  comparison();
+  permutation_shuffle_sample();
+  numeric_ops();
+  ranges_algorithms();
+  views_demo();
+  parallel_demo();
+  return 0;
 }

@@ -123,11 +123,6 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
   - [std::atomic, Memory Ordering, ABA Problem](docs/multithreading.md#6-stdatomic)
   - [Designing Thread-Safe Classes](docs/multithreading.md#7-designing-thread-safe-classes)
 - [Atomic Operations and Atomic Types](docs/atomic.md)
-- [Asynchronous Programming](docs/asynchronous_programming.md)
-  - [std::launch::async, std::future](docs/asynchronous_programming.md#std--launch--async--std--future)
-  - [Parallelization with async](docs/asynchronous_programming.md#parallelization-with-ascync)
-  - [Parallelization with std::packaged_task](docs/asynchronous_programming.md#parallelization-with-std--packaged-task)
-- [Packaged Task](docs/packaged_task.md)
 - [Coroutines (C++20)](docs/coroutines.md)
 
 ### Templates and Generics

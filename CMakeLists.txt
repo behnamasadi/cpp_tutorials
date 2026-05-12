@@ -173,8 +173,9 @@ target_link_libraries(join_detach_threads ${THREADING_LIB})
 add_executable(mutex src/multithreading/mutex.cpp)
 target_link_libraries(mutex ${THREADING_LIB})
 
-# add_executable(condition_variable src/multithreading/condition_variable.cpp)
-# target_link_libraries(condition_variable -pthread)
+add_executable(condition_variable src/multithreading/condition_variable.cpp)
+target_link_libraries(condition_variable ${THREADING_LIB})
+
 add_executable(async_future_promise src/multithreading/async_future_promise.cpp)
 target_link_libraries(async_future_promise ${THREADING_LIB})
 
@@ -196,10 +197,17 @@ target_link_libraries(unique_lock ${THREADING_LIB})
 add_executable(lock_guard src/multithreading/lock_guard.cpp)
 target_link_libraries(lock_guard ${THREADING_LIB})
 
-add_executable(thread_pool src/multithreading/thread_pool.cpp)
-#target_link_libraries(thread_pool -pthread)
+add_executable(scoped_lock src/multithreading/scoped_lock.cpp)
+target_link_libraries(scoped_lock ${THREADING_LIB})
 
-# add_executable(inter_process_communicationshared_memory src/multithreading/inter_process_communicationshared_memory.cpp)
+add_executable(semaphor src/multithreading/semaphor.cpp)
+target_link_libraries(semaphor ${THREADING_LIB})
+
+add_executable(thread_pool src/multithreading/thread_pool.cpp)
+target_link_libraries(thread_pool ${THREADING_LIB})
+
+add_executable(thread_memory_error_detector src/multithreading/thread_memory_error_detector.cpp)
+target_link_libraries(thread_memory_error_detector ${THREADING_LIB})
 
 add_executable(function_pointer src/function_pointer.cpp)
 
@@ -233,7 +241,7 @@ add_executable(most_vexing_parse src/most_vexing_parse.cpp)
 
 add_executable(VTABLE_and_VPTR src/VTABLE_and_VPTR.cpp)
 
-# add_executable(allocator src/allocator.cpp)
+add_executable(allocator src/allocator.cpp)
 
 add_executable(callbacks src/callbacks.cpp)
 
@@ -264,6 +272,8 @@ add_executable(arguments_parser_example src/arguments_parser_example.cpp)
 add_executable(initialization src/initialization.cpp)
 
 add_executable(scope_resolution_operator src/scope_resolution_operator.cpp)
+
+add_executable(argument_dependent_lookup src/argument_dependent_lookup.cpp)
 
 add_executable(random_number_generation src/random_number_generation.cpp)
 
@@ -298,9 +308,6 @@ add_executable(conditional_compilation src/conditional_compilation.cpp)
 add_executable(std_invoke src/std_invoke.cpp)
 
 add_executable(structured_binding_declaration src/structured_binding_declaration.cpp)
-
-add_executable(asynchronous_programming src/asynchronous_programming.cpp)
-target_link_libraries(asynchronous_programming ${THREADING_LIB})
 
 add_executable(circular_dependency src/class/circular_dependency/circular_dependency.cpp src/class/circular_dependency/classA.cpp src/class/circular_dependency/classB.cpp)
 

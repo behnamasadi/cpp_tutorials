@@ -1,51 +1,44 @@
+// Demonstrates §4.1.2 of docs/multithreading.md: the lost-update race.
+// Compiled normally this is undefined behavior; the value will typically be
+// less than the expected total. The fix is shown in mutex.cpp.
+
 #include <iostream>
-#include <mutex>
 #include <thread>
 #include <vector>
 
-class wallet {
+class Wallet {
 public:
-  int money;
-  wallet() : money(0) {}
-  void increaseMoney(int amount) { money = money + amount; }
+  int balance = 0;
+  // Not atomic: read -> add -> write is three steps, not one.
+  void deposit(int amount) { balance = balance + amount; }
 };
 
-int racingProblem() {
-  wallet walletObject;
-  std::vector<std::thread> threads;
-  for (int i = 0; i < 5; ++i) {
-    threads.push_back(std::thread(&wallet::increaseMoney, &walletObject, 10));
-  }
+constexpr int kThreads = 8;
+constexpr int kDepositsPerThread = 100'000;
+constexpr int kExpected = kThreads * kDepositsPerThread;
 
-  for (int i = 0; i < threads.size(); i++) {
-    threads.at(i).join();
-  }
-  return walletObject.money;
-}
-
-void racingProblemExample() {
-  int val = 0;
-  for (int k = 0; k < 10000; k++) {
-    if ((val = racingProblem()) != 50) {
-      std::cout << "Error at count = " << k << " Money in Wallet = " << val
-                << std::endl;
-    }
-  }
-}
-
-int counter = 0;
-
-void worker() {
-  counter++;
-  std::cout << "job number: " << counter << " started" << std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  std::cout << "job number: " << counter << " finished" << std::endl;
+int run_one_trial() {
+  Wallet w;
+  {
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < kThreads; ++i)
+      threads.emplace_back([&] {
+        for (int j = 0; j < kDepositsPerThread; ++j)
+          w.deposit(1);
+      });
+  } // jthreads join here
+  return w.balance;
 }
 
 int main() {
-  std::thread t1(worker);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  std::thread t2(worker);
-  t1.join();
-  t2.join();
+  int wrong = 0;
+  for (int trial = 0; trial < 10; ++trial) {
+    int balance = run_one_trial();
+    if (balance != kExpected) {
+      std::cout << "trial " << trial << ": balance = " << balance
+                << " (lost " << kExpected - balance << " updates)\n";
+      ++wrong;
+    }
+  }
+  std::cout << wrong << " / 10 trials had lost updates\n";
 }

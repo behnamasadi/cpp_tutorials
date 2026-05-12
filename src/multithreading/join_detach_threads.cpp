@@ -1,100 +1,57 @@
-#include <algorithm>
+// Demonstrates §2.7–2.8 of docs/multithreading.md: the older std::thread API
+// where the caller is responsible for join() or detach(). New code should
+// prefer std::jthread (see creating_and_terminating_threads.cpp).
+
+#include <chrono>
 #include <iostream>
-#include <string>
+#include <syncstream>
 #include <thread>
 #include <vector>
 
-//#include <unistd.h>// for usleep function
-#include <chrono> //for  sleep_for function
-#include <condition_variable>
-#include <fstream>
-#include <functional>
-#include <mutex>
-#include <queue>
-
-////////////////////////////////////Join, Detach
-/// Threads//////////////////////////////
-
-void print(int a, int &b) { std::cout << a << " " << b << std::endl; }
-
-void joiningThreads() {
-  /*
-  join will pause the current thread unitill the called threads are done,
-  imagine in your main you have 10 threads to load the GUI,...you need to wait
-  until they all done then you can continue. if you don't put join thread, you
-  main function might return before even your threads finish their jobs
-  */
-  int a = 4;
-  int b = 2;
-  std::vector<std::thread> threadList;
-  for (int i = 0; i < 10; i++) {
-    threadList.push_back(std::thread(print, a, std::ref(b)));
-  }
-  // Now wait for all the worker thread to finish i.e.
-  // Call join() function on each of the std::thread object
-  std::cout << "wait for all the worker thread to finish" << std::endl;
-  std::for_each(threadList.begin(), threadList.end(),
-                std::mem_fn(&std::thread::join));
-  std::cout << "Exiting from Main Thread" << std::endl;
-  return;
+void process_frame(int id) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  std::osyncstream(std::cout) << "  frame " << id << " done\n";
 }
 
-void createFile(std::string filename, std::string data) {
+// Fleet pattern: spawn N workers, wait for all of them.
+void joining_demo() {
+  std::cout << "joining_demo:\n";
+  std::vector<std::thread> workers;
+  for (int i = 0; i < 4; ++i)
+    workers.emplace_back(process_frame, i);
 
-  std::ofstream fileObj(filename, std::ofstream::out);
-  fileObj << data;
-  fileObj.close();
+  for (auto &t : workers)
+    t.join(); // forgetting either join() or detach() -> std::terminate()
 }
 
-void threadFileWriter() {
-  unsigned int milliseconds = 1000;
-  for (std::size_t i = 0; i < 10; i++) {
-    createFile(std::to_string(i) + ".txt", std::to_string(i));
-    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-  }
+// Detached threads run on their own. The runtime cleans them up when they
+// finish — but if main exits first, they're killed mid-operation.
+void detaching_demo() {
+  std::cout << "detaching_demo:\n";
+  std::thread t([] {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    std::cout << "  detached thread finished\n";
+  });
+  t.detach(); // gives up ownership; cannot join() afterwards.
+
+  // Give the detached thread a moment to finish so we actually see its output.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
-void detachingThreads() {
-  /*
-  After calling detach(), std::thread object is no longer associated with the
-  actual thread of execution.
-
-  In the following example we detach the thread from main, main will terminate,
-  but our thread is working in the background and every second create 1 file for
-  10 seconds.
-  */
-  std::thread threadObj(threadFileWriter);
-
-  std::cout << std::this_thread::get_id() << std::endl;
-  threadObj.detach();
+// joinable() guards against double-join / join-after-detach (which would
+// both call std::terminate()).
+void joinable_guard_demo() {
+  std::cout << "joinable_guard_demo:\n";
+  std::thread t(process_frame, 99);
+  if (t.joinable())
+    t.join();
+  if (t.joinable()) // false now — already joined.
+    t.join();
+  std::cout << "  joinable() correctly returned false the second time\n";
 }
 
-void joinableDetachable() {
-  /*
-  When a join() function is called on an thread object (thread object=main
-  function for instance), then when the join() returns then thread object (main
-  function) has no associated thread with it. In case again join() function is
-  called on such object then it will cause the program to Terminate. Similarly
-  calling detach() makes the std::thread object not linked with any thread
-  function
-  */
-  int a, b;
-  a = 3;
-  b = 5;
-  std::thread threadObj(print, a, std::ref(b));
-
-  if (threadObj.joinable()) {
-    std::cout << "Detaching Thread " << std::endl;
-    threadObj.detach();
-  }
-  if (threadObj.joinable()) {
-    std::cout << "Detaching Thread " << std::endl;
-    threadObj.detach();
-  }
+int main() {
+  joining_demo();
+  detaching_demo();
+  joinable_guard_demo();
 }
-
-void processTree() {
-  // pstree -p PID
-}
-
-int main() {}

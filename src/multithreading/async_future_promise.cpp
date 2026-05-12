@@ -1,72 +1,62 @@
-#include <functional>
+// Demonstrates §5 of docs/multithreading.md: futures with the three
+// producer-side options — std::async, std::promise, std::shared_future.
+
 #include <future>
 #include <iostream>
+#include <stdexcept>
 
-int factorialSharedFuture(std::shared_future<int> f) {
-  int value = 1;
-  int n = f.get();
-  for (int i = 1; i <= n; i++)
-    value = i * value;
-  return value;
+long factorial(int n) {
+  long v = 1;
+  for (int i = 1; i <= n; ++i)
+    v *= i;
+  return v;
 }
 
-int factorialFuture(std::future<int> &f) {
-  int value = 1;
-  int n = f.get();
-  for (int i = 1; i <= n; i++)
-    value = i * value;
-  return value;
-}
-
-int factorial(int input) {
-  int value = 1;
-  for (int i = 1; i <= input; i++)
-    value = i * value;
-  return value;
+// Wait for an input handed in via promise → future, then compute.
+long factorial_from_future(std::future<int> in) {
+  int n = in.get(); // blocks until promise is fulfilled
+  return factorial(n);
 }
 
 int main() {
+  // 5.1 — std::async with an explicit launch policy.
+  // The default policy can fall back to "deferred" on the calling thread;
+  // always pass std::launch::async unless you have a reason not to.
   {
-    int input = 8;
-    int output;
-    std::future<int> future_thread = std::async(factorial, input);
-    output = future_thread.get();
-    std::cout << output << std::endl;
+    auto fut = std::async(std::launch::async, factorial, 10);
+    std::cout << "10! = " << fut.get() << '\n';
   }
 
+  // 5.3 — std::promise: hand a value to the worker after it has started.
   {
-    int input = 8;
-    int output;
-    std::future<int> future_function =
-        std::async(std::launch::async, factorial, input);
-    output = future_function.get();
-    std::cout << output << std::endl;
+    std::promise<int> input;
+    auto fut =
+        std::async(std::launch::async, factorial_from_future, input.get_future());
+    input.set_value(8); // can also: set_exception(std::make_exception_ptr(...))
+    std::cout << "8! = " << fut.get() << '\n';
   }
 
-  {
-    int input = 8;
-    int output;
-    std::promise<int> p;
-    std::future<int> inputFuture = p.get_future();
-    std::future<int> future_promise_factorial =
-        std::async(std::launch::async, factorialFuture, std::ref(inputFuture));
-    // some code here
-    p.set_value(input);
-    // p.set_exception(std::make_exception_ptr(std::runtime_error("Value
-    // couldn't be assigned")));
-    output = future_promise_factorial.get();
-    std::cout << output << std::endl;
-  }
-
+  // 5.3 — promise carrying an exception.
   {
     std::promise<int> p;
-    std::future inputFuture = p.get_future();
-    std::shared_future<int> inputFutureShared = inputFuture.share();
-    std::future<int> future_promise_factorial1 = std::async(
-        std::launch::async, factorialSharedFuture, inputFutureShared);
-    std::future<int> future_promise_factorial2 = std::async(
-        std::launch::async, factorialSharedFuture, inputFutureShared);
-    std::future<int> future_promise_factorial3 = std::async(
-        std::launch::async, factorialSharedFuture, inputFutureShared);
+    auto fut = p.get_future();
+    p.set_exception(std::make_exception_ptr(std::runtime_error("bad input")));
+    try {
+      (void)fut.get();
+    } catch (const std::exception &e) {
+      std::cout << "rethrown via future.get(): " << e.what() << '\n';
+    }
+  }
+
+  // 5.4 — shared_future: many consumers read the same one-time value.
+  {
+    std::promise<int> input;
+    std::shared_future<int> shared = input.get_future().share();
+
+    auto a = std::async(std::launch::async, [shared] { return shared.get() + 1; });
+    auto b = std::async(std::launch::async, [shared] { return shared.get() * 2; });
+
+    input.set_value(10);
+    std::cout << "shared_future: a = " << a.get() << ", b = " << b.get() << '\n';
   }
 }
