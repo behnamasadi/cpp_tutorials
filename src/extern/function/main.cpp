@@ -1,12 +1,19 @@
-/*
-c++ mangle the name of functions so it will be able to overload function, while
-in "c", there is no overloading and function will have the same name in object
-file as what they had in their respective "c" file, so if we want to compile a
-"c" function in c++, we have to use it extern
+// Demo: calling a C function from C++.
+//
+// C++ mangles function names to support overloading; C does not. If we
+// declared foo() with normal C++ linkage, the linker would look for a
+// mangled symbol that the C compiler never produced. 'extern "C"' tells
+// the C++ compiler to use C linkage for these declarations so the names
+// match.
+//
+// foo.h already wraps its declarations in extern "C" when __cplusplus is
+// defined, so a plain #include is enough here.
 
-*/
-extern "C" {
+#include <iostream>
+
 #include "foo.h"
-}
 
-int main() { foo(); }
+int main() {
+  std::cout << "calling C function from C++:\n";
+  foo();
+}

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(cpp_tutorials LANGUAGES CXX)
+project(cpp_tutorials LANGUAGES CXX C)
 
 # This project uses per-config output directories, so it requires a
 # multi-config generator. Ninja Multi-Config is the recommended choice.
@@ -62,6 +62,7 @@ endif()
 # ---------------------------------------------------------------------------
 add_executable(pointers src/pointers/pointers.cpp)
 add_executable(string src/string.cpp)
+add_executable(format src/format.cpp)
 add_executable(exception_handling src/exception_handling.cpp)
 add_executable(assert src/assert.cpp)
 add_executable(return_abort_exit src/return_abort_exit.cpp)
@@ -90,9 +91,11 @@ add_executable(iterator_loop src/iterator_loop.cpp)
 add_executable(function_pointer src/function_pointer.cpp)
 add_executable(bind src/bind.cpp)
 add_executable(function src/function.cpp)
+add_executable(functions src/functions.cpp)
 add_executable(lambda src/lambda.cpp)
 add_executable(unions src/unions.cpp)
 add_executable(basic_IO_operation_streams src/basic_IO_operation_filesystem_streams_reading_writing_files_formating_output_cin_cout_scanf_printf_gets_puts_getline.cpp)
+add_executable(filesystem src/filesystem.cpp)
 add_executable(const_constexpr_mutable src/const_constexpr_mutable.cpp)
 add_executable(literals src/literals.cpp)
 add_executable(ternary src/ternary.cpp)
@@ -161,6 +164,14 @@ add_executable(circular_dependency
     src/class/circular_dependency/circular_dependency.cpp
     src/class/circular_dependency/classA.cpp
     src/class/circular_dependency/classB.cpp)
+
+# extern: cross-TU global variable and extern "C" linkage to a C function.
+add_executable(extern_variable
+    src/extern/variable/main.cpp
+    src/extern/variable/global.cpp)
+add_executable(extern_function
+    src/extern/function/main.cpp
+    src/extern/function/foo.c)
 
 # ---------------------------------------------------------------------------
 # Advanced C++ concepts / idioms

@@ -1,44 +1,48 @@
 #include <iostream>
+#include <utility>
 
 /*
+std::forward casts a templated function parameter back to the value category
+(lvalue or rvalue) the caller used. It is the tool for writing a wrapper that
+"perfectly forwards" its argument to another function.
 
-std::forward has a single use case: to cast a templated function parameter
-(inside the function) to the value category (lvalue or rvalue) the caller used
-to pass it.
-
-std::move takes an object and allows you to treat it as a temporary (an rvalue).
-Although it isn’t a semantic requirement, typically a function accepting a
-reference to an rvalue will invalidate it. When you see std::move, it indicates
-that the value of the object should not be used afterwards, but you can still
-assign a new value and continue using it.
-
-
-https://stackoverflow.com/questions/3582001/what-are-the-main-purposes-of-using-stdforward-and-which-problems-it-solves
-https://www.youtube.com/watch?v=0xcCNnWEMgs&t=40s
-http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2002/n1385.htm
+Refs:
+  https://stackoverflow.com/questions/3582001/what-are-the-main-purposes-of-using-stdforward-and-which-problems-it-solves
+  https://www.youtube.com/watch?v=0xcCNnWEMgs
+  http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2002/n1385.htm
 */
 
-struct S {};
+// A tiny class that announces which constructor fires.
+struct Resource {
+  Resource() { std::cout << "  Resource()" << std::endl; }
+  Resource(const Resource &) { std::cout << "  Resource(const Resource&)  [copy]" << std::endl; }
+  Resource(Resource &&) { std::cout << "  Resource(Resource&&)       [move]" << std::endl; }
+};
 
-void f(S &s) { std::cout << "S&" << std::endl; }
+// Two overloads so the reader can label which value category was picked.
+void f(Resource &) { std::cout << "  f(Resource&)   picked lvalue overload" << std::endl; }
+void f(Resource &&) { std::cout << "  f(Resource&&)  picked rvalue overload" << std::endl; }
 
-void f(S &&s) { std::cout << "S&&" << std::endl; }
-
+// Wrapper that just passes the parameter along. Inside the function `t` has a
+// name, so it is an lvalue, even if the caller handed us a temporary.
 template <typename T> void wrap(T t) { f(t); }
 
+// Same wrapper, but std::forward restores the original value category.
 template <typename T> void wrap_forward(T t) { f(std::forward<T>(t)); }
 
 int main() {
-  S s;
-  // this will call lvalue function of f()
-  f(s);
-  // this will call rvalue function of f()
-  f(S());
+  std::cout << "--- direct call with lvalue ---" << std::endl;
+  Resource s;
+  f(s); // picks f(Resource&)
 
-  // now if we have wrapper class for f() and we call he following we get lvalue
-  // which is wrong
-  wrap(S());
+  std::cout << "\n--- direct call with rvalue ---" << std::endl;
+  f(Resource()); // picks f(Resource&&)
 
-  // so if we use forward we will get the rvalue f() whih is the correct one
-  wrap_forward(S());
+  std::cout << "\n--- wrap(rvalue) without forward ---" << std::endl;
+  // Wrong: inside wrap, t is a named lvalue, so f(Resource&) is chosen.
+  wrap(Resource());
+
+  std::cout << "\n--- wrap_forward(rvalue) with std::forward ---" << std::endl;
+  // Correct: std::forward<T> casts t back to an rvalue, so f(Resource&&) wins.
+  wrap_forward(Resource());
 }
