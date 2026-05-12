@@ -107,6 +107,8 @@ add_executable(operator_overloading src/class/operator_overloading.cpp)
 
 add_executable(default_0_delete_meaning src/class/default_0_delete_meaning.cpp)
 
+add_executable(special_member_functions src/class/special_member_functions.cpp)
+
 add_executable(object_slicing src/class/object_slicing.cpp)
 
 add_executable(static_member_function src/class/static_member_function.cpp)
@@ -115,6 +117,8 @@ add_executable(constructor_initialization_list src/class/constructor_initializat
 
 add_executable(inheritance src/class/inheritance.cpp)
 
+add_executable(class_forward_declaration src/class/class_forward_declaration.cpp)
+
 add_executable(switch_case src/switch_case.cpp)
 
 add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
@@ -122,6 +126,8 @@ add_executable(set_map_pair_tuple src/set_map_pair_tuple.cpp)
 add_executable(error_handling src/error_handling.cpp)
 
 add_executable(bitwise_operations src/bitwise_operations.cpp)
+
+add_executable(big_endian_little_endian src/big_endian_little_endian.cpp)
 
 add_executable(bitset_bit_field src/bitset_bit_field.cpp)
 
@@ -148,6 +154,8 @@ add_executable(RAII src/RAII.cpp)
 target_link_libraries(RAII ${THREADING_LIB})
 
 add_executable(SFINAE src/SFINAE.cpp)
+
+add_executable(concepts src/concepts.cpp)
 
 add_executable(type_erasure src/type_erasure.cpp)
 

@@ -138,6 +138,13 @@ In this example, `ResourceOwner` manages a dynamic integer. The copy constructor
 
 ![special member functions](diagrams/uml_diagrams/special-member-functions.png "special member functions")
 
+Runnable demo: [`src/class/special_member_functions.cpp`](../src/class/special_member_functions.cpp) — a `SensorBuffer` that owns a heap `float[]` (think one LIDAR frame). Each SMF logs which instance is doing what, so you can see deep-copy vs pointer-steal and the destructor order at end of `main`.
 
+Build & run:
+
+```sh
+cmake --build build --target special_member_functions -j 4
+./build/Debug/special_member_functions   # or Release/, depending on config
+```
 
 Refs: [1](https://www.foonathan.net/2019/02/special-member-functions/), [2](https://howardhinnant.github.io/)
