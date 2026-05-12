@@ -1,3 +1,7 @@
+// Initialization forms in C++ — one demo per section in docs/initialization.md.
+// Each demo prints a labeled header. Gotchas are shown via comments or
+// alternative forms.
+
 #include <initializer_list>
 #include <iostream>
 #include <map>
@@ -5,197 +9,203 @@
 #include <vector>
 
 // ------------------------------------------------------------
-// 1) Constructor Member Initializer List
+// 1) Constructor member initializer list
 // ------------------------------------------------------------
-struct WithMemberInitList {
-  const int id;     // must be initialized in initializer list
-  std::string name; // more efficient to initialize than default+assign
+struct Foo {
+  const int   id;      // const member: initializer list is the ONLY way
+  std::string name;    // non-trivial: avoid default-construct-then-assign
 
-  WithMemberInitList(int i, std::string n) : id(i), name(std::move(n)) {}
+  Foo(int i, std::string n) : id(i), name(std::move(n)) {}
+};
+
+// Declaration-order trap: members are initialized in declaration order,
+// NOT in the order written in the initializer list.
+struct OrderTrap {
+  int  capacity;       // declared first  -> initialized first
+  int *data;           // declared second -> initialized second
+
+  // Written as if capacity comes first; that's also the declaration order,
+  // so this is fine. Swapping the declarations would make `new int[capacity]`
+  // read an uninitialized capacity. (See -Wreorder-ctor.)
+  OrderTrap(int n) : capacity(n), data(new int[n]) {}
+  ~OrderTrap() { delete[] data; }
 };
 
 // ------------------------------------------------------------
-// 2) Aggregate Initialization (Brace Initialization for aggregates)
+// 2) Aggregate initialization
 // ------------------------------------------------------------
-struct AggregateS {
+struct S {
   int i;
+};
+
+struct Aggregate2 {
+  int    i;
   double d;
 };
 
 // ------------------------------------------------------------
-// 3) Copy Initialization
+// 3) Copy initialization
 // ------------------------------------------------------------
 struct Copyable {
-  int v{};
+  int v;
   Copyable(int x) : v(x) {}
-
-  // show when copy ctor is actually used
-  Copyable(const Copyable &other) : v(other.v) {
-    std::cout << "Copyable: copy ctor\n";
+  Copyable(const Copyable &o) : v(o.v) {
+    std::cout << "  (copy ctor called)\n";
   }
 };
 
 // ------------------------------------------------------------
-// 4) Direct Initialization
+// 4) Direct initialization
 // ------------------------------------------------------------
-struct DirectInit {
+struct Direct {
   int x;
-  explicit DirectInit(int a) : x(a) {}
+  explicit Direct(int a) : x(a) {}
 };
 
 // ------------------------------------------------------------
-// 5) Default Initialization
+// 5) Default initialization
 // ------------------------------------------------------------
-struct DefaultInitDemo {
-  int built_in; // if default-initialized, this is indeterminate
-  // no user-defined ctor => aggregate-like rules for members, but still default
-  // init here
+struct DefaultDemo {
+  int built_in;        // default-initialized => indeterminate
 };
 
 // ------------------------------------------------------------
-// 6) Value Initialization
+// 6) Value initialization
 // ------------------------------------------------------------
-struct ValueInitClass {
+struct ValueDemo {
   int x;
-  ValueInitClass() : x(123) {} // value-initialization calls this default ctor
+  ValueDemo() : x(123) {}   // called by value-init: ValueDemo{}
 };
 
 // ------------------------------------------------------------
-// 7) Zero Initialization (static / thread_local)
+// 7) Zero initialization
 // ------------------------------------------------------------
-static int g_static_zero; // zero-initialized (static storage duration)
+static int g_zero;          // static storage duration => zero-initialized
 
 // ------------------------------------------------------------
-// 8) Uniform / List Initialization (general brace syntax)
+// 8) Uniform / list initialization
 // ------------------------------------------------------------
-struct ListInitCtor {
-  int a;
+struct TwoFields {
+  int    a;
   double b;
-  ListInitCtor(int x, double y) : a(x), b(y) {}
+  TwoFields(int x, double y) : a(x), b(y) {}
 };
 
 // ------------------------------------------------------------
-// 9) In-class Member Initializers
+// 9) In-class member initializers
 // ------------------------------------------------------------
 struct InClassInit {
-  int x = 10;     // default member initializer
-  double y{3.14}; // default member initializer
+  int    x = 10;
+  double y{3.14};
 };
 
 // ------------------------------------------------------------
-// 10) std::initializer_list constructor (custom brace handling)
-//     This is NOT aggregate initialization; it's list-init calling a ctor.
+// 10) std::initializer_list constructor (NOT aggregate init)
 // ------------------------------------------------------------
 class IntArray {
   std::vector<int> data;
-
 public:
-  IntArray(std::initializer_list<int> init) : data(init) {}
+  IntArray(std::initializer_list<int> list) : data(list) {}
   void print() const {
-    std::cout << "IntArray: ";
-    for (int v : data)
-      std::cout << v << ' ';
+    std::cout << "  IntArray: ";
+    for (int v : data) std::cout << v << ' ';
     std::cout << "\n";
   }
 };
 
-// ------------------- helper functions ------------------------
+// -------------------------- demos ----------------------------
 
 void demo_1_member_initializer_list() {
   std::cout << "\n1) Member initializer list\n";
-  WithMemberInitList a(7, "Alice");
-  std::cout << "id=" << a.id << ", name=" << a.name << "\n";
+  Foo f(7, "alice");
+  std::cout << "  id=" << f.id << " name=" << f.name << "\n";
+
+  OrderTrap ot(4);
+  std::cout << "  OrderTrap.capacity=" << ot.capacity << "\n";
 }
 
 void demo_2_aggregate_initialization() {
   std::cout << "\n2) Aggregate initialization\n";
-  AggregateS s{10, 2.5};    // aggregate init
-  AggregateS t = {11, 3.5}; // copy-list init, still aggregate init here
-  std::cout << "s.i=" << s.i << ", s.d=" << s.d << "\n";
-  std::cout << "t.i=" << t.i << ", t.d=" << t.d << "\n";
+  S s{10};                      // canonical example from the doc
+  S s_copy_list = {20};         // copy-list form, still aggregate init
+  Aggregate2 a{1, 2.5};
+  std::cout << "  s.i=" << s.i << "\n";
+  std::cout << "  s_copy_list.i=" << s_copy_list.i << "\n";
+  std::cout << "  a.i=" << a.i << " a.d=" << a.d << "\n";
 
-  // Your specific example:
-  struct S {
-    int i;
-  };
-  S u{10}; // aggregate initialization
-  std::cout << "u.i=" << u.i << "\n";
+  // Narrowing is rejected by brace init:
+  //   S bad{3.14}; // error: narrowing conversion from double to int
 }
 
 void demo_3_copy_initialization() {
   std::cout << "\n3) Copy initialization\n";
-  Copyable a = Copyable(5); // copy-init form; in practice may be elided
-  Copyable b = a;           // copy initialization => copy ctor likely called
-  std::cout << "a.v=" << a.v << ", b.v=" << b.v << "\n";
+  int a = 5;
+  int b = a;
+  std::cout << "  a=" << a << " b=" << b << "\n";
+
+  Copyable c(1);                // direct-init for comparison
+  Copyable d = c;               // copy initialization -> copy ctor
+  std::cout << "  d.v=" << d.v << "\n";
 }
 
 void demo_4_direct_initialization() {
   std::cout << "\n4) Direct initialization\n";
-  DirectInit d(42); // direct-init: calls ctor
-  std::cout << "d.x=" << d.x << "\n";
+  Direct d(42);
+  int    x(5);
+  std::cout << "  d.x=" << d.x << " x=" << x << "\n";
+
+  // Most vexing parse gotcha:
+  //   Direct dd();   // declares a FUNCTION named dd returning Direct,
+  //                  // it does NOT default-construct a Direct.
+  // Use Direct dd{}; or Direct dd; instead.
 }
 
 void demo_5_default_initialization() {
   std::cout << "\n5) Default initialization\n";
-
-  int x; // default-initialized fundamental => indeterminate (do NOT print x)
-
-  DefaultInitDemo obj; // built_in is indeterminate (do NOT print obj.built_in)
-
-  std::cout << "Default initialization for fundamentals leaves indeterminate "
-               "values.\n";
-  std::cout << "So we do NOT print 'x' or 'obj.built_in'.\n";
+  int x;                        // indeterminate -- do not read
+  DefaultDemo obj;              // obj.built_in indeterminate -- do not read
+  (void)x; (void)obj;
+  std::cout << "  built-in default-init leaves indeterminate values; not printed\n";
 }
 
 void demo_6_value_initialization() {
   std::cout << "\n6) Value initialization\n";
-
-  int a{};       // value-init => zero
-  int b = int(); // value-init => zero
-  std::cout << "a=" << a << ", b=" << b << "\n";
-
-  ValueInitClass c{}; // calls default ctor, sets x=123
-  std::cout << "c.x=" << c.x << "\n";
+  int a{};                      // zero
+  int b = int();                // zero
+  ValueDemo v{};                // calls default ctor -> x=123
+  std::cout << "  a=" << a << " b=" << b << " v.x=" << v.x << "\n";
 }
 
 void demo_7_zero_initialization() {
   std::cout << "\n7) Zero initialization\n";
-  std::cout << "g_static_zero=" << g_static_zero
-            << " (static storage => zero-initialized)\n";
-
-  static double local_static; // also zero-initialized
-  std::cout << "local_static=" << local_static << "\n";
+  static int local_static;      // zero-initialized too
+  std::cout << "  g_zero=" << g_zero << " local_static=" << local_static << "\n";
 }
 
 void demo_8_uniform_list_initialization() {
-  std::cout << "\n8) Uniform/List initialization\n";
+  std::cout << "\n8) Uniform / list initialization\n";
+  int                         a{42};
+  std::vector<int>            v{1, 2, 3};
+  std::map<std::string, int>  m{{"a", 1}, {"b", 2}};
+  TwoFields                   t{7, 2.5};
 
-  int a{42}; // list-init
-  std::vector<int> v{1, 2, 3};
-  std::map<std::string, int> m{{"Scott", 1976}, {"Dijkstra", 1972}};
+  std::cout << "  a=" << a << " v.size=" << v.size()
+            << " m.size=" << m.size() << "\n";
+  std::cout << "  t.a=" << t.a << " t.b=" << t.b << "\n";
 
-  ListInitCtor obj{7, 2.5}; // list-init calling ctor
-  std::cout << "a=" << a << ", v.size()=" << v.size()
-            << ", m.size()=" << m.size() << "\n";
-  std::cout << "obj.a=" << obj.a << ", obj.b=" << obj.b << "\n";
-
-  // Narrowing protection example (uncomment to see compile error):
-  // int bad{3.14}; // error: narrowing
+  // Narrowing protection:
+  //   int bad{3.14}; // error: narrowing conversion
 }
 
 void demo_9_in_class_member_initializers() {
   std::cout << "\n9) In-class member initializers\n";
-  InClassInit a; // uses defaults x=10, y=3.14
-  std::cout << "a.x=" << a.x << ", a.y=" << a.y << "\n";
-
-  InClassInit b;
-  b.x = 99; // you can still change after construction
-  std::cout << "b.x=" << b.x << ", b.y=" << b.y << "\n";
+  InClassInit a;
+  std::cout << "  a.x=" << a.x << " a.y=" << a.y << "\n";
 }
 
 void demo_10_initializer_list_constructor() {
   std::cout << "\n10) std::initializer_list constructor\n";
-  IntArray arr{1, 2, 3, 4}; // list-init calls IntArray(initializer_list)
+  IntArray arr{1, 2, 3, 4};
   arr.print();
 }
 

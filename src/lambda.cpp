@@ -1,116 +1,113 @@
+// Lambda expressions in C++.
+//
+// Syntax:
+//   [ captures ] ( params ) { body }
+//   [ captures ] ( params ) -> ret { body }
+//
+// Each demo below mirrors one section of docs/lambda.md.
+
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <vector>
-/*
-syntax:
 
-[ captures ] <tparams>(optional)(c++20) ( params ) specifiers exception attr ->
-ret requires(optional)(c++20) { body } [ captures ] ( params ) -> ret { body }
-[ captures ] ( params ) { body }
-[ captures ] { body }
-
-
-[ = ] this means passing parameters by value, but they are read only, you need
-to use mutable to modify read only
-
-include all parameters
-lambda = [](void) { body };
-
-return type is also void
-lambda = [](void) -> void {}
-*/
-
-template <typename T> void printVec(std::vector<T> values) {
-  for (auto value : values)
-    std::cout << value << std::endl;
+// ---------- inline lambda ----------
+void demoInline() {
+  std::cout << "--- inline lambda ---\n";
+  std::vector<int> v = {1, 8, 5, 6, 3, 4, 0, 9, 7, 2};
+  std::sort(v.begin(), v.end(), [](int x, int y) { return x < y; });
+  for (int n : v)
+    std::cout << n << ' ';
+  std::cout << '\n';
 }
 
-void increaser(int &i) { // function:
-  i = i + 1;
+// ---------- lambda stored in a variable, used outside the call ----------
+void demoOutside() {
+  std::cout << "--- lambda stored in a variable ---\n";
+  auto cmp = [](int x, int y) { return x < y; };
+  std::vector<int> v = {1, 8, 5, 6, 3, 4, 0, 9, 7, 2};
+  std::sort(v.begin(), v.end(), cmp);
+  for (int n : v)
+    std::cout << n << ' ';
+  std::cout << '\n';
 }
 
-void transformExample() {
-  std::vector<int> x = {1, 2, 3};
-  std::vector<int> y(x.size(), 0);
-  std::vector<int> z(x);
-  std::transform(x.begin(), x.end(), y.begin(), [](int a) { return a += 1; });
+// ---------- lambda defined at file scope, used as a function ----------
+auto increaser = [](int &i) { i = i + 1; };
 
-  std::for_each(z.begin(), z.end(), [&](int a) { return a = a + 1; });
-
-  // std::for_each(z.begin(), z.end(), increaser);
-
-  printVec(y);
-  printVec(z);
+void demoOutsideAsFunction() {
+  std::cout << "--- lambda at file scope used like a function ---\n";
+  std::vector<int> v = {1, 2, 3};
+  std::for_each(v.begin(), v.end(), increaser);
+  for (int n : v)
+    std::cout << n << ' ';
+  std::cout << '\n';
 }
 
-void count_ifExample() {
-  std::vector<int> x = {1, 2, 1, 4, 5, 1, 3};
-  int ones;
-
-  ones = std::count_if(x.begin(), x.end(), [](int &a) { return a == 1; });
-  std::cout << "Total number of ones in the vector is: " << ones << std::endl;
-
-  auto f = [](int &a) { return a == 1; };
-  std::count_if(x.begin(), x.end(), f);
-  ones = std::count_if(x.begin(), x.end(), [](int &a) { return a == 1; });
-  std::cout << "Total number of ones in the vector is: " << ones << std::endl;
-}
-
-bool sortFunc(int x, int y) { return (x < y); }
-
-void labmdaExample() {
-  std::vector<int> v1;
-  for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    v1.push_back(n);
-
-  // inline
-  std::sort(v1.begin(), v1.end(), [](int x, int y) { return (x < y); });
-
-  // outside
-  v1.clear();
-  for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    v1.push_back(n);
-  auto cmp = [](int x, int y) { return (x < y); };
-  std::sort(v1.begin(), v1.end(), cmp);
-
-  // outside as a function
-  v1.clear();
-  for (int n : {1, 8, 5, 6, 3, 4, 0, 9, 7, 2})
-    v1.push_back(n);
-  std::sort(v1.begin(), v1.end(), sortFunc);
-}
-
-void lambdaPassByValue() {
-  int a, b;
-  a = 10;
-  b = 12;
-  std::cout << a << std::endl;
-
-  auto lambda = [=]() mutable { std::cout << ++a << std::endl; };
-  lambda();
-  std::cout << a << std::endl;
-}
-
-void lambdaPassByRef() {
-  int a, b;
-  a = 10;
-  b = 12;
-  std::cout << a << std::endl;
-
-  auto lambda = [&]() {
-    std::cout << ++a << std::endl;
-    b++;
+// ---------- capture by value with mutable ----------
+void demoCaptureByValue() {
+  std::cout << "--- capture by value + mutable ---\n";
+  int a = 10;
+  auto lambda = [=]() mutable {
+    ++a;
+    std::cout << "inside lambda: a = " << a << '\n';
   };
   lambda();
-  std::cout << a << std::endl;
+  std::cout << "outside lambda: a = " << a << '\n';
+}
+
+// ---------- capture by reference ----------
+void demoCaptureByReference() {
+  std::cout << "--- capture by reference ---\n";
+  int a = 10;
+  auto lambda = [&]() {
+    ++a;
+    std::cout << "inside lambda: a = " << a << '\n';
+  };
+  lambda();
+  std::cout << "outside lambda: a = " << a << '\n';
+}
+
+// ---------- mixed captures ----------
+void demoMixedCapture() {
+  std::cout << "--- mixed capture [=, &y] ---\n";
+  int x = 1, y = 1;
+  auto lambda = [=, &y]() mutable {
+    x = 100; // modifies the copy
+    y = 100; // modifies the original
+  };
+  lambda();
+  std::cout << "x = " << x << " (unchanged), y = " << y << " (changed)\n";
+}
+
+// ---------- accept a lambda via a function template ----------
+template <typename Func> void executeTemplate(Func f) { f(); }
+
+void demoAcceptViaTemplate() {
+  std::cout << "--- function template accepting a lambda ---\n";
+  auto hello = []() { std::cout << "Hello from lambda!\n"; };
+  executeTemplate(hello);
+  executeTemplate([]() { std::cout << "Direct lambda call!\n"; });
+}
+
+// ---------- accept a lambda via std::function ----------
+void executeStdFunction(const std::function<void()> &f) { f(); }
+
+void demoAcceptViaStdFunction() {
+  std::cout << "--- std::function accepting a lambda ---\n";
+  auto hello = []() { std::cout << "Hello from lambda!\n"; };
+  executeStdFunction(hello);
+  executeStdFunction([]() { std::cout << "Direct lambda call!\n"; });
 }
 
 int main() {
-  //     transformExample();
-  //  count_ifExample();
-  //    lambdaPassByValue();
-  lambdaPassByRef();
-
-  //    auto lambda = []() { std::cout << "Code within a lambda expression" <<
-  //    std::endl; }; lambda();
+  demoInline();
+  demoOutside();
+  demoOutsideAsFunction();
+  demoCaptureByValue();
+  demoCaptureByReference();
+  demoMixedCapture();
+  demoAcceptViaTemplate();
+  demoAcceptViaStdFunction();
+  return 0;
 }
