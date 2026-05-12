@@ -67,6 +67,8 @@ add_executable(primitive_data_types_numerical_limits_accuracy src/primitive_data
 
 add_executable(arrays src/arrays.cpp)
 
+add_executable(date_time src/date_time.cpp)
+
 add_executable(dynamic_memory_allocation src/dynamic_memory_allocation.cpp)
 
 # ADD_LIBRARY(add MODULE src/add.cpp)
@@ -156,6 +158,8 @@ target_link_libraries(RAII ${THREADING_LIB})
 add_executable(SFINAE src/SFINAE.cpp)
 
 add_executable(concepts src/concepts.cpp)
+
+add_executable(coroutines src/coroutines.cpp)
 
 add_executable(type_erasure src/type_erasure.cpp)
 
@@ -255,7 +259,7 @@ add_executable(callbacks src/callbacks.cpp)
 
 add_executable(template_specialization_tag_dispatch src/template_specialization_tag_dispatch.cpp)
 
-add_executable(copy_constructor_copy_assignment src/copy_constructor_copy_assignment.cpp)
+add_executable(copy_constructor_move_constructor src/copy_constructor_move_constructor.cpp)
 
 add_executable(shallow_copy_deep_copy src/shallow_copy_deep_copy.cpp)
 
@@ -312,6 +316,9 @@ add_executable(regex_mathch_search src/regex_mathch_search.cpp)
 add_executable(optional src/optional.cpp)
 
 add_executable(conditional_compilation src/conditional_compilation.cpp)
+target_compile_definitions(conditional_compilation PRIVATE MY_FEATURE=1)
+target_compile_definitions(conditional_compilation PRIVATE
+  $<$<CONFIG:Debug>:DEBUG_FEATURE=1>)
 
 add_executable(std_invoke src/std_invoke.cpp)
 

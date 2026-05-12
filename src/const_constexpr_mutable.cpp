@@ -1,163 +1,264 @@
+// Tiny demos mirroring docs/const_constexpr_mutable.md.
+// Each function shows ONE concept with the shortest possible snippet.
+
 #include <iostream>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
-void constVariableExample() {
-  /*
-  //////////////////////////////////// (1) Const Variables
-  ////////////////////////////////////
-
-  When declaring a const variable, it is possible to put const either before or
-  after the type: that is, both int const x = 5; and const int x = 4; result in
-  x's being a constant integer.
-  */
-  int const x = 5;
-  const int y = 4;
-  std::cout << x << y << std::endl;
+// ---------------------------------------------------------------------------
+// const variables: west-const vs east-const (same meaning)
+// ---------------------------------------------------------------------------
+void const_variables() {
+  const int west = 1;   // west-const
+  int const east = 2;   // east-const
+  std::cout << "west=" << west << " east=" << east << '\n';
 }
 
-/*
-//////////////////////////////////// (2) Const parameter
-////////////////////////////////////
-
-Here, a str object is passed by reference into verifyObjectCorrectness. For
-safety's sake, const is used to ensure that verifyObjectCorrectness cannot
-change the object-
-*/
-void verifyObjectCorrectness(const std::string &str) {}
-
-/*
-//////////////////////////////////// (4) Const Functions
-//////////////////////////////////// <return-value>
-<class>::<member-function>(<args>) const
-{
-        // ...
+// ---------------------------------------------------------------------------
+// const parameter: function cannot modify the argument
+// ---------------------------------------------------------------------------
+void take_by_const_ref(const std::string& s) {
+  // s = "no";  // would not compile
+  std::cout << "got: " << s << '\n';
 }
-It is recommended practice to make as many functions const as possible so that
-accidental changes to objects are avoided.
-*/
-class Test {
-  int value;
 
-public:
-  Test(int v = 0) { value = v; }
+void const_parameter() { take_by_const_ref("hello"); }
 
-  // We get compiler error if we add a line like "value = 100;"
-  // in this function.
-  int getValueConst() const { return value; }
+// ---------------------------------------------------------------------------
+// const return: caller cannot modify the returned value
+// ---------------------------------------------------------------------------
+const int give_back() { return 7; }
 
-  int getValue() { return value; }
+void const_return() { std::cout << "returned: " << give_back() << '\n'; }
+
+// ---------------------------------------------------------------------------
+// const member functions: const methods cannot change *this
+// ---------------------------------------------------------------------------
+struct Foo {
+  int i;
+  int non_const_func() { return i; }       // not const
+  int const_func() const { return i; }     // const: promises no mutation
 };
-void constFunctionExample() {
-  Test t(20);
-  std::cout << t.getValueConst();
 
-  //     const Test t;
-  //     int n=t.getValue()
-  // std::cout << t.getValue();
-
-  return;
+void const_methods() {
+  const Foo cf{10};
+  Foo nf{20};
+  std::cout << "const obj calls const: " << cf.const_func() << '\n';
+  std::cout << "non-const obj calls both: " << nf.const_func() << ", "
+            << nf.non_const_func() << '\n';
 }
 
-/*
-//////////////////////////////////// (5)Const iterators
-////////////////////////////////////
-*/
-void const_iteratorExample() {
-  std::vector<int> vec;
-  vec.push_back(3);
-  vec.push_back(4);
-  vec.push_back(8);
+// ---------------------------------------------------------------------------
+// const/non-const getter overloads (de-duplicated with const_cast)
+// ---------------------------------------------------------------------------
+struct Bar {
+  int v = 99;
+};
 
-  for (std::vector<int>::const_iterator itr = vec.begin(), end = vec.end();
-       itr != end; ++itr) {
-    // just print out the values...
-    std::cout << *itr << std::endl;
+class Holder {
+  Bar m_bar;
+
+ public:
+  // non-const getter forwards to const one via const_cast
+  Bar& get() {
+    return const_cast<Bar&>(const_cast<const Holder*>(this)->get());
   }
+  const Bar& get() const { return m_bar; }
+};
+
+void const_getter_overload() {
+  Holder h;
+  const Holder ch;
+  std::cout << "non-const get: " << h.get().v
+            << ", const get: " << ch.get().v << '\n';
 }
 
-/*
-//////////////////////////////////// (6) Const Pointers
-//////////////////////////////////// Declares a pointer whose data cannot be
-changed through the pointer: const int *p = &someInt; Declares a pointer who
-cannot be changed to point to something else: int * const p = &someInt; to make
-it easy to read remove the variable type,  then read it like: const int *p;  ==>
-const  *p ; ==> *p is which is data is fixed; int * const p ==>  * const p ==> p
-is fixed which is an address;
-*/
+// ---------------------------------------------------------------------------
+// const iterator
+// ---------------------------------------------------------------------------
+void const_iterator() {
+  std::vector<int> vec{3, 4, 8};
+  std::cout << "cbegin->cend:";
+  for (std::vector<int>::const_iterator it = vec.cbegin(); it != vec.cend();
+       ++it) {
+    std::cout << ' ' << *it;
+  }
+  std::cout << '\n';
+}
 
-/*
-//////////////////////////////////// (7)Const cast
-////////////////////////////////////
-*/
+// ---------------------------------------------------------------------------
+// const pointers: pointer-to-const vs const-pointer
+// ---------------------------------------------------------------------------
+void const_pointers() {
+  int a = 1, b = 2;
 
-/*
-If we dont put mutable before debugCounter, we can't have debugCounter++ in
-getName() as it is a const function and can't change anything
-*/
-class student {
+  const int* p1 = &a;  // data is fixed: *p1 cannot change, p1 can repoint
+  p1 = &b;             // ok
+  // *p1 = 5;          // error
+
+  int* const p2 = &a;  // pointer is fixed: p2 cannot repoint, *p2 can change
+  *p2 = 5;             // ok
+  // p2 = &b;          // error
+
+  std::cout << "*p1=" << *p1 << " *p2=" << *p2 << '\n';
+}
+
+// ---------------------------------------------------------------------------
+// const_cast: cast const to non-const, and non-const to const (std::as_const)
+// ---------------------------------------------------------------------------
+void only_takes_mutable(char* s) { std::cout << "mutable buf: " << s << '\n'; }
+
+class Overloaded {
+ public:
+  void f() { std::cout << "non-const f\n"; }
+  void f() const { std::cout << "const f\n"; }
+};
+
+void const_cast_demo() {
+  std::string msg = "hi";
+  only_takes_mutable(const_cast<char*>(msg.c_str()));  // remove const
+
+  Overloaded o;
+  o.f();                  // calls non-const
+  std::as_const(o).f();   // adds const -> calls const overload
+}
+
+// ---------------------------------------------------------------------------
+// mutable: modify a member even from a const method
+// ---------------------------------------------------------------------------
+class Student {
   std::string name;
-  int mutable debugCounter;
+  mutable int debug_counter;  // can change in const methods
 
-public:
-  student(std::string name) : name(name), debugCounter(0) {}
-  void setName(std::string name) { name = name; }
-  const std::string getName() const {
-    debugCounter++;
+ public:
+  Student(std::string n) : name(std::move(n)), debug_counter(0) {}
+  std::string get_name() const {
+    ++debug_counter;  // ok because mutable
     return name;
   }
+  int hits() const { return debug_counter; }
 };
 
-int mutableExample() {
-  // first example
-  student stdObject("jumbo");
-
-  // second example
-  int x = 0;
-  auto f = [=]() mutable {
-    x++;
-    std::cout << x << std::endl;
-  };
-  return 0;
+void mutable_member() {
+  const Student s("jumbo");
+  s.get_name();
+  s.get_name();
+  std::cout << "name=" << s.get_name() << " hits=" << s.hits() << '\n';
 }
-/*
-////////////////////////////////////// (8) constexpr
-//////////////////////////////////////
-//https://www.geeksforgeeks.org/understanding-constexper-specifier-in-c/
-//https://www.youtube.com/watch?v=4Vnd2I91s2c&t=152s
-constexpr specifies that the value of an object or a function can be evaluated
-at compile time and the expression can be used in other constant expressions.
-For example, in below code product() is evaluated at compile time.
-*/
 
-// First example
-// constexpr function for product of two numbers.
-// By specifying constexpr, we suggest compiler to
-// to evaluate value at compiler time
-// you can call this function like:  const int x = product(10, 20);
+void mutable_lambda() {
+  int x = 0;
+  auto inc = [=]() mutable {
+    ++x;  // modifies the lambda's own copy
+    std::cout << "lambda x=" << x << '\n';
+  };
+  inc();
+  inc();
+  std::cout << "outer x still=" << x << '\n';
+}
 
-constexpr int product(int x, int y) { return (x * y); }
+// ---------------------------------------------------------------------------
+// constexpr: compile-time evaluable function/variable
+// ---------------------------------------------------------------------------
+constexpr int multiply_by_10(int x) { return 10 * x; }
+constexpr long fib(int n) { return n <= 1 ? n : fib(n - 1) + fib(n - 2); }
 
-// Second example
-/*
+void constexpr_demo() {
+  constexpr int v = multiply_by_10(5);   // computed at compile time
+  static_assert(v == 50, "compile-time check");
 
-you can call it like:
-const long int res = fib(30);
+  constexpr long f10 = fib(10);
+  int arr[fib(5)] = {};                  // array size needs constant expr
+  std::cout << "multiply_by_10(5)=" << v << " fib(10)=" << f10
+            << " sizeof(arr)/sizeof(int)=" << sizeof(arr) / sizeof(int)
+            << '\n';
+}
 
-if you remove the constexpr and check the run time you will see the difference
-$time ./a.out
+// ---------------------------------------------------------------------------
+// constexpr vs const: const may be runtime-initialized; constexpr cannot
+// ---------------------------------------------------------------------------
+int runtime_value() { return 42; }  // not constexpr
 
-*/
+void constexpr_vs_const() {
+  const int a = runtime_value();    // const, but initialized at runtime
+  constexpr int b = multiply_by_10(2);  // must be compile-time
+  std::cout << "const(runtime)=" << a << " constexpr=" << b << '\n';
+}
 
-// Third example
-/*
-This only works because of constexpr
- int a[fib(3)];
+// ---------------------------------------------------------------------------
+// C++14/17/20 constexpr relaxation: loops + local mutation allowed
+// ---------------------------------------------------------------------------
+constexpr int sum_to(int n) {       // illegal in C++11, fine since C++14
+  int total = 0;
+  for (int i = 1; i <= n; ++i) total += i;
+  return total;
+}
 
-*/
-constexpr long int fib(int n) { return (n <= 1) ? n : fib(n - 1) + fib(n - 2); }
+void constexpr_cxx14() {
+  constexpr int s = sum_to(10);
+  static_assert(s == 55);
+  std::cout << "sum_to(10)=" << s << '\n';
+}
 
+// ---------------------------------------------------------------------------
+// C++20 consteval: MUST run at compile time
+// ---------------------------------------------------------------------------
+consteval int square(int x) { return x * x; }
+
+void consteval_demo() {
+  constexpr int s = square(5);   // ok: 5 is a constant expression
+  // int n = 5; square(n);       // error: n is not constant
+  std::cout << "square(5)=" << s << '\n';
+}
+
+// ---------------------------------------------------------------------------
+// C++20 constinit: compile-time init, but still mutable later
+// ---------------------------------------------------------------------------
+constinit int g_counter = 42;  // initialized at compile time
+
+void constinit_demo() {
+  ++g_counter;  // still mutable at runtime
+  std::cout << "g_counter=" << g_counter << '\n';
+}
+
+// ---------------------------------------------------------------------------
+// std::is_const trait
+// ---------------------------------------------------------------------------
+void is_const_check() {
+  std::cout << std::boolalpha;
+  std::cout << "is_const<const int>            = "
+            << std::is_const_v<const int> << '\n';
+  std::cout << "is_const<const int&>           = "
+            << std::is_const_v<const int&> << '\n';  // false: reference
+  std::cout << "is_const<remove_ref<const int&>> = "
+            << std::is_const_v<std::remove_reference_t<const int&>> << '\n';
+  std::cout << "is_const<const int*>           = "
+            << std::is_const_v<const int*> << '\n';  // false: pointer mutable
+  std::cout << "is_const<int* const>           = "
+            << std::is_const_v<int* const> << '\n';  // true
+}
+
+// ---------------------------------------------------------------------------
 int main() {
-  // constFunctionExample();
-  // constPointersExample();
+  auto header = [](const char* h) { std::cout << "\n== " << h << " ==\n"; };
+
+  header("const variables");          const_variables();
+  header("const parameter");          const_parameter();
+  header("const return");             const_return();
+  header("const methods");            const_methods();
+  header("const/non-const getter");   const_getter_overload();
+  header("const iterator");           const_iterator();
+  header("const pointers");           const_pointers();
+  header("const_cast");               const_cast_demo();
+  header("mutable member");           mutable_member();
+  header("mutable lambda");           mutable_lambda();
+  header("constexpr");                constexpr_demo();
+  header("constexpr vs const");       constexpr_vs_const();
+  header("constexpr C++14 (loops)");  constexpr_cxx14();
+  header("consteval (C++20)");        consteval_demo();
+  header("constinit (C++20)");        constinit_demo();
+  header("std::is_const");            is_const_check();
+  return 0;
 }
