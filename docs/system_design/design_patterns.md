@@ -148,7 +148,7 @@ void demo(const Shape& s) {
 }
 ```
 
-CRTP saves boilerplate; see [Virtual Constructor / Clone idiom](../virtual_destructor_virtual_constructor.md).
+CRTP saves boilerplate; see [Virtual Constructor / Clone idiom](../virtual_functions.md#5-why-there-is-no-virtual-constructor).
 
 # 2. Structural
 
@@ -395,7 +395,7 @@ double area(const AnyShape& s) {
 }
 ```
 
-No vtable, no heap, exhaustiveness-ish (the compiler warns on missing overloads). See [std::visit](../std_visit.md), [Double Dispatch](../double_dispatch.md).
+No vtable, no heap, exhaustiveness-ish (the compiler warns on missing overloads). See [std::visit](../std_variant.md#3-stdvisit--the-right-way-to-consume-a-variant), [Double Dispatch](../double_dispatch.md).
 
 ## State
 

@@ -18,7 +18,8 @@
 - [5. Checking for Null](#5-checking-for-null)
 - [6. Pointer Casting](#6-pointer-casting)
 - [7. Atomic Smart Pointers (C++20)](#7-atomic-smart-pointers-c20)
-- [8. See Also](#8-see-also)
+- [8. When `shared_ptr` is the right tool — 12 patterns](#8-when-shared_ptr-is-the-right-tool--12-patterns)
+- [9. See Also](#9-see-also)
 
 ---
 
@@ -32,7 +33,7 @@ A smart pointer is a class that owns a heap object and frees it automatically. T
 | `std::shared_ptr<T>` | Shared via reference count | Two pointers + atomic refcount | Multiple parts of the program genuinely co-own the object. |
 | `std::weak_ptr<T>` | None — observes a `shared_ptr` | Same as `shared_ptr` | Break cycles; check whether a shared object is still alive. |
 
-**Default to `unique_ptr`.** Reach for `shared_ptr` only when ownership truly is shared. See [shared_ptr_use_cases.md](shared_ptr_use_cases.md) for concrete patterns where shared ownership is justified.
+**Default to `unique_ptr`.** Reach for `shared_ptr` only when ownership truly is shared — see §8 for twelve patterns where it's actually justified.
 
 # 2. std::unique_ptr
 
@@ -303,11 +304,205 @@ This is the right primitive for "hot reload"-style configuration where many read
 
 A separate `std::atomic<std::weak_ptr<T>>` exists for the same reason on weak pointers.
 
-# 8. See Also
+# 8. When `shared_ptr` is the right tool — 12 patterns
 
-- **[shared_ptr_use_cases.md](shared_ptr_use_cases.md)** — twelve patterns where shared ownership is the right tool, each with minimal code.
+`std::shared_ptr` is the right primitive when **no single component can claim exclusive ownership** of an object, but the object should still be cleaned up when the last user is done. If the ownership story is one-way ("X owns Y"), prefer `std::unique_ptr` with non-owning `T*` / `T&` for everyone else.
+
+## 8.1. Graphs with multi-parent nodes
+
+In a DAG, a node may have many incoming edges. There's no single owner; the node should live until the last edge is removed.
+
+```cpp
+struct Node {
+    int                                value;
+    std::vector<std::shared_ptr<Node>> children;
+};
+
+auto a    = std::make_shared<Node>();
+auto b    = std::make_shared<Node>();
+auto leaf = std::make_shared<Node>();
+
+a->children.push_back(leaf);
+b->children.push_back(leaf);   // leaf has two parents
+a.reset();                     // leaf still alive — b refers to it
+b.reset();                     // last reference; leaf is freed
+```
+
+For trees with parent back-pointers, the back-pointer should be `weak_ptr` (§4.2).
+
+## 8.2. Event broadcasting / pub-sub
+
+Subscribers register with a dispatcher, which stores `weak_ptr`s and locks them at dispatch — dead subscribers are silently skipped:
+
+```cpp
+class Bus {
+    std::vector<std::weak_ptr<Listener>> subs_;
+public:
+    void subscribe(std::shared_ptr<Listener> s) { subs_.push_back(s); }
+    void publish(const Event& e) {
+        for (auto& w : subs_)
+            if (auto s = w.lock()) s->on_event(e);
+    }
+};
+```
+
+## 8.3. Copy-on-write containers
+
+Multiple "copies" share the same buffer until one mutates:
+
+```cpp
+class CowString {
+    std::shared_ptr<std::string> data_;
+public:
+    explicit CowString(std::string s)
+        : data_(std::make_shared<std::string>(std::move(s))) {}
+
+    void append(char c) {
+        if (data_.use_count() > 1)
+            data_ = std::make_shared<std::string>(*data_);    // detach private copy
+        data_->push_back(c);
+    }
+    const std::string& view() const { return *data_; }
+};
+```
+
+The refcount answers exactly the right question: "how many readers share this buffer?"
+
+## 8.4. Task scheduling across multiple queues
+
+A task lives in a priority queue, a delay queue, and a worker queue at the same time. It mustn't be deleted until every queue has dropped it:
+
+```cpp
+auto t = std::make_shared<Task>();
+priority_queue.push(t);
+delay_queue.push(t);
+worker_queue.push(t);
+```
+
+## 8.5. Database transaction logs
+
+Multiple operations within one transaction reference the same rollback entry. The entry persists until every operation commits or rolls back:
+
+```cpp
+auto entry = std::make_shared<LogEntry>();
+Operation insert{ entry };
+Operation update{ entry };
+Operation index { entry };
+```
+
+## 8.6. Plugin / module registries
+
+The registry hands out plugin instances that multiple components use simultaneously; the plugin stays loaded while anyone is using it:
+
+```cpp
+class Registry {
+    std::unordered_map<std::string, std::shared_ptr<Plugin>> plugins_;
+public:
+    std::shared_ptr<Plugin> get(const std::string& name) {
+        return plugins_.at(name);
+    }
+};
+```
+
+## 8.7. Connection pooling with custom deleter
+
+A read-only DB connection held by multiple parallel queries. "Return to pool on last release" is implemented with a custom deleter that pushes back instead of `delete`-ing:
+
+```cpp
+std::shared_ptr<Conn> Pool::acquire() {
+    Conn* raw = take_one();
+    return { raw, [this](Conn* c) { put_back(c); } };
+}
+```
+
+## 8.8. Undo / redo stacks
+
+A command bounces between undo and redo stacks — both reference the same command, neither truly owns it:
+
+```cpp
+std::stack<std::shared_ptr<Command>> undo, redo;
+
+auto cmd = std::make_shared<Command>();
+cmd->execute();
+undo.push(cmd);
+// later on Ctrl+Z: pop from undo, push to redo — same shared_ptr moves between stacks
+```
+
+## 8.9. Distributed / actor systems
+
+Remote nodes hold proxies that all map to the same local actor. The actor stays alive while any remote proxy holds it:
+
+```cpp
+std::unordered_map<NodeId, std::shared_ptr<Actor>> remote_proxies;
+
+auto a = std::make_shared<Actor>();
+remote_proxies[node_42] = a;
+remote_proxies[node_99] = a;
+```
+
+## 8.10. Lazy initialization with shared cache
+
+Build a heavy resource on first access, share it among subsequent callers, free it when the last is done:
+
+```cpp
+std::shared_ptr<Config> get_config() {
+    static std::weak_ptr<Config> cache;
+    if (auto cfg = cache.lock()) return cfg;          // still alive — reuse
+    auto cfg = std::make_shared<Config>(load_from_disk());
+    cache = cfg;                                       // weak: don't pin forever
+    return cfg;
+}
+```
+
+The `weak_ptr` cache lets the config be freed once the last caller is done and rebuilt on the next request. For a process-lifetime singleton, use `static std::shared_ptr` instead.
+
+## 8.11. State machines with concurrent transitions
+
+The current state is referenced by the machine and by any in-flight transition contexts. The old state must survive at least until `on_exit` completes:
+
+```cpp
+class Machine {
+    std::shared_ptr<State> current_;
+public:
+    void transition(std::shared_ptr<State> next) {
+        auto old = current_;          // keep old alive during the transition
+        current_ = next;
+        old->on_exit();
+        next->on_enter();
+    }
+};
+```
+
+## 8.12. Resource pools with borrowed references
+
+The pool owns the masters; workers borrow shared references for the duration of their work. The resource is freed only when the pool **and** every active borrower are done — useful for GPU contexts, large model tensors, or hardware handles:
+
+```cpp
+class GpuContextPool {
+    std::vector<std::shared_ptr<GpuContext>> ctxs_;
+public:
+    std::shared_ptr<GpuContext> borrow() { return ctxs_[next_idx()]; }
+};
+
+{
+    auto ctx = pool.borrow();    // refcount 2: pool + this scope
+    render(*ctx);
+}                                // refcount back to 1
+```
+
+If the pool itself is destroyed while a worker is still borrowing, the context survives until the worker is also done.
+
+## Quick checks before reaching for `shared_ptr`
+
+- Is there one obvious owner? → `unique_ptr`, with non-owning `T*` / `T&` for everyone else.
+- Do you only need to *observe*, not own? → raw pointer / reference / `weak_ptr`.
+- Are you using `shared_ptr` only because you don't know the lifetime? → think harder; you'll write more correct code.
+- Are you copying `shared_ptr`s in a hot loop? → atomic refcount bumps add up; pass by `const &` where ownership doesn't transfer.
+
+# 9. See Also
+
 - **[passing_returning_smart_pointers_to_from_functions.md](passing_returning_smart_pointers_to_from_functions.md)** — function-signature rules (when to take `T*`, `T&`, `unique_ptr<T>`, `const shared_ptr<T>&`).
-- **[smart_pointers_class_member.md](smart_pointers_class_member.md)** — owning resources from class members.
+- **[smart_pointers_class_member.md](smart_pointers_class_member.md)** — owning resources from class members, PIMPL.
 - **[pointers.md](pointers.md)** — raw pointers, dangling, AddressSanitizer.
 - **[references.md](references.md)** — `reference_wrapper` for storing references in containers.
 

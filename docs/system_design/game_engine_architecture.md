@@ -262,7 +262,7 @@ The difference between a fun engine and a productive engine is tooling:
 
 - **Editor.** In-engine WYSIWYG world editing, asset import.
 - **Hot reload.** Code, shaders, assets — reload without restart. See [Plugin Architecture](plugin_architecture.md).
-- **Profiler.** Frame-level timing, per-system breakdown. [Tracy Profiler](../tracy_profiler.md) is excellent for this.
+- **Profiler.** Frame-level timing, per-system breakdown. [Tracy Profiler](https://github.com/wolfpld/tracy) is excellent for this.
 - **Scripting layer.** Game logic in a higher-level language (Lua, C# in Unity, Blueprint in Unreal) for fast iteration. C++ for the engine; scripting for content.
 - **Replay system.** Record inputs; replay deterministically. Critical for bug reports.
 

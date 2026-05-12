@@ -71,7 +71,7 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 - [Dynamic Memory Allocation in C](docs/dynamic_memory_allocation.md)
 - [Raw Pointers, Wild/Dangling, Memory Safety](docs/pointers.md)
 - [Smart Pointers (unique_ptr, shared_ptr, weak_ptr, atomic smart pointers)](docs/smart_pointers.md)
-  - [When to Use shared_ptr — 12 Concrete Patterns](docs/shared_ptr_use_cases.md)
+  - [When to Use shared_ptr — 12 Concrete Patterns](docs/smart_pointers.md#8-when-shared_ptr-is-the-right-tool--12-patterns)
   - [Passing / Returning Smart Pointers to/from Functions](docs/passing_returning_smart_pointers_to_from_functions.md)
   - [Smart Pointers as Class Members (PIMPL, getters, worked examples)](docs/smart_pointers_class_member.md)
 - [Memory Alignment (`alignas`, `alignof`, cache lines, Eigen)](docs/align.md)
@@ -85,15 +85,13 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
   - [lists](src/lists.cpp)
   - [C arrays, std::array, std::span](docs/array_span.md)
   - [set, map, pair, tuple, tie, unordered_map, multimap, unordered_set, multiset](docs/set_map_pair_tuple.md)
-  - [Queue, Priority queue, deque](docs/queue_priority_queue_deque.md)
-  - [Stack](docs/stack.md)
+  - [Queue, Priority queue, deque, stack](docs/queue_priority_queue_deque.md)
 - [Iterator, for_each loop, range-for loop, Loop optimization](docs/iterator_loop.md)
 - [Algorithms Library](docs/algorithms.md)
 - [Ranges and Views (C++20)](docs/ranges.md)
 - [Execution Policies](docs/execution_policies.md)
 - [Hash Functions, Hash Data Structure (Hash Table)](docs/hash_function_hash_table.md)
-- [Function objects: std::less, std::greater, std::not1, std::unary_negate](docs/std_greater_less.md)
-  - [std::not1, std::unary_negate](docs/not1_unary_negate.md)
+- [Comparator function objects: std::less, std::greater, std::not_fn (and the deprecated std::not1)](docs/std_greater_less.md)
 
 ### Strings, I/O, and Formatting
 
@@ -130,7 +128,6 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
   - [Parallelization with async](docs/asynchronous_programming.md#parallelization-with-ascync)
   - [Parallelization with std::packaged_task](docs/asynchronous_programming.md#parallelization-with-std--packaged-task)
 - [Packaged Task](docs/packaged_task.md)
-- [Event handling / Concurrency / Thread Design Patterns](docs/thread_design_pattern.md)
 - [Coroutines (C++20)](docs/coroutines.md)
 
 ### Templates and Generics
@@ -150,8 +147,7 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 
 ### Error Handling
 
-- [Error Handling](docs/error_handling.md)
-- [Error Code](docs/error_code.md)
+- [errno and std::error_code](docs/error_code.md)
 - [Exception Handling, noexcept](docs/exception_handling.md)
 - [Return, Abort, Exit, Throw, Terminate](docs/return_abort_exit_throw_terminate.md)
 - [Stack Unwinding](docs/stack_unwinding.md)
@@ -168,8 +164,7 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 
 - [Optional, Variant, Any — when to use which](docs/any_variant_optional.md)
   - [Optional](docs/optional.md)
-  - [Variant](docs/std_variant.md)
-  - [Visit](docs/std_visit.md)
+  - [Variant and std::visit](docs/std_variant.md)
 - [Loading Classes Dynamically From Plugins](docs/loading_classes_dynamically_from_plugins.md)
 - [Lexical Analyzer](docs/lexical_analyzer.md)
 - [Tricky Questions](docs/tricky_questions.md)
@@ -193,8 +188,7 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
   - [In-Class Member Initializers](docs/initialization.md#9-in-class-member-initializers)
   - [`std::initializer_list` vs aggregate init](docs/initialization.md#10-initializer_list-not-aggregate-initialization)
   - [Static Member Functions, Static Initialization Order Fiasco](docs/static_member_function_order_fiasco.md)
-- [Copy Constructor, Copy Assignment, Move Constructor, Assignment](docs/copy_constructor_move_constructor.md)
-- [Shallow Copy, Deep Copy](docs/shallow_copy_deep_copy.md)
+- [Copy / Move semantics, Rule of 5, copy-and-swap, temporaries, shallow vs deep copy](docs/copy_constructor_move_constructor.md)
 - [Cyclic (Circular) Dependency](docs/circular_dependencies.md)
 - [Default(=default), Deleted (=delete) Constructors](docs/default_constructors_=default_0_delete.md)
 - [Diamond Problem Virtual Inheritance](src/class/diamond_problem_virtual_inheritance.cpp)
@@ -211,13 +205,11 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 - [Shadowing](src/class/shadowing.cpp)
 - [Special Member Functions](docs/class_special_member_functions.md)
 - [Structs](src/structs.cpp)
-- [Virtual Function Abstract Class](docs/virtual_function_abstract_class.md)
-- [Virtual Destructor, Virtual Constructor](docs/virtual_destructor_virtual_constructor.md)
+- [Virtual functions, abstract classes, virtual destructor, vtable / vptr](docs/virtual_functions.md)
 
 ## Advanced C++ Concepts and Idioms
 
 - [Buffer overflow](docs/buffer_overflow.md)
-- [Copy and Swap](docs/copy-and-swap_idiom.md)
 - [Curiously Recurring Template Pattern (CRTP)](src/CRTP.cpp)
 - [Copy Elision, Return value optimization (RVO, NRVO)](docs/copy_elision.md)
 - [Double Dispatch](docs/double_dispatch.md)
@@ -226,12 +218,8 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 - [Pointer to implementation (PIMPL)](docs/PIMPL.md) — see also [smart_pointers_class_member.md §3](docs/smart_pointers_class_member.md#3-the-pimpl-idiom)
 - [Return Type Resolver](docs/return_type_resolver.md)
 - [Resource Acquisition Is Initialization (RAII)](docs/RAII.md)
-- [Rule of 3, Rule of 5](docs/rule_of_3_rule_of_5.md)
 - [Run-Time Type Information (RTTI)](docs/RTTI.md)
 - [Stack overflow](docs/stack_overflow.md)
-- [Temporary Objects](docs/temporary_objects.md)
-- [Virtual Method Table (VTABLE), Virtual Table Pointer (VPTR)](docs/VTABLE_and_VPTR.md)
-- [Virtual address space](docs/virtual_address_space.md)
 
 ## Optimizing C++
 
@@ -267,20 +255,20 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 ## Event Streaming and Message Queuing
 
 - [Apache Kafka](docs/event_streaming_message/apache_kafka.md)
-- [RabbitMQ](docs/event_streaming_message/rabbitMQ.md)
+- [RabbitMQ (rabbitmq.com)](https://www.rabbitmq.com/)
 
 ## Logging
 
-- [spdlog](docs/spdlog.md)
+- [spdlog (github.com/gabime/spdlog)](https://github.com/gabime/spdlog)
 
 ## Code Benchmarking and Profiling
 
 - [Google Benchmark](docs/google_benchmark.md)
-- [Tracy Profiler](docs/tracy_profiler.md)
+- [Tracy Profiler (github.com/wolfpld/tracy)](https://github.com/wolfpld/tracy)
 
 ## C++ Package Managers
 
-- [Conan](docs/conan.md)
+- [Conan (docs.conan.io)](https://docs.conan.io/)
 - [vcpkg](docs/vcpkg.md)
 - [Chocolatey](https://chocolatey.org/install)
 - [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)

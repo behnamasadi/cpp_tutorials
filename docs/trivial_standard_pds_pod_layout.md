@@ -36,7 +36,7 @@ The term layout refers to how the members of an object of class, struct or union
 
 That layout may vary depending on what optimizations are being performed and in many cases the object might not even occupy a contiguous area of memory.
 
-For example, if a class has virtual functions, all the instances of that class might share a single [virtual function table](VTABLE_and_VPTR.md)
+For example, if a class has virtual functions, all the instances of that class might share a single [virtual function table](virtual_functions.md#6-the-vtable-and-the-vptr)
 
 
 Because the layout is undefined they cannot be passed to programs written in other languages, such as C, and because they might be non-contiguous they cannot be reliably copied with fast low-level functions such as memcopy, or serialized over a network.

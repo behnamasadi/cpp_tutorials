@@ -77,7 +77,7 @@ Async, decoupled communication. Producer pushes a message; the broker stores it;
 | **AWS SQS / SNS** | Managed queue / topic | Easy; vendor lock-in |
 | **MQTT** | Pub/sub for IoT | Tiny clients; QoS levels |
 
-C++ clients exist for all the above. See [Apache Kafka](../event_streaming_message/apache_kafka.md), [RabbitMQ](../event_streaming_message/rabbitMQ.md).
+C++ clients exist for all the above. See [Apache Kafka](../event_streaming_message/apache_kafka.md) and [RabbitMQ](https://www.rabbitmq.com/).
 
 When a queue: producer and consumer have different rates, work is async, you need durability / retry.
 

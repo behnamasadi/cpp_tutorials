@@ -566,3 +566,104 @@ Use `begin()` / `end()` when:
 * generic programming
 
 The choice depends on whether you need **element access** (`front/back`) or **position/ranges** (`begin/end`).
+
+---
+
+# `std::stack`
+
+`std::stack` is the LIFO counterpart of `std::queue` — another container **adaptor**, not a real container. It exposes only `push`, `pop`, and `top`. By default the underlying container is `std::deque`, but unlike `std::queue` it also accepts `std::vector` (and any container with `push_back`, `pop_back`, `back`).
+
+```cpp
+template<
+    class T,
+    class Container = std::deque<T>
+> class stack;
+```
+
+```cpp
+#include <stack>
+
+std::stack<int> s;            // backed by std::deque<int>
+s.push(1);
+s.push(2);
+s.push(3);
+std::cout << s.top();         // 3
+s.pop();                      // discards 3 (returns void!)
+std::cout << s.top();         // 2
+```
+
+Two things that surprise people:
+
+- `pop()` returns `void`. If you want the value, read `top()` first, then `pop()`. This split exists for exception safety — returning by value from `pop()` would risk losing the element if the copy threw.
+- `s == s2` works: `std::stack` defines comparison operators that delegate to the underlying container, even though you can't iterate the stack itself.
+
+Pick the underlying container based on usage:
+
+```cpp
+std::stack<int, std::vector<int>> sv;   // contiguous, good if you don't need fast push_front anywhere else
+std::stack<int, std::deque<int>>  sd;   // default
+std::stack<int, std::list<int>>   sl;   // rarely a good idea
+```
+
+### Where stacks actually show up
+
+- **Expression evaluation / parsing.** Shunting-yard, recursive-descent parsers, balanced-bracket checks.
+- **Iterative tree/graph traversal.** When recursion would blow the call stack, use an explicit `std::stack<Node*>`.
+- **Undo histories** (alongside a redo stack).
+- **State-machine save/restore.** Push the current state before entering a sub-mode (e.g. a dialog), pop it on exit.
+
+### Stack the adaptor vs. "the stack"
+
+`std::stack` is unrelated to **the call stack** — the runtime memory region where local variables and return addresses live. For that side of things see [stack_overflow.md](stack_overflow.md), [stack_unwinding.md](stack_unwinding.md), and [heap_and_stack_memory_layout_of_C_programs.md](heap_and_stack_memory_layout_of_C_programs.md).
+
+---
+
+# `std::priority_queue`
+
+A heap-backed adaptor: each `push` and `pop` is O(log n), `top()` is O(1) and returns the **largest** element by default.
+
+```cpp
+template<
+    class T,
+    class Container = std::vector<T>,
+    class Compare   = std::less<typename Container::value_type>
+> class priority_queue;
+```
+
+```cpp
+#include <queue>
+
+std::priority_queue<int> pq;       // max-heap (default Compare = std::less)
+pq.push(3); pq.push(1); pq.push(4);
+std::cout << pq.top();             // 4
+pq.pop();
+std::cout << pq.top();             // 3
+```
+
+The default uses `std::less`, which puts the *largest* element on top — counter-intuitive until you remember the comparator says "is a less than b?" and the heap pushes the *not-less* element to the root. Flip to `std::greater` for a min-heap:
+
+```cpp
+std::priority_queue<int,
+                    std::vector<int>,
+                    std::greater<int>> min_pq;   // smallest on top
+```
+
+For custom types, supply a comparator (lambda or struct with `operator()`):
+
+```cpp
+struct Job {
+    int priority;
+    std::function<void()> run;
+};
+
+auto cmp = [](const Job& a, const Job& b) { return a.priority < b.priority; };
+std::priority_queue<Job, std::vector<Job>, decltype(cmp)> jobs(cmp);
+```
+
+Use cases: Dijkstra / A\*, deadline schedulers, top-K problems, event-loop "next event to fire," real-time motion planners selecting the next waypoint by cost.
+
+What it does **not** do:
+- No `decrease-key` operation. If you need to update an existing element's priority, mark the old entry stale and push a new one — pop and discard stale entries on the way out.
+- No iteration in order — `top()`/`pop()` is the only way to see elements, and only one at a time.
+
+See also [std_greater_less.md](std_greater_less.md) for the comparator function objects.

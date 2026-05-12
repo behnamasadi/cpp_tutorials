@@ -35,7 +35,7 @@ What logs are bad for:
 - Following a request across services — that's tracing.
 - Anything where the volume is so high you can't afford to write it all.
 
-**spdlog** is the de facto C++ default; it's fast and feature-complete. See [spdlog](../spdlog.md). Other options: glog, Boost.Log, Quill (fastest async).
+**spdlog** ([github.com/gabime/spdlog](https://github.com/gabime/spdlog)) is the de facto C++ default; fast and feature-complete. Other options: glog, Boost.Log, Quill (fastest async).
 
 ```cpp
 #include <spdlog/spdlog.h>
@@ -232,8 +232,8 @@ Cross-link them: every log line should include `trace_id` if a trace is active, 
 
 # References
 
-- [spdlog](../spdlog.md)
-- [Tracy Profiler](../tracy_profiler.md) — for in-process frame-level performance
+- [spdlog](https://github.com/gabime/spdlog) — fast C++ logging library
+- [Tracy Profiler](https://github.com/wolfpld/tracy) — in-process frame-level performance profiling
 - [OpenTelemetry C++](https://opentelemetry.io/docs/instrumentation/cpp/)
 - [Prometheus C++ client](https://github.com/jupp0r/prometheus-cpp)
 - *Distributed Systems Observability*, Cindy Sridharan.

@@ -56,7 +56,7 @@ int main() {
 }
 ```
 
-The full Rule of Five (or sometimes Zero): see [Rule of 3, Rule of 5](../rule_of_3_rule_of_5.md).
+The full Rule of Five (or sometimes Zero): see [Rule of 3, Rule of 5](../copy_constructor_move_constructor.md#7-rule-of-0--rule-of-3--rule-of-5).
 
 # 2. Smart Pointers as Resource Wrappers
 
@@ -294,13 +294,13 @@ mightThrow();             // p released by unwinding
 
 **Two-phase init by default.** A type with an invalid state is a type with twice the bug surface. Use factories returning `optional`/`expected`.
 
-**`shared_ptr` for things that don't actually need shared ownership.** Default to `unique_ptr`. See [When to Use shared_ptr](../shared_ptr_use_cases.md).
+**`shared_ptr` for things that don't actually need shared ownership.** Default to `unique_ptr`. See [When to Use shared_ptr](../smart_pointers.md#8-when-shared_ptr-is-the-right-tool--12-patterns).
 
 # References
 
 - [RAII](../RAII.md)
 - [Smart Pointers](../smart_pointers.md)
-- [Rule of 3, Rule of 5](../rule_of_3_rule_of_5.md)
+- [Rule of 3, Rule of 5](../copy_constructor_move_constructor.md#7-rule-of-0--rule-of-3--rule-of-5)
 - [Memory Management Strategies](memory_management.md)
 - [`std::unique_resource` proposal P0052](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0052r10.pdf)
 - *Effective Modern C++*, Items 18–22, Scott Meyers.

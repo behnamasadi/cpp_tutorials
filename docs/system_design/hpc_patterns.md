@@ -209,7 +209,7 @@ Communication patterns to know:
 |---|---|
 | **`perf` / VTune / uProf** | Per-instruction profiling, cache/branch counters |
 | **likwid** | CLI for x86 hardware counters; clean roofline numbers |
-| **Tracy** | In-app frame/event profiling (game-style); see [Tracy Profiler](../tracy_profiler.md) |
+| **Tracy** | In-app frame/event profiling (game-style); [github.com/wolfpld/tracy](https://github.com/wolfpld/tracy) |
 | **NVIDIA Nsight** | GPU kernel profiling, roofline |
 | **Score-P / Vampir / TAU** | MPI + OpenMP trace analysis at HPC scale |
 | **HPCToolkit** | Sampling-based whole-app profiling |

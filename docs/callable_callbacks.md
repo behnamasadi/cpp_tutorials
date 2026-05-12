@@ -307,32 +307,31 @@ int main(int argc, char *argv[]) {
 
 
 ## 7. std::invoke
-`std::invoke` is a generic way to activate any callable. `std::invoke` takes something callable, and arguments to call it with, and does the call.
+
+`std::invoke` (C++17, `<functional>`) is a generic way to call **any** callable — free function, function pointer, member function, functor, lambda, or even a pointer-to-member-data — with a single uniform syntax. It does what `f(args...)` does, plus the awkward member-function cases:
 
 ```cpp
+struct Motor {
+    void set_torque(double nm) { /* ... */ }
+};
+
 int sub(int a, int b) { return a - b; }
 ```
 
 ```cpp
-  std::cout << std::invoke(sub, 2, 5) << std::endl;
+std::cout << std::invoke(sub, 5, 2);          // free function → 3
+
+Motor m;
+std::invoke(&Motor::set_torque, m, 12.5);     // member function on an object
+std::invoke(&Motor::set_torque, &m, 12.5);    // member function on a pointer — also works
+
+auto lam = [](int x) { return x * x; };
+std::cout << std::invoke(lam, 4);             // lambda → 16
 ```
-will give you: `-3`
 
-```cpp
-  std::cout << std::invoke(sub, 5, 2) << std::endl;
-```
-will give you: `+3`
+In generic code (`std::apply`, `std::async`, `std::thread`, template wrappers) you don't always know whether the callable is a free function or a `&Class::method` — `std::invoke` handles both cases uniformly, which is why it's the building block beneath most of `<functional>` and `<thread>`.
 
-
-
-```cpp
-  auto subFunc1 = std::bind(sub, std::placeholders::_1, std::placeholders::_2);
-  auto subFunc2 = std::bind(sub, std::placeholders::_2, std::placeholders::_1);
-
-  std::cout << subFunc1(2, 5) << std::endl;
-  std::cout << subFunc2(2, 5) << std::endl;
-```
-will give you: `-3` and `3`.
+`std::invoke_r<R>(f, args...)` (C++23) does the same but enforces the return type `R`.
 
 
 ## 8. Packaged Tasks

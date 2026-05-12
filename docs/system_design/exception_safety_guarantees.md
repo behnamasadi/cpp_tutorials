@@ -68,7 +68,7 @@ int main() {
 }
 ```
 
-The pattern: **all throwing work first, then a no-throw commit step**. Any exception during the work leaves the original state intact. See [Copy-and-Swap idiom](../copy-and-swap_idiom.md).
+The pattern: **all throwing work first, then a no-throw commit step**. Any exception during the work leaves the original state intact. See [Copy-and-Swap idiom](../copy_constructor_move_constructor.md#8-copy-and-swap-idiom).
 
 # 4. `noexcept` and the Move Question
 
@@ -157,7 +157,7 @@ int main() {
 
 - *Exceptional C++*, Herb Sutter — the foundational reference.
 - *Generic<Programming>: Exception-Safety Analysis*, Andrei Alexandrescu.
-- [Copy-and-Swap idiom](../copy-and-swap_idiom.md)
+- [Copy-and-Swap idiom](../copy_constructor_move_constructor.md#8-copy-and-swap-idiom)
 - [RAII](../RAII.md)
 - [Stack Unwinding](../stack_unwinding.md)
 - [Error Handling Strategies](error_handling_strategies.md)

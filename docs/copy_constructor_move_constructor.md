@@ -1,327 +1,324 @@
-```cpp
-struct wallet {
-  int m_id = 0;
-  int m_size = 0;
-  double* m_data = nullptr;
-  };
-```
+# Copy and move semantics: constructors, assignment, the Rule of 5
 
-# Copy Constructor
+When a class owns a resource — heap memory, a file handle, a socket, a GPU buffer, a CAN bus handle — you need to decide what happens when an object is **copied**, **moved**, or **destroyed**. Get any one of those wrong and you get double-frees, leaks, dangling pointers, or silent data corruption.
 
-## When the **copy constructor** is called
+This page covers the five special member functions you'll define together, plus the surrounding machinery you can't avoid: shallow vs. deep copies, temporaries and elision, the copy-and-swap idiom, and `noexcept`.
 
-The copy constructor is invoked when **a new `wallet` object is created from an existing one**.
-
----
-
-## 1) Copy-initialization
-
-```cpp
-wallet a(1, 10);
-wallet b = a;              // copy ctor
-```
+- [1. Setup: a resource-owning class](#1-setup-a-resource-owning-class)
+- [2. Shallow copy vs. deep copy](#2-shallow-copy-vs-deep-copy)
+- [3. Copy constructor](#3-copy-constructor)
+- [4. Copy assignment operator](#4-copy-assignment-operator)
+- [5. Move constructor](#5-move-constructor)
+- [6. Move assignment operator](#6-move-assignment-operator)
+- [7. Rule of 0 / Rule of 3 / Rule of 5](#7-rule-of-0--rule-of-3--rule-of-5)
+- [8. Copy-and-swap idiom](#8-copy-and-swap-idiom)
+- [9. Temporary objects](#9-temporary-objects)
+- [10. `noexcept` on moves — and why it matters](#10-noexcept-on-moves--and-why-it-matters)
 
 ---
 
-## 2) Direct-initialization
+## 1. Setup: a resource-owning class
+
+A trajectory buffer owning a heap array. Every special-member-function example below uses this:
 
 ```cpp
-wallet a(1, 10);
-wallet b(a);               // copy ctor
+class Trajectory {
+public:
+    Trajectory() = default;
+    explicit Trajectory(std::size_t n)
+        : size_{n}, data_{new double[n]} {}
+
+    ~Trajectory() { delete[] data_; }
+
+    // copy, copy-assign, move, move-assign — defined in the sections below
+
+    std::size_t size() const { return size_; }
+    double*     data()       { return data_; }
+
+private:
+    std::size_t size_ = 0;
+    double*     data_ = nullptr;
+};
 ```
 
----
+Because `Trajectory` manually manages `data_`, the compiler-generated copy/move would do the wrong thing (see §2). We have to write all five.
 
-## 3) Pass-by-value into a function
+## 2. Shallow copy vs. deep copy
+
+A **shallow copy** copies pointer values, not what they point to — two objects end up referring to the same buffer.
+
+```
+   src                         dst (shallow copy)
+   ┌───────────┐               ┌───────────┐
+   │ size=3    │               │ size=3    │
+   │ data ────►│ [a][b][c]  ◄──│──── data  │
+   └───────────┘               └───────────┘
+```
+
+When either object's destructor runs, it deletes the buffer — and the other object's `data_` is dangling. Touching it is undefined behavior. The **next** destructor frees the same buffer again → double-free, a crash on glibc.
+
+A **deep copy** allocates a fresh buffer and copies the contents:
+
+```
+   src                         dst (deep copy)
+   ┌───────────┐               ┌───────────┐
+   │ size=3    │               │ size=3    │
+   │ data ────►│ [a][b][c]     │ data ────►│ [a][b][c]
+   └───────────┘               └───────────┘
+```
+
+For raw-owning classes you have to write the deep copy yourself. For classes built from `std::vector`, `std::string`, `std::unique_ptr`, etc., the standard types' copy/move already do the right thing — that's the Rule of 0 (§7).
+
+## 3. Copy constructor
+
+Creates a **new** object from an existing lvalue.
 
 ```cpp
-wallet f(wallet w) {
-  return w;
+Trajectory::Trajectory(const Trajectory& other)
+    : size_{other.size_}, data_{new double[other.size_]}
+{
+    std::copy(other.data_, other.data_ + size_, data_);
 }
-
-wallet a(1, 10);
-wallet b = f(a);           // copy ctor into parameter
 ```
 
----
-
-## 4) Return-by-value (copy elision may apply)
+It runs in five canonical situations:
 
 ```cpp
-wallet make() {
-  wallet t(7, 70);
-  return t;                // elided or move ctor
+Trajectory a(10);
+
+Trajectory b = a;            // 1. copy-initialization
+Trajectory c(a);             // 2. direct-initialization
+void f(Trajectory t);        // 3. pass-by-value
+f(a);                        //    — copy ctor invoked on parameter
+
+std::vector<Trajectory> v;   // 4. container insertion
+v.push_back(a);              //    — copy ctor unless we have a non-throwing move
+
+auto lam = [a]() { /*...*/ };// 5. lambda capture by value
+```
+
+For return-by-value, copy elision (NRVO/RVO) usually skips the copy — see §9.
+
+## 4. Copy assignment operator
+
+Overwrites an **already-constructed** object with the contents of another.
+
+The straightforward form, with the self-assignment check and resource swap:
+
+```cpp
+Trajectory& Trajectory::operator=(const Trajectory& other) {
+    if (this == &other) return *this;            // self-assignment guard
+    delete[] data_;                              // release current resource
+    size_ = other.size_;
+    data_ = new double[size_];                   // allocate fresh
+    std::copy(other.data_, other.data_ + size_, data_);
+    return *this;
 }
 ```
 
----
+Two problems with this form:
+- **Not exception-safe.** If `new double[size_]` throws, you've already `delete[]`-ed the old buffer. The object is left in a half-destroyed state.
+- **Easy to get wrong.** The self-assignment check, the order of operations, and the duplicated allocation logic are all easy to mis-author.
 
-## 5) Lambda capture by value
-
-```cpp
-wallet a(1, 10);
-
-auto lam = [a]() { };      // copy ctor into closure
-```
-
----
-
-## 6) Copying into containers
+The **copy-and-swap idiom** (§8) sidesteps both.
 
 ```cpp
-std::vector<wallet> v;
-wallet a(1, 10);
-
-v.push_back(a);            // copy ctor
+Trajectory a(10), b(20);
+b = a;                       // copy assignment — b now mirrors a
+a = a;                       // safe no-op with the guard above
+v[1] = v[0];                 // copy-assignment between container elements
 ```
 
----
+## 5. Move constructor
 
-# Copy Assignment Operator
-
-The copy assignment operator is used when an **already-existing object** is overwritten.
-
----
-
-## 1) Simple assignment
+Creates a new object by **stealing** resources from an rvalue. The source is left in a valid but unspecified state — usually empty, so its destructor harmlessly frees nothing.
 
 ```cpp
-wallet a(1, 10);
-wallet b(2, 20);
-
-b = a;                     // copy assign
+Trajectory::Trajectory(Trajectory&& other) noexcept
+    : size_{other.size_}, data_{other.data_}
+{
+    other.size_ = 0;
+    other.data_ = nullptr;     // critical — otherwise both destructors free the same buffer
+}
 ```
-
----
-
-## 2) Self-assignment
 
 ```cpp
-wallet a(1, 10);
-a = a;                     // safe no-op
+Trajectory a(10);
+Trajectory b = std::move(a);          // explicit move; a is now empty
+Trajectory c = Trajectory(20);        // construction from temporary — usually elided to direct construction
+Trajectory d = f(Trajectory(30));     // move into parameter, then back out
+v.push_back(Trajectory(40));          // move into container
 ```
 
----
+The `noexcept` is not decorative — see §10.
 
-## 3) Assignment inside containers
+## 6. Move assignment operator
+
+Overwrites an existing object using an rvalue's resources.
 
 ```cpp
-std::vector<wallet> v;
-v.emplace_back(1, 10);
-v.emplace_back(2, 20);
-
-v[1] = v[0];               // copy assign
+Trajectory& Trajectory::operator=(Trajectory&& other) noexcept {
+    if (this == &other) return *this;
+    delete[] data_;                  // release current resource
+    size_ = other.size_;
+    data_ = other.data_;
+    other.size_ = 0;
+    other.data_ = nullptr;
+    return *this;
+}
 ```
-
----
-
-# Move Constructor
-
-The move constructor creates a **new object by stealing resources** from an rvalue.
-
----
-
-## 1) Explicit move
 
 ```cpp
-wallet a(1, 10);
-wallet b = std::move(a);   // move ctor
+Trajectory a(10), b(20);
+b = std::move(a);                    // b takes a's buffer; a is empty
+v[1] = std::move(v[0]);              // move between container slots
 ```
 
----
+## 7. Rule of 0 / Rule of 3 / Rule of 5
 
-## 2) Constructing from a temporary
+| Rule | What it says | When it applies |
+|---|---|---|
+| **Rule of 0** | Define **none** of the five and let the compiler generate them. | Your class is built from RAII types (`std::vector`, `std::string`, `std::unique_ptr`, smart pointers) that already handle their own copy/move/destroy. |
+| **Rule of 3** (pre-C++11) | If you define any of {destructor, copy ctor, copy assign}, define **all three**. | Older code; manual resource management. |
+| **Rule of 5** (C++11+) | If you define any of {destructor, copy ctor, copy assign, move ctor, move assign}, define **all five**. | A class that owns a non-RAII resource (raw pointer, FILE*, mmap handle, socket fd). |
+
+The deeper intuition: the compiler-generated versions are correct when the **member-wise** copy/move/destroy is correct — and that's the case if every member knows how to copy/move/destroy itself. A raw owning pointer doesn't, so the moment you have one (or a manual destructor), you've broken member-wise correctness and need to provide all five.
+
+**Rule of 0 in practice.** This trajectory class needs no special members:
 
 ```cpp
-wallet b = wallet(2, 20);  // elided or move ctor
+class Trajectory {
+    std::vector<double> data_;       // copy/move/destroy already correct
+};
 ```
 
----
+You get correct copy, move, and destruction for free — and the compiler will be much better at optimizing them than your hand-written versions.
 
-## 3) Pass-by-value with rvalue
+When you must write all five, here's a reference for `Trajectory` from above:
 
 ```cpp
-wallet b = f(wallet(3, 30)); // move ctor
+class Trajectory {
+public:
+    Trajectory() = default;
+    explicit Trajectory(std::size_t n);
+    ~Trajectory();                                       // 1. destructor
+
+    Trajectory(const Trajectory& other);                 // 2. copy ctor
+    Trajectory& operator=(const Trajectory& other);      // 3. copy assign
+    Trajectory(Trajectory&& other) noexcept;             // 4. move ctor
+    Trajectory& operator=(Trajectory&& other) noexcept;  // 5. move assign
+
+private:
+    std::size_t size_ = 0;
+    double*     data_ = nullptr;
+};
 ```
 
----
-
-## 4) Containers
+If you want some but not all of these, be explicit:
 
 ```cpp
-std::vector<wallet> v;
-v.push_back(wallet(4, 40)); // move ctor
+class NonCopyable {
+public:
+    NonCopyable(const NonCopyable&)            = delete;
+    NonCopyable& operator=(const NonCopyable&) = delete;
+    NonCopyable(NonCopyable&&) noexcept        = default;
+    NonCopyable& operator=(NonCopyable&&) noexcept = default;
+};
 ```
 
----
+See [default_constructors_=default_0_delete.md](default_constructors_=default_0_delete.md) for the `= default` / `= delete` mechanics.
 
-# Move Assignment Operator
+## 8. Copy-and-swap idiom
 
-Move assignment overwrites an **existing object** using an rvalue.
-
----
-
-## 1) Assigning from `std::move`
+A clever rewrite of the copy assignment operator that gets you exception safety, self-assignment correctness, and DRY-ness with the copy constructor — all in three lines.
 
 ```cpp
-wallet a(1, 10);
-wallet b(2, 20);
+class Trajectory {
+public:
+    // ... ctors / dtor as before ...
 
-b = std::move(a);          // move assign
+    // unified assignment: takes by value, so the parameter is already a copy
+    Trajectory& operator=(Trajectory other) noexcept {     // takes by VALUE
+        swap(*this, other);                                // member-wise swap, can't throw
+        return *this;
+    }                                                       // `other` (holds OLD data) dies here
+
+    friend void swap(Trajectory& a, Trajectory& b) noexcept {
+        using std::swap;
+        swap(a.size_, b.size_);
+        swap(a.data_, b.data_);
+    }
+};
 ```
 
----
+Why this works:
 
-## 2) Container element move assignment
+- **Pass-by-value** forces a copy of the rhs *before* the function body runs. If that copy throws (e.g. `bad_alloc`), the call site sees the exception and `*this` is untouched — **strong exception guarantee**.
+- The body just swaps pointers — `noexcept`. The old buffer is in `other` after the swap, and `other`'s destructor frees it at function exit.
+- One implementation handles **both** copy and move assignment — when called with an rvalue, the parameter is move-constructed (free), then swapped. No duplicated logic.
+- Self-assignment is fine: the copy is independent, so swapping doesn't lose anything.
+
+The "traditional" assignment in §4 is shorter to read but harder to get right. Most modern C++ guides recommend copy-and-swap for any non-trivial owning class — and Rule of 0 when you can use it.
+
+## 9. Temporary objects
+
+A **temporary** is an unnamed object the compiler creates while evaluating an expression. They show up:
 
 ```cpp
-v[1] = std::move(v[0]);    // move assign
+// 1. Function return value
+Trajectory make() { return Trajectory(7); }   // temporary returned, destroyed at end of statement
+auto t = make();
+
+// 2. Implicit conversion
+void take(const Trajectory& t);
+take(Trajectory(10));                          // temporary constructed for the call
+
+// 3. Composite expressions
+Complex a(1,2), b(3,4), c(5,6);
+Complex sum = a + b + c;                       // (a+b) produces a temporary; that + c produces another
 ```
 
----
+By default each temporary calls a constructor and a destructor — potentially expensive. Modern C++ erases most of that cost through **copy elision** and **move semantics**:
 
-# Easy Rules to Remember
+- **NRVO / RVO.** A function returning a value by name (`return t;`) or by prvalue (`return Trajectory(7);`) constructs the result directly in the caller's storage. No copy, no move, no temporary.
+- **Mandatory elision (C++17).** Initializing from a prvalue is guaranteed elision: `Trajectory t = Trajectory(7);` is exactly one constructor call. There **is no** temporary — it's not just optimized away, the standard says it never existed.
+- **Move-from-temporary.** When elision can't apply, the temporary is an rvalue, so the move constructor (if available) is invoked instead of the copy constructor.
 
-- ✅ Copy constructor → new object from lvalue
-- ✅ Copy assignment → overwrite existing object
-- ✅ Move constructor → new object from rvalue
-- ✅ Move assignment → overwrite existing object from rvalue
+Pre-C++17, you could observe the elision in a debugger; post-C++17, the language guarantees the program behaves as if elision happened, and a debugger can't tell the difference because there's no copy/move call to break on.
 
----
+See [copy_elision.md](copy_elision.md) for the full set of cases (NRVO, RVO, mandatory elision, conditional elision).
 
-# Rule of Five
+## 10. `noexcept` on moves — and why it matters
 
-If you **define any one** of the following, you should define **all five**:
+`noexcept` is a promise: if an exception escapes the function, `std::terminate()` is called. For move operations the promise has teeth: **standard library containers will not move your objects unless the move is `noexcept`** — they'll copy instead, to preserve the strong exception guarantee during reallocation.
 
-* destructor
-* copy constructor
-* copy assignment
-* move constructor
-* move assignment
-
-Otherwise, define **none** and rely on defaults.
-
----
-
-
-
-### Core rules for `noexcept` (practical, Rule-of-5 context)
-
-`noexcept` is a **promise**: if an exception escapes, the program calls `std::terminate()`. So you add it when you are confident the function cannot throw, and when it improves behavior/performance (especially in the standard library).
-
----
-
-## Where you should almost always add `noexcept` in your `wallet`-style class
-
-### 1) Destructor: `~wallet() noexcept`
-
-* **Why**: Throwing from a destructor during stack unwinding is fatal (terminates). Also, standard library types assume destructors don’t throw.
-* In your class, `delete[]` does not throw, and `std::cout` *can* throw if exceptions are enabled on the stream, so if you keep `std::cout` in destructors, it weakens the “can’t throw” guarantee.
-
-**Rule**: In production code, keep destructors non-throwing and avoid throwing operations inside them. Mark them `noexcept` (or just default them).
-
-### 2) Move constructor: `wallet(wallet&&) noexcept`
-
-* **Why (big one)**: Containers like `std::vector` will prefer **moving during reallocation** only if the move ctor is `noexcept` (or if copying is not available). Otherwise they may copy to preserve the strong exception guarantee.
-* If your move is basically “steal pointers, null out rhs”, it’s naturally non-throwing.
-
-### 3) Move assignment: `wallet& operator=(wallet&&) noexcept`
-
-* **Why**: Same reason: enables faster reallocation/moves and better container behavior.
-* Also signals your move assignment is safe to use in many generic contexts.
-
-### 4) `swap` (if you had one) and other low-level operations
-
-* If you provide a `swap`, make it `noexcept`. It’s commonly used by algorithms and can affect optimizations.
-
----
-
-## Where you usually **should not** add `noexcept` in this class
-
-### 1) Copy constructor and copy assignment
-
-They allocate memory (`new[]`). Allocation can throw `std::bad_alloc`.
-
-So generally:
-
-* `wallet(const wallet&)` ❌ not `noexcept`
-* `wallet& operator=(const wallet&)` ❌ not `noexcept`
-
-(Unless you use a custom allocator or design that truly cannot throw, which is uncommon.)
-
-### 2) Regular constructors that allocate
-
-Same reason: `new` can throw.
-
----
-
-## A simple checklist you can apply
-
-### Add `noexcept` when:
-
-1. The function **does not allocate** and does not call anything that can throw.
-2. It’s a **move operation** or **destructor** or **swap** for a type that might go into containers.
-3. You want to enable standard library optimizations and strong guarantees during reallocation.
-
-### Don’t add `noexcept` when:
-
-1. The function may allocate (`new`, `std::vector` growth, etc.).
-2. It calls user-provided callbacks / virtual functions / code you don’t control.
-3. You’re not sure. (Because a wrong `noexcept` turns exceptions into termination.)
-
----
-
-## In your `wallet` context: what should be `noexcept`?
-
-### ✅ Good:
+That means a missing `noexcept` on `Trajectory(Trajectory&&)` silently turns every `vector<Trajectory>` growth into deep copies. On a 10,000-element trajectory log, that's an O(n²) catastrophe instead of O(n).
 
 ```cpp
-wallet(wallet&&) noexcept;
-wallet& operator=(wallet&&) noexcept;
-~wallet() noexcept;
+// ✅ Worth marking noexcept — these can't throw:
+Trajectory(Trajectory&&) noexcept;            // just steals pointers
+Trajectory& operator=(Trajectory&&) noexcept; // ditto
+~Trajectory() noexcept;                       // delete[] is non-throwing
+friend void swap(Trajectory&, Trajectory&) noexcept;
+
+// ❌ Don't mark noexcept — these can throw bad_alloc:
+Trajectory(const Trajectory&);
+Trajectory& operator=(const Trajectory&);
+explicit Trajectory(std::size_t);             // allocates
 ```
 
-### ❌ Usually not:
+A simple checklist:
 
-```cpp
-wallet(const wallet&);            // allocates
-wallet& operator=(const wallet&); // allocates
-wallet(int id, int size);         // allocates
-```
+- **Add `noexcept` when** the function doesn't allocate and doesn't call anything that throws.
+- **Add `noexcept` on move ops and swap** if you ever put the type in a standard container — this is the single highest-leverage `noexcept` in your codebase.
+- **Don't add `noexcept` to copy ops** that allocate; let `bad_alloc` propagate.
+- **If unsure, don't.** A wrong `noexcept` turns a recoverable exception into termination.
 
----
+### Destructors
 
-## “Destructor is `noexcept` implicitly, right?”
+Destructors are **implicitly `noexcept`** in C++11+ unless something inside is potentially-throwing. You can rely on that without writing it. But:
 
-Yes, with an important nuance:
+- If a destructor *does* throw during stack unwinding (e.g. from a nested exception), `std::terminate` runs.
+- Don't do throwing work in destructors — release-only operations (close, free, unlock) should be non-throwing by nature.
 
-* In modern C++ (since C++11), destructors are **implicitly `noexcept(true)` by default** *unless* something in the destructor’s exception specification makes it potentially throwing.
-* So `~wallet()` is effectively non-throwing by default.
-
-But two practical points:
-
-1. **If an exception escapes a destructor**, the program terminates anyway. So “implicitly noexcept” doesn’t mean “safe to throw”; it means “you must not let exceptions escape.”
-2. If you put code inside the destructor that can throw (like I/O with exceptions enabled), then:
-
-   * Either the compiler may treat it as potentially throwing (depending on what you call),
-   * Or you still end up with `std::terminate()` if an exception escapes.
-
-**Best practice**:
-
-* In teaching code, printing in destructors is fine.
-* In production code, don’t do throwing work in destructors; keep them simple and `noexcept`.
-
----
-
-## One subtle but important standard-library behavior (why you care)
-
-When `std::vector<wallet>` grows, it must relocate elements. It chooses between:
-
-* **move elements** if `wallet`’s move constructor is `noexcept`
-* otherwise it may **copy** (slower) to preserve guarantees
-
-So for performance and behavior in containers, this is the critical one:
-
-✅ `wallet(wallet&&) noexcept` is often the difference between fast moves vs deep copies during vector growth.
-
----
+[code](../src/copy_constructor_move_constructor.cpp), [code](../src/copy-and-swap_idiom.cpp)

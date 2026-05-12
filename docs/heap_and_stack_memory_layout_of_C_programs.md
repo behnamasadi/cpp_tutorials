@@ -1,205 +1,212 @@
-# Memory Layout of C Programs 
-- [Memory Layout of C Programs](#memory-layout-of-c-programs)
-  * [Text](#text)
-  * [Data](#data)
-  * [BSS](#bss)
+# Memory Layout of C/C++ Programs
+
+- [Memory Layout of C/C++ Programs](#memory-layout-of-cc-programs)
+  * [Overview diagram](#overview-diagram)
+  * [Text (.text)](#text-text)
+  * [Read-only data (.rodata)](#read-only-data-rodata)
+  * [Data (.data)](#data-data)
+  * [BSS (.bss)](#bss-bss)
   * [Heap](#heap)
   * [Stack](#stack)
+  * [Inspecting the layout of a real binary](#inspecting-the-layout-of-a-real-binary)
+  * [Why this matters in robotics / realtime code](#why-this-matters-in-robotics--realtime-code)
 
+A Linux/ELF process splits its virtual address space into several regions. On a robot, knowing where each variable actually lives — flash-backed read-only memory, heap, or thread stack — is the difference between a deterministic 1 kHz control loop and a segfault during a hard stop.
+
+## Overview diagram
+
+Layout for a typical x86-64 Linux process (high addresses at the top). Stack grows down, heap grows up; the gap in between is filled by `mmap` regions (shared libs, large `malloc`s, memory-mapped device files).
 
 ```
+ high address
  ---------------------------------
- |   command line arguments      |
- |   argv[0], argv[1] ...argv[n] |
+ |   kernel space (not yours)    |
  ---------------------------------
- |       Allocated memory        |
- |-------------------------------|<--- frame pointer      ┐
+ |   env vars + argv strings     |
+ ---------------------------------
+ |              STACK            |
+ |-------------------------------| <- frame pointer       ┐
  |        Return Address         |                        |
- |          Arguments            |                        |  stack frame1
- |        Local Variables        |                        |
- |        Saved registers        |                        |
- |-------------------------------|<---- stack pointer     ┘
+ |        Saved registers        |                        |  current stack frame
+ |        Local variables        |                        |
+ |        Spilled arguments      |                        |
+ |-------------------------------| <- stack pointer       ┘
+ |              | grows down     |
+ |              v                |
  |                               |
- |                               |  <-stack frame2
- |-------------------------------|
+ |   mmap region (libs, large    |
+ |   mallocs, /dev/mem, shared   |
+ |   memory, framebuffers, …)    |
  |                               |
- |                               |  <-stack frame3
- |-------------------------------|
- |                               |
- |                               |
- |                               |
- |                               |
- |                               |
- |                               |
+ |              ^                |
+ |              | grows up       |
  |              HEAP             |
- |                               |
- |-------------------------------|            ┐
- |  global/static uninitialized  |            |
- |             data              |            |<- BSS
- |                               |            |
- |-------------------------------|            ┘  ┐
- | global/static initialized data|               |<-  Data
- |-------------------------------|               ┘
- |          Code(Text)           |
- |                               | <- Program counter point to line in this region
- |                               |
+ |-------------------------------|
+ |  .bss (zero-initialized)      |  uninitialized globals/statics
+ |-------------------------------|
+ |  .data (initialized)          |  globals/statics with nonzero initializer
+ |-------------------------------|
+ |  .rodata (read-only)          |  string literals, const tables, vtables
+ |-------------------------------|
+ |  .text (code, read+execute)   |  <- PC points somewhere in here
  ---------------------------------
- |          Reserved             |
- |                               |
- ---------------------------------
+ low address
 ```
 
+`size(1)` reports three columns:
+- `text` — `.text` + `.rodata` + a few small read-only sections
+- `data` — `.data` and friends
+- `bss`  — `.bss`
 
+So when you add a string literal you'll see `text` grow, not `data`.
 
-## Text
+## Text (.text)
 
-All codes in the functions, variable like `char* p1 = "behnam";` go into the code (Text) region which **read only** to prevent a program from accidentally modifying its instructions. A text segment is one of the sections of a program in the memory, which contains executable instructions.
+Machine instructions live here. The pages are mapped **read + execute, no write**, so a stray write through a function pointer faults instead of corrupting code. Optimization, inlining, and `-fno-omit-frame-pointer` all change what shows up in `.text`, but never its read-only status.
 
-
-The "size" command reports the sizes (in bytes) of the Text, Data, and BSS segments. 
-Consider the following code:
 ```cpp
-int main(void)
-{
+int main() { return 0; }
+```
+```
+text    data    bss     dec     hex  filename
+1806    544     8       2358    936  layout
+```
+
+Add a function and `.text` grows:
+```cpp
+void foo() {}
+int main() { return 0; }
+```
+```
+text    data    bss     dec     hex  filename
+1915    544     8       2467    9a3  layout
+```
+
+## Read-only data (.rodata)
+
+String literals, `const` globals, jump tables, and C++ vtables/typeinfo land in `.rodata`. The pages are read-only but **not** executable. `size` lumps `.rodata` into the `text` column, which is what trips most people up.
+
+```cpp
+int main() {
+    char* p1 = "behnam";  // "behnam\0" lives in .rodata; p1 is on the stack
     return 0;
 }
 ```
-
-the size command will return:
-
 ```
-text	   data	    bss	    dec	    hex	filename
-1806	    544	      8	   2358	    936	heap_and_stack_memory_layout_of_C_programs
+text    data    bss     dec     hex  filename
+1829    544     8       2381    94d  layout
 ```
 
-after adding `char* p1 = "behnam";`
+Writing through `p1` segfaults because `.rodata` is read-only:
 ```cpp
-int main(void)
-{
-    char* p1 = "behnam";
-    return 0;
+p1[0] = 'C';   // compiles, SIGSEGV at runtime
+```
+This is also why modern compilers warn (or error with `-Wwrite-strings`) when you assign a literal to `char*` instead of `const char*`.
+
+Reassigning the pointer itself is fine — the pointer variable lives on the stack:
+```cpp
+p1 = "bar";              // OK
+char* const p2 = "foo";
+p2 = "bar";              // error: assignment of read-only variable
+```
+
+In robotics this matters for things like fixed lookup tables (CRC polynomials for CAN frames, sin/cos LUTs for motor commutation, Denavit–Hartenberg parameters) — declare them `constexpr`/`const` so they go to `.rodata` and stay out of cache lines that get dirtied.
+
+## Data (.data)
+
+Globals and `static` locals with a **nonzero** initializer. The image on disk carries the actual bytes, and the loader copies them into a writable page at startup.
+
+```cpp
+static int global_static = 1;
+int        global_var    = 1;
+
+int main() {
+    static int local_static = 1;
 }
 ```
-the size command will return:
+
+Compared to the empty-`main` baseline:
 ```
-text	   data	    bss	    dec	    hex	filename
-1829	    544	      8	   2381	    94d	heap_and_stack_memory_layout_of_C_programs
+text    data    bss     dec     hex
+1855    556     4       2415    96f
 ```
+`data` went up by 12 bytes (three `int`s, padding included); `bss` actually shrank because the compiler can fold/relocate small things differently when more sections exist — exact bytes are toolchain-dependent.
 
+A robotics gotcha: a non-trivial global object (`std::vector<float> trajectory{0, 0.1f, 0.2f, …};`) means its constructor runs **before `main`**, in unspecified order across translation units (the "static initialization order fiasco"). For anything touching hardware, prefer initializing inside `main` (or a `Robot::init()`) so you control the order.
 
-as we add more code:
+## BSS (.bss)
 
-```cpp
-void foo()
-{
-
-}
-
-int main(void)
-{
-    char* p1 = "behnam";
-    return 0;
-}
-```
-the size of the text will grow:
-```
-text	   data	    bss	    dec	    hex	filename
-1915	    544	      8	   2467	    9a3	heap_and_stack_memory_layout_of_C_programs
-```
-
-
-now if we change our code, this will complies:
-```cpp
-p1[0] = 'C';
-```
-but it will cause `segmentation fault` as the variable is on the `code section` and code section is read only
-(`"behnam"`  is a string literal and `p1` holds the starting address of that.)
-
-
-This is allowed (Value of `p1` can be changed):
-```cpp
-p1 = "bar";
-```
-However if we define `p1` as follows:
-```cpp
-char* const p1 = "foo";
-```
-since `p1` is fixed we can not change it and it is not valid:
-```cpp
-p1 = "bar";
-```
-
- 
-
-
-## BSS
-BSS stand for Block Starting Symbol and contains statically allocated variables that are declared but have not been assigned a value yet (uninitialized data).
-
-statically: means that the lifetime (or "extent") of the variable is the entire run of the program. This is in contrast to shorter-lived automatic variables, whose storage is stack allocated and deallocated on the call stack, and in contrast to objects, whose storage is dynamically allocated and deallocated in heap memory.
-
-uninitialized **global variables** and **static variables** are stored in BSS section.
-
+"Block Started by Symbol" — uninitialized (or zero-initialized) globals and statics. The ELF image stores only the *size*, not the bytes; the kernel hands you zeroed pages on first touch. That's why a 100 MB zero-initialized buffer costs nothing on disk.
 
 ```cpp
 static int global_static;
-int global_var;
+int        global_var;
 
-int main(void)
-{
+int main() {
     static int local_static;
 }
 ```
 
-## Data
-
-Data segment contains the global variables and static variables that are **initialized** by the programmer.
-
-```cpp
-static int global_static=1;
-int global_var=1;
-
-int main(void)
-{
-    static int local_static=1;
-}
-```
-
-if we compare the size of empty main
-```
-text	   data	    bss	    dec	    hex	filename
-1806	    544	      8	   2358	    936	heap_and_stack_memory_layout_of_C_programs
-```
-with above code we can see teh difference:
-```cpp
-text	   data	    bss	    dec	    hex	filename
-1855	    556	      4	   2415	    96f	heap_and_stack_memory_layout_of_C_programs
-```
+C and C++ both guarantee these are zero at program start, so don't write `int counter = 0;` at file scope thinking you're being explicit — it actually moves the variable from `.bss` to `.data` and bloats the binary.
 
 ## Heap
-Dynamically allocated variables go here.
+
+Returned by `malloc` / `new` / `mmap`. Grows up toward the mmap region. The allocator (glibc's ptmalloc, jemalloc, mimalloc, …) manages free lists on top of `brk` and `mmap` syscalls; large allocations (typically >128 KB) go straight to `mmap` and bypass the brk-extended heap entirely.
 
 ```cpp
-int main(void)
-{
-    int *p = malloc(sizeof(int)*4);
-    return 0;
-}
+float* trajectory = new float[1000];   // somewhere in the heap
+delete[] trajectory;                   // returned to the allocator, not necessarily to the OS
 ```
+
+Things to watch for in real systems:
+
+- **Fragmentation.** Long-running control nodes that alloc/free variable-sized buffers (point clouds, image frames) can keep the resident set high even after `free`, because freed chunks aren't necessarily contiguous. Reuse buffers, or use pool/arena allocators.
+- **Latency.** `malloc` can block on a mutex, can page-fault, can even call into the kernel. None of that is acceptable inside a 1 kHz control loop — preallocate at init time, then never allocate on the hot path. `mlockall(MCL_CURRENT | MCL_FUTURE)` after that prevents the heap from being paged out.
+- **Leaks.** Detect with Valgrind (`memcheck`) or AddressSanitizer (`-fsanitize=address`). See [memory_leaking_valgrind.md](memory_leaking_valgrind.md).
+- **Use-after-free / double-free.** AddressSanitizer catches these at runtime far more reliably than Valgrind, at a ~2× slowdown.
+
+For deeper coverage see [dynamic_memory_allocation.md](dynamic_memory_allocation.md) and [track_memory_allocations_overriding_new_operator.md](track_memory_allocations_overriding_new_operator.md).
+
 ## Stack
 
-It is a dynamic data structure maintained by OS to control the way procedure calling each other and parameter they pass.
-Call stack maintained for each thread. The actual implementation of a stack depends on the microprocessor architecture.
-It can grow up or down in memory and can move either before or after the push/pop operations
+Each thread gets its own stack. On Linux the default for the main thread is 8 MB (`ulimit -s`); `pthread_create` defaults are smaller (often 2 MB) unless set via `pthread_attr_setstacksize`. The kernel reserves a guard page just below the stack; if your code writes past it (deep recursion, a huge `alignas(64) float buf[1<<20];` local) you get SIGSEGV — see [stack_overflow.md](stack_overflow.md).
 
-stack is used for functions. It is on top of the memory and moves downward. each function will get its own frame.
-Each instance of the function has its own frame. Data that go into frame are:
-1) Arguments
-2) Local variables (object, data structure)
-3) Saved registers.
-In high level languages stack will be managed automatically. In low level languages
-it is being done with stack pointer and  frame pointer.
-Stack pointer:It tell us where is the boundary between allocated and unallocated memory is.
-Frame pointer: is a reference pointer allowing us to know where local variable or an argument starts.
+Each function call pushes a **stack frame** containing:
+1. Return address
+2. Saved callee-saved registers
+3. Local variables
+4. Arguments that didn't fit in registers (on x86-64 SysV: 7th+ integer args, after rdi/rsi/rdx/rcx/r8/r9)
+5. Padding for 16-byte alignment before the next `call`
 
+Two pointers track this:
+- **Stack pointer (rsp)** — top of the stack (lowest valid address since it grows down). The boundary between allocated and unallocated frame space.
+- **Frame pointer (rbp)** — pinned to the start of the current frame so locals can be addressed at fixed offsets like `[rbp-8]`. With `-fomit-frame-pointer` (the default at `-O1+`) the compiler skips this and addresses everything off `rsp`, freeing up a register at the cost of slightly harder unwinding.
 
+The stack is the right place for short-lived, fixed-size data: pose matrices, small ring-buffer indices, the `JointState` you're about to publish. Allocation is free (just an `rsp` subtraction) and deallocation is automatic on return — exactly what you want in a realtime loop.
 
+What does **not** belong on the stack:
+- Large buffers (>~64 KB on a pthread). Put them in `.bss`, the heap, or a pool.
+- Variable-length arrays (`int buf[n]`) — C99-only, banned in C++, and a stack-overflow footgun if `n` comes from a sensor.
+- Anything you need to outlive the function (return a pointer to a local → dangling reference).
+
+For more on RAII, unwinding, and exception safety see [stack_unwinding.md](stack_unwinding.md).
+
+## Inspecting the layout of a real binary
+
+```bash
+size ./robot_node                          # text/data/bss summary
+nm  -S --size-sort ./robot_node            # symbols + sizes, sorted
+readelf -S ./robot_node                    # all sections with flags (A/W/X)
+objdump -h ./robot_node                    # similar, plus VMA/LMA
+cat /proc/$(pidof robot_node)/maps         # live virtual memory map of a running process
+pmap -x $(pidof robot_node)                # resident vs. virtual per region
+```
+
+`readelf -S` is the one to reach for when something "feels like it should be const" but the binary keeps growing — check whether the symbol landed in `.rodata` (flag `A`) or `.data` (flag `WA`).
+
+## Why this matters in robotics / realtime code
+
+- **Determinism:** `.text`/`.rodata`/`.data`/`.bss` sizes are fixed at link time → no runtime allocation, no fragmentation, no page faults after `mlockall`. The hot path of a controller should touch only stack + preallocated heap.
+- **Crashes that look like cosmic rays:** writing through a `char*` to a string literal, or returning a pointer to a stack local, will segfault on a robot in the field but might look fine on your dev box if the page happens to be writable in some build configs. Build with `-fsanitize=address,undefined` in CI.
+- **Binary size on flash-constrained targets:** moving `const` tables to `.rodata` (vs leaving them as runtime-initialized globals) shrinks `.data`, which in turn shrinks the loaded image and the time-to-`main`.
+- **Shared memory IPC:** ROS 2 with `rmw_iceoryx`, or hand-rolled `shm_open` between a realtime node and a logger, places objects in an `mmap`-backed region between the heap and the stack. Those addresses show up in `/proc/<pid>/maps` as a separate range — useful when debugging "why does this pointer not work in the other process."

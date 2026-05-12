@@ -146,7 +146,7 @@ Slowdown is ~2× — perfectly fine for tests. Pair with `-fsanitize=undefined` 
 # 7. See Also
 
 - **[smart_pointers.md](smart_pointers.md)** — `unique_ptr`, `shared_ptr`, `weak_ptr`, custom deleters, breaking cycles.
-- **[shared_ptr_use_cases.md](shared_ptr_use_cases.md)** — twelve concrete patterns where shared ownership is the right tool.
+- **[smart_pointers.md §8](smart_pointers.md#8-when-shared_ptr-is-the-right-tool--12-patterns)** — twelve concrete patterns where shared ownership is the right tool.
 - **[passing_returning_smart_pointers_to_from_functions.md](passing_returning_smart_pointers_to_from_functions.md)** — function-signature rules.
 - **[smart_pointers_class_member.md](smart_pointers_class_member.md)** — owning resources from class members.
 - **[references.md](references.md)** — references, lvalue/rvalue, `reference_wrapper`, `std::ref`/`std::cref`.

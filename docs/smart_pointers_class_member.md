@@ -240,7 +240,7 @@ public:
 };
 ```
 
-If the buffer's only owner is `CacheEntry`, this should be `unique_ptr<Buffer>` instead. Using `shared_ptr` here just to avoid thinking about ownership is the most common smart-pointer mistake. See [shared_ptr_use_cases.md](shared_ptr_use_cases.md) for cases where shared ownership is genuinely the right model.
+If the buffer's only owner is `CacheEntry`, this should be `unique_ptr<Buffer>` instead. Using `shared_ptr` here just to avoid thinking about ownership is the most common smart-pointer mistake. See [smart_pointers.md §8](smart_pointers.md#8-when-shared_ptr-is-the-right-tool--12-patterns) for cases where shared ownership is genuinely the right model.
 
 ## 4.2. Thread safety: pointer vs pointee
 
@@ -558,5 +558,5 @@ If you store a polymorphic type via a base-class smart pointer, the base needs a
 
 - **[smart_pointers.md](smart_pointers.md)** — the underlying types and their guarantees.
 - **[passing_returning_smart_pointers_to_from_functions.md](passing_returning_smart_pointers_to_from_functions.md)** — function-signature rules.
-- **[shared_ptr_use_cases.md](shared_ptr_use_cases.md)** — twelve patterns where shared ownership is genuinely the right tool.
+- **[smart_pointers.md §8](smart_pointers.md#8-when-shared_ptr-is-the-right-tool--12-patterns)** — twelve patterns where shared ownership is genuinely the right tool.
 - **[pointers.md](pointers.md)** — raw pointers, dangling, AddressSanitizer.

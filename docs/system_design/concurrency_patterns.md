@@ -473,7 +473,6 @@ Don't use multiple patterns for one problem unless you've measured. Each adds qu
 # References
 
 - [Multithreading](../multithreading.md)
-- [Event handling / Concurrency / Thread Design Patterns](../thread_design_pattern.md)
 - [Lock-Free Data Structures](lock_free_data_structures.md)
 - [Pipeline and Dataflow](pipeline_dataflow.md)
 - *Pattern-Oriented Software Architecture, Vol. 2*, Schmidt et al. (Reactor, Proactor, Active Object, Monitor).
