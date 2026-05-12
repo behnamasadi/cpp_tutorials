@@ -1,149 +1,262 @@
+// Demos that mirror docs/exception_handling.md.
+// Each demo throws inside its own try/catch so main() stays clean.
+
 #include <bitset>
 #include <cmath>
+#include <exception>
 #include <iostream>
-#include <memory>
+#include <new>
 #include <stdexcept>
-#include <string.h>
+#include <string>
+#include <typeinfo>
 #include <vector>
 
-struct Foo {
-  virtual ~Foo() {}
-};
-struct Bar {
-  virtual ~Bar() {}
-};
-
-void bad_allocExample() {
+// --- basic try / catch / catch(...) ----------------------------------------
+void basicTryCatch() {
   try {
+    throw std::runtime_error("something went wrong");
+  } catch (const std::runtime_error& e) {
+    std::cout << "caught runtime_error: " << e.what() << '\n';
+  } catch (...) {
+    std::cout << "caught unknown exception\n";
+  }
+}
+
+// --- std::bad_alloc --------------------------------------------------------
+void badAllocDemo() {
+  try {
+    // Ask for an absurd amount until allocation fails.
     while (true) {
       new int[100000000ul];
     }
-  } catch (const std::bad_alloc &e) {
-    std::cout << "Allocation failed: " << e.what() << '\n';
+  } catch (const std::bad_alloc& e) {
+    std::cout << "bad_alloc: " << e.what() << '\n';
   }
 }
 
-void bad_castExample() {
-  Bar b;
+// --- nothrow new -----------------------------------------------------------
+void nothrowDemo() {
+  // Non-throwing new returns nullptr on failure instead of throwing.
+  int* p = new (std::nothrow) int[100000000ul];
+  if (p == nullptr) {
+    std::cout << "nothrow new returned nullptr\n";
+  } else {
+    std::cout << "nothrow new succeeded\n";
+    delete[] p;
+  }
+}
+
+// --- std::bad_cast ---------------------------------------------------------
+struct A { virtual ~A() {} };
+struct B { virtual ~B() {} };
+
+void badCastDemo() {
+  B b;
   try {
-    Foo &f = dynamic_cast<Foo &>(b);
-  } catch (const std::bad_cast &e) {
-    std::cout << e.what() << '\n';
+    A& a = dynamic_cast<A&>(b);
+    (void)a;
+  } catch (const std::bad_cast& e) {
+    std::cout << "bad_cast: " << e.what() << '\n';
   }
 }
 
-void bad_typeidExample() {
-  Foo *p = nullptr;
+// --- std::bad_typeid -------------------------------------------------------
+struct Poly { virtual void f() {} };
+
+void badTypeidDemo() {
+  Poly* p = nullptr;
   try {
     std::cout << typeid(*p).name() << '\n';
-  } catch (const std::bad_typeid &e) {
-    std::cout << e.what() << '\n';
+  } catch (const std::bad_typeid& e) {
+    std::cout << "bad_typeid: " << e.what() << '\n';
   }
 }
 
-void logical_ErrorExample() {
-  int amount, available;
-  amount = 10;
-  available = 9;
-  if (amount > available) {
-    throw std::logic_error("Error");
-  }
-
-  // second exmple
+// --- std::logic_error ------------------------------------------------------
+void logicErrorDemo() {
   try {
+    int amount = 10, available = 9;
     if (amount > available)
-      throw std::logic_error("logic error");
-  } catch (std::exception &e) {
-    std::cerr << "Caught: " << e.what() << std::endl;
-    std::cerr << "Type: " << typeid(e).name() << std::endl;
-  };
+      throw std::logic_error("amount exceeds available");
+  } catch (std::exception& e) {
+    std::cout << "logic_error: " << e.what()
+              << " (type: " << typeid(e).name() << ")\n";
+  }
 }
 
-void domain_errorExample() {
+// --- std::domain_error -----------------------------------------------------
+void domainErrorDemo() {
   try {
+    // acos is only defined on [-1, 1]; 2.0 is outside the domain.
     const double x = std::acos(2.0);
     std::cout << x << '\n';
-  } catch (std::domain_error &e) {
-    std::cout << e.what() << '\n';
-  } catch (...) {
-    std::cout << "Something unexpected happened" << '\n';
+  } catch (const std::domain_error& e) {
+    std::cout << "domain_error: " << e.what() << '\n';
   }
 }
 
-void invalid_argumentExample() {
+// --- std::invalid_argument -------------------------------------------------
+void invalidArgumentDemo() {
   try {
-    // binary wrongly represented by char X
-    std::bitset<32> bitset(std::string("0101001X01010110000"));
-  } catch (std::exception &err) {
-    std::cerr << "Caught " << err.what() << std::endl;
-    std::cerr << "Type " << typeid(err).name() << std::endl;
+    // 'X' is not a valid binary digit.
+    std::bitset<32> bits(std::string("0101001X01010110000"));
+  } catch (const std::exception& e) {
+    std::cout << "invalid_argument: " << e.what()
+              << " (type: " << typeid(e).name() << ")\n";
   }
 }
 
-void length_errorExample() {
+// --- std::length_error -----------------------------------------------------
+void lengthErrorDemo() {
   try {
-    // vector throws a length_error if resized above max_size
-    std::vector<int> myvector;
-    myvector.resize(myvector.max_size() + 1);
-  } catch (const std::length_error &le) {
-    std::cerr << "Length error: " << le.what() << '\n';
+    std::vector<int> v;
+    v.resize(v.max_size() + 1);
+  } catch (const std::length_error& e) {
+    std::cout << "length_error: " << e.what() << '\n';
   }
 }
 
-void out_of_rangeExample() {
-  std::vector<int> myvector(10);
+// --- std::out_of_range -----------------------------------------------------
+void outOfRangeDemo() {
+  std::vector<int> v(10);
   try {
-    myvector.at(20) = 100; // vector::at throws an out-of-range
-  } catch (const std::out_of_range &oor) {
-    std::cerr << "Out of Range error: " << oor.what() << '\n';
+    v.at(20) = 100;
+  } catch (const std::out_of_range& e) {
+    std::cout << "out_of_range: " << e.what() << '\n';
   }
 }
 
-void overflow_errorExample() {
+// --- std::overflow_error ---------------------------------------------------
+void overflowErrorDemo() {
   try {
-    std::bitset<100> bitset;
-    bitset[99] = 1;
-    bitset[0] = 1;
-    // to_ulong(), converts a bitset object to the integer that would generate
-    // the sequence of bits
-    unsigned long Test = bitset.to_ulong();
-  } catch (std::exception &err) {
-    std::cerr << "Caught " << err.what() << std::endl;
-    std::cerr << "Type " << typeid(err).name() << std::endl;
+    std::bitset<100> bits;
+    bits[99] = 1;
+    bits[0] = 1;
+    // Result does not fit in unsigned long.
+    unsigned long n = bits.to_ulong();
+    (void)n;
+  } catch (const std::exception& e) {
+    std::cout << "overflow_error: " << e.what()
+              << " (type: " << typeid(e).name() << ")\n";
   }
 }
 
-void range_errorExample() {
+// --- std::range_error ------------------------------------------------------
+void rangeErrorDemo() {
   try {
     throw std::range_error("The range is in error!");
-  } catch (std::range_error &e) {
-    std::cerr << "Caught: " << e.what() << std::endl;
-    std::cerr << "Type: " << typeid(e).name() << std::endl;
+  } catch (const std::range_error& e) {
+    std::cout << "range_error: " << e.what() << '\n';
   }
 }
 
-// Defining your exceptions
+// --- catch(...) ------------------------------------------------------------
+void catchAllDemo() {
+  try {
+    throw 42; // not derived from std::exception
+  } catch (const std::exception& e) {
+    std::cout << "std::exception: " << e.what() << '\n';
+  } catch (...) {
+    std::cout << "catch(...) caught a non-std exception\n";
+  }
+}
 
+// --- user-defined exception ------------------------------------------------
 struct CustomException : public std::exception {
-  const char *what() const throw() { return "CustomException happened"; }
+  const char* what() const noexcept override {
+    return "CustomException happened";
+  }
 };
 
-void customExceptionExample() {
+void customExceptionDemo() {
   try {
     throw CustomException();
-  } catch (CustomException &e) {
-    std::cout << "CustomException caught" << std::endl;
-    std::cout << e.what() << std::endl;
-  } catch (std::exception &e) {
-    // Other errors
+  } catch (const std::exception& e) {
+    std::cout << "custom: " << e.what() << '\n';
   }
 }
 
-int main(int argc, char *argv[]) {
-  // assertExample();
-  // stackBufferOverflow();
-  // heapBufferOverflow();
-  // exceptionHandlingExample();
-  // customExceptionExample();
-  // invalid_argumentExample();
+// --- noexcept and stack unwinding ------------------------------------------
+struct Traced {
+  std::string name;
+  Traced(std::string n) : name(std::move(n)) {
+    std::cout << "  ctor " << name << '\n';
+  }
+  ~Traced() noexcept {
+    std::cout << "  dtor " << name << " (unwinding)\n";
+  }
+};
+
+void mayThrow() {
+  Traced a("a");
+  Traced b("b");
+  throw std::runtime_error("boom");
+}
+
+void stackUnwindingDemo() {
+  try {
+    mayThrow();
+  } catch (const std::exception& e) {
+    std::cout << "caught after unwinding: " << e.what() << '\n';
+  }
+}
+
+// --- noexcept function -----------------------------------------------------
+void neverThrows() noexcept {
+  std::cout << "neverThrows() ran\n";
+}
+
+void noexceptDemo() {
+  neverThrows();
+}
+
+// --- main ------------------------------------------------------------------
+int main() {
+  std::cout << "== basic try/catch ==\n";
+  basicTryCatch();
+
+  std::cout << "\n== bad_alloc ==\n";
+  badAllocDemo();
+
+  std::cout << "\n== nothrow new ==\n";
+  nothrowDemo();
+
+  std::cout << "\n== bad_cast ==\n";
+  badCastDemo();
+
+  std::cout << "\n== bad_typeid ==\n";
+  badTypeidDemo();
+
+  std::cout << "\n== logic_error ==\n";
+  logicErrorDemo();
+
+  std::cout << "\n== domain_error ==\n";
+  domainErrorDemo();
+
+  std::cout << "\n== invalid_argument ==\n";
+  invalidArgumentDemo();
+
+  std::cout << "\n== length_error ==\n";
+  lengthErrorDemo();
+
+  std::cout << "\n== out_of_range ==\n";
+  outOfRangeDemo();
+
+  std::cout << "\n== overflow_error ==\n";
+  overflowErrorDemo();
+
+  std::cout << "\n== range_error ==\n";
+  rangeErrorDemo();
+
+  std::cout << "\n== catch(...) ==\n";
+  catchAllDemo();
+
+  std::cout << "\n== custom exception ==\n";
+  customExceptionDemo();
+
+  std::cout << "\n== stack unwinding ==\n";
+  stackUnwindingDemo();
+
+  std::cout << "\n== noexcept ==\n";
+  noexceptDemo();
 }

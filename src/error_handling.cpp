@@ -1,54 +1,44 @@
-#include <errno.h>
+// C-style errno: the old, thread-local integer set by libc on failure.
+// Companion file: error_code.cpp covers the C++ std::error_code side.
+
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
-#include <stdio.h>
-#include <string.h>
-/*
-A lot of C function calls return a -1 or NULL in case of an error, so quick test
-on these return values are easily done with for instance an ‘if statement’.
-
-
-Global Variable errno:
-    When a function is called in C, a variable named as errno is automatically
-assigned a code (value) which can be used to identify the type of error that has
-been encountered. Its a global variable indicating the error occurred during any
-function call and defined in the header file errno.h.
-
-
-Below is a list of few different errno values and its corresponding meaning:
-errno value       Error
-1             Operation not permitted
-2             No such file or directory
-3             No such process
-4             Interrupted system call
-5             I/O error
-6             No such device or address
-7             Argument list too long
-8             Exec format error
-9             Bad file number
-10            No child processes
-11            Try again
-12            Out of memory
-13            Permission denied
-
-
-*/
 
 int main() {
-  FILE *fp;
+    // ---- 1. errno after a failing call ----
+    std::cout << "--- errno after fopen ---\n";
+    std::FILE* fp = std::fopen("missing.txt", "r");
+    if (!fp) {
+        // Save errno immediately: almost anything (even printf) can clobber it.
+        int err = errno;
+        std::cout << "errno = " << err
+                  << " (" << std::strerror(err) << ")\n";
+    }
 
-  fp = fopen("file.txt ", "r");
+    // ---- 2. perror writes "context: message\n" to stderr ----
+    std::cout << "--- perror ---\n";
+    fp = std::fopen("also_missing.txt", "r");
+    if (!fp) {
+        std::perror("open failed");
+    }
 
-  printf("Value of errno: %d\n ", errno);
+    // ---- 3. errno macros vs bare integers ----
+    // Numeric values are platform-specific; always use the macros.
+    std::cout << "--- errno macros ---\n";
+    std::cout << "ENOENT = " << ENOENT
+              << " (" << std::strerror(ENOENT) << ")\n";
+    std::cout << "EACCES = " << EACCES
+              << " (" << std::strerror(EACCES) << ")\n";
+    std::cout << "EAGAIN = " << EAGAIN
+              << " (" << std::strerror(EAGAIN) << ")\n";
 
-  /*
-      strerror(): returns a pointer to the textual representation of the current
-     errno value.
-  */
-  printf("The error message is : %s\n", strerror(errno));
-
-  /*
-      perror: It displays the string you pass to it, followed by a colon, a
-     space, and then the textual representation of the current errno value.
-  */
-  perror("Message from perror");
+    // ---- 4. errno is meaningful only after a failure return ----
+    std::cout << "--- errno is only valid after failure ---\n";
+    errno = 0;
+    fp = std::fopen("missing.txt", "r");
+    if (!fp) {
+        std::cout << "fopen failed, errno = " << errno << "\n";
+    }
 }

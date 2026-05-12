@@ -1,148 +1,60 @@
-/*
-In most object-oriented systems, the concrete function that is called from a
-function call in the code depends on the dynamic type of a single object and
-therefore they are known as single dispatch calls, or simply virtual function
-calls.
-*/
+// Double dispatch: pick a function based on the runtime types of TWO objects.
+// C++ virtual dispatch only resolves one type at a time, so we chain two
+// virtual calls (the visitor pattern) to resolve both.
+//
+// Shape::collideWith does the first dispatch (on *this).
+// Inside each override we call other.collideWithCircle / collideWithRectangle,
+// which is the second dispatch (on the other shape).
+
 #include <iostream>
 
-namespace SingleDispatch {
-class SpaceShip {};
+class Circle;
+class Rectangle;
 
-class ApolloSpaceShip : public SpaceShip {};
-
-class Astroid {
+class Shape {
 public:
-  void virtual collidingWith(SpaceShip &) {
-    std::cout << "Astroid Colliding With SpaceShip" << std::endl;
-  }
-  void virtual collidingWith(ApolloSpaceShip &) {
-    std::cout << "Astroid Colliding With ApolloSpaceShip" << std::endl;
-  }
+  virtual ~Shape() = default;
+  virtual void collideWith(Shape &other) = 0;
+  virtual void collideWithCircle(Circle &) = 0;
+  virtual void collideWithRectangle(Rectangle &) = 0;
 };
 
-class ExplodingAstroid : public Astroid {
+class Circle : public Shape {
 public:
-  void collidingWith(SpaceShip &) override {
-    std::cout << "ExplodingAstroid Colliding With SpaceShip" << std::endl;
+  void collideWith(Shape &other) override { other.collideWithCircle(*this); }
+  void collideWithCircle(Circle &) override {
+    std::cout << "Circle vs Circle\n";
   }
-  void collidingWith(ApolloSpaceShip &) override {
-    std::cout << "ExplodingAstroid Colliding With ApolloSpaceShip" << std::endl;
+  void collideWithRectangle(Rectangle &) override {
+    std::cout << "Rectangle vs Circle\n";
   }
 };
 
-} // namespace SingleDispatch
-
-namespace DoubleDispatch {
-
-class SpaceShip;
-class ApolloSpaceShip;
-class Astroid {
+class Rectangle : public Shape {
 public:
-  void virtual collidingWith(SpaceShip &);
-
-  void virtual collidingWith(ApolloSpaceShip &);
-};
-
-class ApolloSpaceShip;
-
-class ExplodingAstroid : public Astroid {
-public:
-  void collidingWith(SpaceShip &) override;
-
-  void collidingWith(ApolloSpaceShip &) override;
-};
-
-class SpaceShip {
-public:
-  void virtual collidingWith(Astroid *astroid_ptr) {
-    astroid_ptr->collidingWith(*this);
+  void collideWith(Shape &other) override {
+    other.collideWithRectangle(*this);
+  }
+  void collideWithCircle(Circle &) override {
+    std::cout << "Circle vs Rectangle\n";
+  }
+  void collideWithRectangle(Rectangle &) override {
+    std::cout << "Rectangle vs Rectangle\n";
   }
 };
-
-class ApolloSpaceShip : public SpaceShip {
-public:
-  void virtual collidingWith(Astroid *astroid_ptr) {
-    astroid_ptr->collidingWith(*this);
-  }
-};
-
-void Astroid::collidingWith(SpaceShip &) {
-  std::cout << "Astroid Colliding With SpaceShip" << std::endl;
-}
-
-void Astroid::collidingWith(ApolloSpaceShip &) {
-  std::cout << "Astroid Colliding With ApolloSpaceShip" << std::endl;
-}
-
-void ExplodingAstroid::collidingWith(SpaceShip &) {
-  std::cout << "ExplodingAstroid Colliding With SpaceShip" << std::endl;
-}
-
-void ExplodingAstroid::collidingWith(ApolloSpaceShip &) {
-  std::cout << "ExplodingAstroid Colliding With ApolloSpaceShip" << std::endl;
-}
-
-} // namespace DoubleDispatch
 
 int main() {
-  {
-    using namespace SingleDispatch;
-    ApolloSpaceShip apolloSpaceShip;
-    SpaceShip spaceShip;
-    Astroid astroid;
-    ExplodingAstroid explodingAstroid;
+  std::cout << "=== double dispatch demo ===\n";
 
-    std::cout << "The output is correct, function overloading, without using "
-                 "any dynamic dispatch"
-              << std::endl;
-    astroid.collidingWith(apolloSpaceShip);
-    astroid.collidingWith(spaceShip);
+  Circle c;
+  Rectangle r;
 
-    explodingAstroid.collidingWith(apolloSpaceShip);
-    explodingAstroid.collidingWith(spaceShip);
-    std::cout << "------------------------------------------------------"
-              << std::endl;
-  }
+  Shape *a = &c;
+  Shape *b = &r;
 
-  {
-    using namespace SingleDispatch;
-    SpaceShip *apolloSpaceShip_ptr = new ApolloSpaceShip;
-    SpaceShip *spaceShip_ptr = new SpaceShip;
-    Astroid astroid;
-    ExplodingAstroid explodingAstroid;
-
-    std::cout << "The output is wrong, while virtual functions are dispatched "
-                 "dynamically in C++, function overloading is done statically."
-              << std::endl;
-    astroid.collidingWith(*apolloSpaceShip_ptr);
-    astroid.collidingWith(*spaceShip_ptr);
-    explodingAstroid.collidingWith(*apolloSpaceShip_ptr);
-    explodingAstroid.collidingWith(*spaceShip_ptr);
-    std::cout << "------------------------------------------------------"
-              << std::endl;
-  }
-
-  {
-    /*
-    1) In apolloSpaceShip_ptr, C++ looks up the correct method in the vtable. In
-    this case, it will call ApolloSpaceShip::collidingWith(Asteroid*).
-
-    2) ApolloSpaceShip::collidingWith(Asteroid*),
-    astroid_ptr->collidingWith(*this); will result in another vtable lookup.
-    */
-
-    using namespace DoubleDispatch;
-
-    SpaceShip *apolloSpaceShip_ptr = new ApolloSpaceShip;
-    SpaceShip *spaceShip_ptr = new SpaceShip;
-    Astroid *astroid_ptr = new Astroid;
-    Astroid *explodingAstroid_ptr = new ExplodingAstroid;
-
-    spaceShip_ptr->collidingWith(astroid_ptr);
-    spaceShip_ptr->collidingWith(explodingAstroid_ptr);
-
-    apolloSpaceShip_ptr->collidingWith(astroid_ptr);
-    apolloSpaceShip_ptr->collidingWith(explodingAstroid_ptr);
-  }
+  // Each call resolves both runtime types via two virtual lookups.
+  a->collideWith(*b); // Circle vs Rectangle
+  b->collideWith(*a); // Rectangle vs Circle
+  a->collideWith(*a); // Circle vs Circle
+  b->collideWith(*b); // Rectangle vs Rectangle
 }
