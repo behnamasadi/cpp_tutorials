@@ -1,6 +1,7 @@
+#include <algorithm>
 #include <iostream>
-#include <istream>
 #include <random>
+#include <sstream>
 
 class money {
 private:
@@ -10,7 +11,7 @@ public:
   int m_value;
   int *data;
 
-  money(int value = 10) : m_value(value) {
+  explicit money(int value = 10) : m_value(value) {
     std::cout << "Constructor money with m_value: " << m_value << std::endl;
 
     data = new int[m_size];
@@ -32,27 +33,34 @@ public:
     delete[] data;
   }
 
+  // () operator: returns m_value
   double operator()() { return m_value; }
 
-  friend money operator-(const money &t1, int m_value);
+  // friend free-function operators
+  friend money operator-(const money &t1, int value);
   friend std::ostream &operator<<(std::ostream &os, const money &t);
-  friend std::istream &operator>>(std::istream &is, const money &t);
+  friend std::istream &operator>>(std::istream &is, money &t);
 
+  // < operator as a member
   bool operator<(const money &other) const { return m_value < other.m_value; }
 
+  // - operator as a member (money - money)
   money operator-(const money &other) {
-    m_value - other.m_value;
-    return *this;
+    return money(m_value - other.m_value);
   }
 
   // Copy constructor for deep copy
-  money(const money &other) : m_value(other.m_value), m_size(other.m_size) {
+  money(const money &other) : m_size(other.m_size), m_value(other.m_value) {
+    std::cout << "Copy constructor money with m_value: " << m_value
+              << std::endl;
     data = new int[m_size];
     std::copy(other.data, other.data + m_size, data);
   }
 
   // Copy assignment operator for deep copy
   money &operator=(const money &other) {
+    std::cout << "Copy assignment money with m_value: " << other.m_value
+              << std::endl;
     if (this != &other) {
       delete[] data;
 
@@ -65,41 +73,71 @@ public:
   }
 };
 
-money operator-(const money &t1, int m_value) {
-  return money(t1.m_value - m_value);
+// - operator as a non-member friend (money - int)
+money operator-(const money &t1, int value) {
+  return money(t1.m_value - value);
 }
 
+// << operator as a non-member friend: prints the data array
 std::ostream &operator<<(std::ostream &os, const money &t) {
   for (int i = 0; i < t.m_size; i++)
     os << t.data[i] << " ";
   return os;
 }
 
+// >> operator as a non-member friend: reads m_value
 std::istream &operator>>(std::istream &is, money &t) {
   is >> t.m_value;
   return is;
 }
 
+// Demonstrates < implemented outside the class as a free function
 struct cell {
   int index;
   float cost;
-  //  bool operator<(const cell &otherside) { return cost < otherside.cost; }
 };
 
 bool operator<(const cell &lhs, const cell &rhs) { return lhs.cost < rhs.cost; }
 
 int main() {
+  std::cout << "--- () operator ---" << std::endl;
+  money m1(7);
+  std::cout << "m1() = " << m1() << std::endl;
 
-  money money3;
-  std::cout << "Enter the size: " << std::endl;
+  std::cout << "\n--- << operator (prints data array) ---" << std::endl;
+  std::cout << "m1: " << m1 << std::endl;
 
-  // getchar();
-  std::cin >> money3;
-  std::cout << "The operator >> gives you:" << money3 << std::endl;
+  std::cout << "\n--- >> operator (reads m_value) ---" << std::endl;
+  std::istringstream input("42");
+  money m2;
+  input >> m2;
+  std::cout << "m2.m_value after >>: " << m2.m_value << std::endl;
 
-  money money1(7), money2(3);
-  std::cout << "The operator - gives you:" << std::endl;
-  std::cout << money2 - money1 << std::endl;
-  std::cout << "The operator ()  gives you:\n" << money1() << std::endl;
-  std::cout << "The operator () << gives you:\n" << money1 << std::endl;
+  std::cout << "\n--- - operator (member: money - money) ---" << std::endl;
+  money a(10), b(3);
+  money c = a - b;
+  std::cout << "a - b -> m_value: " << c.m_value << std::endl;
+
+  std::cout << "\n--- - operator (friend: money - int) ---" << std::endl;
+  money d = a - 4;
+  std::cout << "a - 4 -> m_value: " << d.m_value << std::endl;
+
+  std::cout << "\n--- < operator (member) ---" << std::endl;
+  std::cout << "b < a ? " << (b < a) << std::endl;
+
+  std::cout << "\n--- < operator (free function on cell) ---" << std::endl;
+  cell c1{0, 2.5f}, c2{1, 1.0f};
+  std::cout << "c1 < c2 ? " << (c1 < c2) << std::endl;
+
+  std::cout << "\n--- copy constructor (deep copy) ---" << std::endl;
+  money e = a;
+  std::cout << "e.m_value: " << e.m_value << std::endl;
+
+  std::cout << "\n--- copy assignment (deep copy) ---" << std::endl;
+  money f;
+  f = a;
+  std::cout << "f.m_value: " << f.m_value << std::endl;
+
+  std::cout << "\n--- end of main, destructors follow ---" << std::endl;
+  return 0;
 }
