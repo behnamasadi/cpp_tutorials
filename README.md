@@ -227,6 +227,7 @@ See **[BUILDING.md](BUILDING.md)** for CMake configuration, Docker usage (includ
 - [Memory Error Detection with AddressSanitizer and Valgrind](docs/memory_leaking_valgrind.md)
 - [Generating and Debugging Dump File](docs/generating_and_debugging_dump_file.md)
 - [Static analysis and linting with clang-tidy](docs/clang_tidy.md)
+- [Running GitHub Actions locally with `act` (test CI before you push)](docs/run_github_actions_locally_with_act.md)
 
 ## Data File Storage Parsing
 
