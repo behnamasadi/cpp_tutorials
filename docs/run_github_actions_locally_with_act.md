@@ -89,6 +89,39 @@ workflow's own `docker build ...` steps work without extra flags.
 
 ---
 
+## 4.5. Mapping the `ubuntu-24.04` runner label
+
+If `act -j build` prints this and does nothing:
+
+```
+[ubuntu-24.04/build] 🚧  Skipping unsupported platform -- Try running with `-P ubuntu-24.04=...`
+```
+
+it means your `act` version has **no default Docker image** for the exact
+runner label this workflow requests (`runs-on: ubuntu-24.04`). Out of the box
+`act` only auto-maps `ubuntu-latest`, `ubuntu-22.04`, and `ubuntu-20.04`, so
+the `ubuntu-24.04` job is skipped. Tell `act` which image to use with `-P`:
+
+```bash
+act -j build -P ubuntu-24.04=catthehacker/ubuntu:act-24.04
+```
+
+`-P` maps a **runner label → Docker image**.
+[`catthehacker/ubuntu:act-*`](https://github.com/catthehacker/docker_images)
+is the community image set `act` already uses by default for the other labels;
+it ships with git, node, curl, etc., so `actions/checkout` and
+`actions/upload-artifact` work. Any image works here, but a bare `ubuntu:24.04`
+is **not** enough — it lacks node/git and `actions/checkout` would fail. Use
+the `catthehacker` image (or the explicit `ghcr.io/catthehacker/ubuntu:act-24.04`).
+
+Make it permanent so plain `act -j build` works — add the mapping to `~/.actrc`:
+
+```bash
+echo '-P ubuntu-24.04=catthehacker/ubuntu:act-24.04' >> ~/.actrc
+```
+
+---
+
 ## 5. The workflow: green locally → push
 
 ```bash
