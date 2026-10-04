@@ -21,11 +21,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Ninja
-        run: brew install ninja
+      # Apple's libc++ lacks std::jthread, std::stop_token and <syncstream>, which
+      # the multithreading demos use; Homebrew's LLVM libc++ has them (syncstream
+      # still behind -fexperimental-library).
+      - name: Install Ninja and LLVM
+        run: brew install ninja llvm
 
       - name: Configure
-        run: cmake --preset ninja-multi
+        run: |
+          LLVM="$(brew --prefix llvm)"
+          export CC="$LLVM/bin/clang" CXX="$LLVM/bin/clang++"
+          export CXXFLAGS="-stdlib=libc++ -fexperimental-library"
+          export LDFLAGS="-L$LLVM/lib/c++ -Wl,-rpath,$LLVM/lib/c++ -fexperimental-library"
+          cmake --preset ninja-multi
 
       - name: Build (Release)
         run: cmake --build --preset ninja-multi-release
