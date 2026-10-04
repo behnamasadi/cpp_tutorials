@@ -1,10 +1,10 @@
 - [Process](#process)
   * [Signals](#signals)
 - [Process vs Thread](#process-vs-thread)
-- [Inter Process Communication (IPC)](#inter-process-communication--ipc-)
+- [Inter Process Communication (IPC)](#inter-process-communication-ipc)
 - [Printing Process Tree](#printing-process-tree)
 - [Process Life Cycle](#process-life-cycle)
-- [Process Control Block (PCB)](#process-control-block--pcb-)
+- [Process Control Block (PCB)](#process-control-block-pcb)
 
   
 # Process 

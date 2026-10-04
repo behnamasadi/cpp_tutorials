@@ -1,6 +1,6 @@
 # Lock-Free Data Structures
 
-This doc builds directly on the atomics and memory-ordering material in [multithreading.md §6](multithreading.md#6-stdatomic). If those concepts aren't comfortable, start there — none of what follows will make sense without them.
+This doc builds directly on the atomics and memory-ordering material in [multithreading.md §6](../multithreading.md#6-stdatomic). If those concepts aren't comfortable, start there — none of what follows will make sense without them.
 
 > **Realistic warning.** Production lock-free queues take experts months to get right and years to fully verify. The code in this doc is correct for the cases shown but you should not deploy hand-rolled lock-free containers without benchmarking, stress-testing, and reviewing memory-order proofs. Real codebases use libraries — see §10.
 
@@ -562,7 +562,7 @@ Mutex-based code doesn't have this problem — only one thread is in the critica
 
 ## 9.1. ABA refresher
 
-Already covered in [multithreading.md §6.5](multithreading.md#65-compare_exchange-and-the-aba-problem) — CAS only checks the value, not whether the value has been recycled in between. Reclamation strategies prevent that recycling from being observable.
+Already covered in [multithreading.md §6.5](../multithreading.md#65-compare_exchange-and-the-aba-problem) — CAS only checks the value, not whether the value has been recycled in between. Reclamation strategies prevent that recycling from being observable.
 
 ## 9.2. Hazard pointers
 
@@ -869,5 +869,5 @@ Lock-free is not always faster than a well-designed mutex queue. Consider mutex-
   - [moodycamel queues](https://github.com/cameron314/concurrentqueue)
   - [rigtorp SPSC/MPMC](https://github.com/rigtorp)
 - **Related docs**
-  - [multithreading.md](multithreading.md) — atomics, memory ordering, ABA, threads.
-  - [smart_pointers.md §7](smart_pointers.md#7-atomic-smart-pointers-c20) — atomic shared_ptr.
+  - [multithreading.md](../multithreading.md) — atomics, memory ordering, ABA, threads.
+  - [smart_pointers.md §7](../smart_pointers.md#7-atomic-smart-pointers-c20) — atomic shared_ptr.

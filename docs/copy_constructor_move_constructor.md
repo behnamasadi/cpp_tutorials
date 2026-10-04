@@ -321,4 +321,4 @@ Destructors are **implicitly `noexcept`** in C++11+ unless something inside is p
 - If a destructor *does* throw during stack unwinding (e.g. from a nested exception), `std::terminate` runs.
 - Don't do throwing work in destructors — release-only operations (close, free, unlock) should be non-throwing by nature.
 
-[code](../src/copy_constructor_move_constructor.cpp), [code](../src/copy-and-swap_idiom.cpp)
+[code](../src/copy_constructor_move_constructor.cpp), [code](../src/copy_and_swap.cpp)

@@ -198,7 +198,7 @@ Base& baseReference = dynamic_cast<Base&> (*basePointer); // Ok.
 
 ## const cast
 
-Refs: [1](//https://www.geeksforgeeks.org/const_cast-in-c-type-casting-operators/)
+Refs: [1](https://www.geeksforgeeks.org/const_cast-in-c-type-casting-operators/)
 
 ## reinterpret cast
 

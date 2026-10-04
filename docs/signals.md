@@ -11,8 +11,8 @@
   * [SIGTERM](#sigterm)
 - [Setting Signal Handler](#setting-signal-handler)
 - [Examples](#examples)
-  * [SIGINT_Handler](#sigint-handler)
-  * [SIGSEGV_Handler](#sigsegv-handler)
+  * [SIGINT_Handler](#sigint_handler)
+  * [SIGSEGV_Handler](#sigsegv_handler)
 - [Raising a Signal](#raising-a-signal)
 
 
