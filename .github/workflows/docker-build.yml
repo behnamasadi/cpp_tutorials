@@ -2,105 +2,70 @@ name: ubuntu-24.04
 
 on:
   push:
-    branches: [main, master, develop] # Trigger on pushes to main branches
+    branches: [master]
     tags:
-      - v*.*.* # Also trigger on version tags for releases
+      - v*.*.*
   pull_request:
-    branches: [main, master] # Also trigger on PRs to main branches
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-24.04
 
     steps:
-      # Step 1: Checkout the repository
-      - uses: actions/checkout@v4
-        name: Checkout the repository
+      - name: Checkout the repository
+        uses: actions/checkout@v7
 
-      # Step 2: Build the Docker image
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag mycpp_image:latest
 
-      # Step 2.5: Verify Docker image and cmake availability
-      - name: Verify Docker image
-        run: |
-          docker run --rm mycpp_image:latest which cmake
-          docker run --rm mycpp_image:latest which ninja
-          docker run --rm mycpp_image:latest cmake --version
-          docker run --rm mycpp_image:latest ninja --version
+      - name: Verify the toolchain in the image
+        run: docker run --rm mycpp_image:latest sh -c "cmake --version && ninja --version && doxygen --version"
 
-      # Step 3: Configure CMake
       - name: Configure CMake
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --preset ninja-multi
+        run: docker run --rm -v "${{ github.workspace }}:/cpp_tutorials" mycpp_image:latest cmake --preset ninja-multi
 
-      # Step 4: Build with CMake
       - name: Build with CMake
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest cmake --build --preset ninja-multi-release
+        run: docker run --rm -v "${{ github.workspace }}:/cpp_tutorials" mycpp_image:latest cmake --build --preset ninja-multi-release
 
-      # Step 5: Verify if build files are generated
-      - name: List build directory contents
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/build
-
-      # Step 6: Generate Doxygen documentation
       - name: Generate Doxygen documentation
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest doxygen /cpp_tutorials/Doxyfile
+        run: docker run --rm -v "${{ github.workspace }}:/cpp_tutorials" mycpp_image:latest doxygen Doxyfile
 
-      # Step 7: Verify if documentation files are generated
-      - name: List documentation directory contents
-        run: docker run --rm -v ${{ github.workspace }}:/cpp_tutorials mycpp_image:latest ls -la /cpp_tutorials/docs
-
-      # Step 8: Upload documentation as an artifact (if files exist)
       - name: Upload documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cpp_documentation
-          path: /cpp_tutorials/docs
-
-      # Step 9: Upload build artifacts as an artifact (if files exist)
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpp_build_output
-          path: /cpp_tutorials/build
+          path: docs/html
+          if-no-files-found: error
 
   release:
     needs: build
     runs-on: ubuntu-24.04
-    if: startsWith(github.ref, 'refs/tags/') # Only run on tag pushes
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
 
     steps:
-      # Step 1: Checkout the repository
-      - uses: actions/checkout@v4
-        name: Checkout the repository
-
-      # Step 2: Create a GitHub release using the version tag (e.g., v1.0.0, v1.0.1)
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download documentation
+        uses: actions/download-artifact@v8
         with:
-          tag_name: ${{ github.ref_name }} # Use just the tag name (e.g., v1.0.0)
-          release_name: Release ${{ github.ref_name }} # Name the release after the tag (e.g., v1.0.0)
-          body: |
-            Release notes for version ${{ github.ref_name }}.
-          draft: false
-          prerelease: false
+          name: cpp_documentation
+          path: html
 
-      # Step 3: Upload build artifacts to release
-      - name: Upload build artifacts to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/build/Release/main # Adjust to your actual file
-          asset_name: main # Adjust this to name the artifact file
-          asset_content_type: application/octet-stream
+      - name: Zip documentation
+        run: zip -qr "cpp_tutorials_docs_${{ github.ref_name }}.zip" html
 
-      # Step 4: Upload documentation to release
-      - name: Upload documentation to release
-        uses: actions/upload-release-asset@v1
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /cpp_tutorials/docs
-          asset_name: cpp_documentation
-          asset_content_type: application/zip
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          files: cpp_tutorials_docs_${{ github.ref_name }}.zip

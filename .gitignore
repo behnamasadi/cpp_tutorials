@@ -4,3 +4,6 @@
 src/sandbox/*
 src/main.cpp
 CMakeLists.txt.user
+
+# Doxygen output (Doxyfile: HTML_OUTPUT)
+docs/html/
