@@ -5,6 +5,7 @@
 // you would use std::generator (C++23) or a library like cppcoro.
 
 #include <coroutine>
+#include <exception>
 #include <iostream>
 #include <optional>
 #include <utility>

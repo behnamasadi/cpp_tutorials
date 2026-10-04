@@ -3,6 +3,7 @@
 // prefer std::jthread (see creating_and_terminating_threads.cpp).
 
 #include <chrono>
+#include <exception>
 #include <iostream>
 #include <syncstream>
 #include <thread>
