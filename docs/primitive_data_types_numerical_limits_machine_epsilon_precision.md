@@ -1,4 +1,4 @@
-- [Fundamental types categories in C++](#fundamental-types-categories-in-c--)
+- [Fundamental types categories in C++](#fundamental-types-categories-in-c)
   * [integral](#integral)
   * [floating point](#floating-point)
   * [void](#void)

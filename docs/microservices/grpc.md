@@ -279,7 +279,7 @@ Run the client in another terminal:
 ./client
 ```
 
-[code](../src/microservices/grpc/)
+[code](../../src/microservices/grpc/)
 
 
 

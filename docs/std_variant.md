@@ -241,4 +241,4 @@ std::expected<User, Err> require_user(UserId id) {
 - **`std::get<T>` is O(N) at compile time, O(1) at runtime.** `std::visit` generates a jump table indexed by `index()` — same cost as a `switch`.
 - **Don't store `std::variant<Base*, Derived*>`.** That's not what variant is for; use a single base pointer with virtual dispatch, or a variant of value types.
 
-[code](../src/std_variant.cpp), [code](../src/std_visit.cpp)
+[code](../src/std_visit.cpp)

@@ -417,7 +417,7 @@ inline int foo::add(int a, int b)
 }
 ```
 
-[code](inline_functions.cpp)
+[code](../src/inline_functions.cpp)
 
 
 # Extern Function

@@ -51,4 +51,4 @@ int main()
 Refs: [1](http://www.yolinux.com/TUTORIALS/ForkExecProcesses.html), [2](http://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/create.html)
 
 
-[code](fork.cpp)
+[code](../src/fork.cpp)

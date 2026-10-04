@@ -600,7 +600,7 @@ const int expected=50;
 it will fail during the **compile** time.
 
 ## constexpr vs inline functions
-Both are used performance improvements.  The [inline functions](inline_functions.md) is keyword that hints to the compiler to expand a function code (to save the overhead time of function call), however expressions are always evaluated at run time. `constexpr`  are evaluated at compile time. Inline functions suggest the compiler to expand at compile time and
+Both are used performance improvements.  The [inline functions](functions.md#inline-function) is keyword that hints to the compiler to expand a function code (to save the overhead time of function call), however expressions are always evaluated at run time. `constexpr`  are evaluated at compile time. Inline functions suggest the compiler to expand at compile time and
 
 ## constexpr vs const 
 `constexpr` is mainly used for optimization. `const` are used to make sure that there are no accidental changes by the method. 

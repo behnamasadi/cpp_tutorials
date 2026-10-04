@@ -10,15 +10,15 @@ Used for: Event handling, asynchronous operations, decoupling function logic.
 
 
 * [1. Function Pointers](#1-function-pointers)
-* [2. Functor (Function Objects)](#2-functor--function-objects-)
-* [3. std::function, std::placeholders, and std::bind](#3-std--function--std--placeholders--and-std--bind)
+* [2. Functor (Function Objects)](#2-functor-function-objects)
+* [3. std::function, std::placeholders, and std::bind](#3-stdfunction-stdplaceholders-and-stdbind)
 * [4. Lambda Functions](#4-lambda-functions)
 * [5. Member Function Pointers](#5-member-function-pointers)
 * [6. Signals and Slots](#6-signals-and-slots)
-* [7. std::invoke](#7-std--invoke)
+* [7. std::invoke](#7-stdinvoke)
 * [8. Packaged Tasks](#8-packaged-tasks)
 * [9. Coroutines](#9-coroutines)
-* [10. Auto-generated operator() from a Captureless Lambda](#10-auto-generated-operator---from-a-captureless-lambda)
+* [10. Auto-generated operator() from a Captureless Lambda](#10-auto-generated-operator-from-a-captureless-lambda)
 
 
 
