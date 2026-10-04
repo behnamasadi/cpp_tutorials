@@ -5,7 +5,7 @@
 //   * struct padding and the cost of bad member ordering
 //   * alignas() on arrays, structs, and per-member (cache-line padding)
 //   * std::hardware_destructive_interference_size (C++17)
-//   * sysconf(_SC_LEVEL1_DCACHE_LINESIZE) at runtime (Linux)
+//   * sysconf(_SC_LEVEL1_DCACHE_LINESIZE) at runtime (Linux), sysctl on macOS
 //
 // The Eigen section of the doc is illustrated with comments only -- Eigen is
 // not linked into this tutorial's build.
@@ -16,6 +16,9 @@
 #include <iostream>
 #include <new>      // std::hardware_destructive_interference_size
 #include <unistd.h> // sysconf
+#ifdef __APPLE__
+#include <sys/sysctl.h> // sysctlbyname
+#endif
 
 // -------- structs from the doc --------
 
@@ -132,9 +135,18 @@ static void demoCacheLines() {
   std::cout << "std::hardware_destructive_interference_size: not provided by this stdlib\n";
 #endif
 
-  // Runtime, Linux.
+  // Runtime: sysconf on Linux, sysctl on macOS.
+#if defined(_SC_LEVEL1_DCACHE_LINESIZE)
   long line = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
   std::cout << "sysconf(_SC_LEVEL1_DCACHE_LINESIZE)          = " << line << '\n';
+#elif defined(__APPLE__)
+  std::int64_t line = 0;
+  std::size_t len = sizeof(line);
+  sysctlbyname("hw.cachelinesize", &line, &len, nullptr, 0);
+  std::cout << "sysctlbyname(\"hw.cachelinesize\")            = " << line << '\n';
+#else
+  std::cout << "runtime cache-line query: not available on this platform\n";
+#endif
 
   std::cout << "sizeof(StraddlingFoo) = " << sizeof(StraddlingFoo)
             << "  (24 bytes -- can straddle a 64-byte line)\n";
