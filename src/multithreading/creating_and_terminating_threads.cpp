@@ -1,6 +1,7 @@
 // Demonstrates §2.1–2.6 of docs/multithreading.md: the different ways to
 // hand a callable to std::jthread.
 
+#include <functional>
 #include <iostream>
 #include <string>
 #include <syncstream>
