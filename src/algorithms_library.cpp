@@ -590,9 +590,16 @@ void parallel_demo() {
   std::iota(v.begin(), v.end(), 0.0);
 
   // Parallel policies on libstdc++ need TBB linked. Use seq for portability.
+#if defined(__cpp_lib_execution)
   std::sort(std::execution::seq, v.begin(), v.end());
   double s = std::reduce(std::execution::seq, v.begin(), v.end(), 0.0);
   std::cout << "reduce(seq) sum [0..999] = " << s << '\n';
+#else
+  // Apple libc++ ships <execution> without the policies.
+  std::sort(v.begin(), v.end());
+  double s = std::reduce(v.begin(), v.end(), 0.0);
+  std::cout << "reduce sum [0..999] = " << s << " (no std::execution here)\n";
+#endif
 }
 
 // =====================================================================

@@ -17,6 +17,8 @@
 #include <numeric>
 #include <vector>
 
+// Feature-test macro: Apple's libc++ ships <execution> without the policies.
+#if defined(__cpp_lib_execution)
 int main() {
   std::vector<int> numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -63,3 +65,9 @@ int main() {
   std::cout << "(par / par_unseq disabled: TBB not linked in this build)\n";
   return 0;
 }
+#else
+int main() {
+  std::cout << "std::execution policies are not provided by this standard "
+               "library (__cpp_lib_execution undefined, e.g. Apple libc++).\n";
+}
+#endif
